@@ -1,0 +1,6 @@
+.idea
+*.pyc
+docker-compose.yml
+data
+data-back
+conf
