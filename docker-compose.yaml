@@ -90,6 +90,8 @@ services:
       - ORG=orderer
       - FABRIC_CA_CLIENT_HOME=/etc/hyperledger/orderer
     command: /bin/bash -c 'python3 scripts/start-orderer.py 2>&1 | tee /data/logs/orderer1-orderer.log; sleep 99999'
+    ports:
+      - 7050:7050
     volumes:
       - ./python-scripts:/scripts
       - ./data:/data

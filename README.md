@@ -46,6 +46,7 @@ The docker-compose use the `net_substra` private network for running its docker,
 127.0.0.1       peer2-owkin
 127.0.0.1       peer1-chu-nantes
 127.0.0.1       peer2-chu-nantes
+127.0.0.1       orderer1-orderer
 ```
 
 Do not hesitate to reboot your machine for updating your new modified hosts values.
