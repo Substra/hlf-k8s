@@ -55,7 +55,7 @@ def joinChannel(peer, org_name):
     # update config path for using right core.yaml
     os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
 
-    # update mspconfigpath and crt/key for getting one in /data
+    # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
     # configAdminLocalMSP(org)
@@ -87,6 +87,9 @@ def updateAnchorPeers():
 
     for org_name in conf['orgs'].keys():
         org = conf['orgs'][org_name]
+        org_admin_home = org['admin_home']
+        org_admin_msp_dir = org_admin_home + '/msp'
+        orderer = conf['orderers']['orderer']
 
         peer = org['peers'][0]
         print('Updating anchor peers for %(peer_host)s ...' % {'peer_host': org['peers'][0]['host']}, flush=True)
@@ -94,15 +97,25 @@ def updateAnchorPeers():
         # update config path for using right core.yaml
         os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
 
+        # update mspconfigpath for getting the one in /data
+        os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
+
         call(['peer',
               'channel', 'update',
               '-c', conf['misc']['channel_name'],
-              '-f', org['anchor_tx_file']
+              '-f', org['anchor_tx_file'],
+              '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
+              '--tls',
+              '--clientauth',
+              '--cafile', orderer['tls']['certfile'],
+              # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
+              '--keyfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',  # for orderer
+              '--certfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
               ])
 
         # clean env variables
         del os.environ['FABRIC_CFG_PATH']
-
+        del os.environ['CORE_PEER_MSPCONFIGPATH']
 
 
 def installChainCode(org_name, peer):

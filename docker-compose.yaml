@@ -204,7 +204,6 @@ services:
       - ./python-scripts:/scripts
       - ./data:/data
       - ../substra-chaincode:/opt/gopath/src/github.com/hyperledger/chaincode
-      - /src/github.com/hyperledger/fabric:/opt/gopath/src/github.com/hyperledger/fabric
 
       # needed for revoking user
       - ./conf/owkin/fabric-ca-client-config.yaml:/data/orgs/owkin/admin/fabric-ca-client-config.yaml
