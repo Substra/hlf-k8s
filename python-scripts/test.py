@@ -10,7 +10,7 @@ org = conf['orgs'][org_name]
 org_user_home = org['user_home']
 org_user_msp_dir = org_user_home + '/msp'
 peer = org['peers'][0]
-args = '{"Args":["queryObjects","problem"]}'
+args = '{"Args":["queryAllProblems"]}'
 
 # update config path for using right core.yaml
 os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']

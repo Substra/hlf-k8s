@@ -279,17 +279,18 @@ def queryChaincodeFromFirstPeerFirstOrg():
     starttime = int(time.time())
     while int(time.time()) - starttime < 15:
         call(['sleep', '1'])
-        data = chainCodeQueryWith('{"Args":["queryObjects","problem"]}',
+        data = chainCodeQueryWith('{"Args":["queryAllProblems"]}',
                                  org_name,
                                  peer)
-        # data should be [{"docType":"problem","key":"problem_0","sizeTrainDataset":1,"storageAddress":"97d10b05-d37f-4b8e-b701-9ebe93fd2161","testData":["data_0"]},{"docType":"problem","key":"problem_1","sizeTrainDataset":2,"storageAddress":"3fbfe8d5-bfa9-4924-90e2-b11a89faf735","testData":["data_0"]}]
-        if isinstance(data, list) and len(data) == 2:
+        # data should be null
+        print(data is None, flush=True)
+        if data is None:
             print('Correctly initialized', flush=True)
             return True
 
         print('.', end='', flush=True)
 
-    print('Failed to query chaincode with initialized values', flush=True)
+    print('/!\ Failed to query chaincode with initialized values', flush=True)
     return False
 
 
@@ -301,10 +302,10 @@ def queryChaincodeFromSecondPeerSecondOrg():
     starttime = int(time.time())
     while int(time.time()) - starttime < 15:
         call(['sleep', '1'])
-        data = chainCodeQueryWith('{"Args":["queryObjects","problem"]}',
+        data = chainCodeQueryWith('{"Args":["queryAllProblems"]}',
                                   org_name,
                                   peer)
-        if isinstance(data, list) and len(data) == 3:
+        if isinstance(data, list) and len(data) == 1:
             print('Correctly added and got', flush=True)
             return True
 
@@ -349,10 +350,30 @@ def invokeChainCode(args, org, peer):
 
 
 def invokeChaincodeFirstPeerFirstOrg():
-    args = '{"Args":["registerProblem", "e568587d-572c-4714-8084-378ed50d1c52", "2", "0pa81bfc-b5f4-5ba2-b81a-b464248f02a1, 0kk81bfc-b5f4-5ba2-b81a-b464248f02e3"]}'
     org_name = 'owkin'
     org = conf['orgs'][org_name]
     peer = org['peers'][0]
+
+    # should fail
+    args = '{"Args":["registerDataset","liver slide"]}'
+    invokeChainCode(args, org, peer)
+
+    # create dataset
+    args = '{"Args":["registerDataset","liver slide","do1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","https://toto/dataset/42234/opener","images","8d4bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482eee","https://toto/dataset/42234/description","","all"]}'
+    invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for dataset to be created', flush=True)
+    call(['sleep', '3'])
+
+    # create data
+    args = '{"Args":["registerData","da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, da2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","dataset_do1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","100","true"]}'
+    invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for data to be created', flush=True)
+    call(['sleep', '3'])
+
+    # create problem
+    args = '{"Args":["registerProblem", "MSI classification", "5c1d9cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b379", "https://toto/problem/222/description", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://toto/problem/222/metrics", "data_da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
     invokeChainCode(args, org, peer)
 
 
