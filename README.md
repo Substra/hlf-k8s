@@ -8,6 +8,12 @@ The owkin and chu-nantes organizations have each one 2 peers named peer1 and pee
 
 Each organization has a root ca instance for dealing with the users.
 
+> :warning: This project is under active development. Please, wait some times before using it...
+
+## License
+
+This project is developed under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](./LICENSE) file.
+
 ## Launch
 
 ### get docker images
@@ -69,8 +75,3 @@ Two choices :
     You are ready to use the substrabac backend with this ledger network.
 
 - Run the python file `get_conf_from_network.py` in the substrabac project for copying needed files.
-
-
-## License
-
-This project is developed under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](./LICENSE) file.

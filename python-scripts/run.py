@@ -253,19 +253,21 @@ def chainCodeQueryWith(arg, org_name, peer):
         output = e.output.decode()
         print(output)
     else:
+        print(output, flush=True)
         try:
             value = output.split(': ')[1].replace('\n', '')
             value = json.loads(value)
         except:
-            # clean env variables
-            clean_env_variables()
-            return output
+            value = output
         else:
             msg = 'Query of channel \'%(channel_name)s\' on peer \'%(peer_host)s\' was successful' % {
                 'channel_name': channel_name,
                 'peer_host': peer['host']
             }
             print(msg, flush=True)
+            print(value, flush=True)
+
+        finally:
             # clean env variables
             clean_env_variables()
             return value
@@ -276,16 +278,43 @@ def queryChaincodeFromFirstPeerFirstOrg():
     org = conf['orgs'][org_name]
     peer = org['peers'][0]
 
+    print('Try to query chaincode from first peer first org before invoke', flush=True)
+
     starttime = int(time.time())
     while int(time.time()) - starttime < 15:
         call(['sleep', '1'])
-        data = chainCodeQueryWith('{"Args":["queryAllProblems"]}',
+        data = chainCodeQueryWith('{"Args":["queryChallenges"]}',
                                  org_name,
                                  peer)
         # data should be null
-        print(data is None, flush=True)
+        print(data, flush=True)
         if data is None:
             print('Correctly initialized', flush=True)
+            return True
+
+        print('.', end='', flush=True)
+
+    print('/!\ Failed to query chaincode with initialized values', flush=True)
+    return False
+
+
+def queryChaincodeFromFirstPeerFirstOrgAfterInvoke():
+    org_name = 'owkin'
+    org = conf['orgs'][org_name]
+    peer = org['peers'][0]
+
+    print('Try to query chaincode from first peer first org after invoke', flush=True)
+
+    starttime = int(time.time())
+    while int(time.time()) - starttime < 15:
+        call(['sleep', '1'])
+        data = chainCodeQueryWith('{"Args":["queryChallenges"]}',
+                                 org_name,
+                                 peer)
+        # data should be null
+        print(data, flush=True)
+        if isinstance(data, list) and len(data) == 1:
+            print('Correctly added and got', flush=True)
             return True
 
         print('.', end='', flush=True)
@@ -299,10 +328,12 @@ def queryChaincodeFromSecondPeerSecondOrg():
     org = conf['orgs'][org_name]
     peer = org['peers'][1]
 
+    print('Try to query chaincode from second peer second org', flush=True)
+
     starttime = int(time.time())
     while int(time.time()) - starttime < 15:
         call(['sleep', '1'])
-        data = chainCodeQueryWith('{"Args":["queryAllProblems"]}',
+        data = chainCodeQueryWith('{"Args":["queryChallenges"]}',
                                   org_name,
                                   peer)
         if isinstance(data, list) and len(data) == 1:
@@ -311,7 +342,7 @@ def queryChaincodeFromSecondPeerSecondOrg():
 
         print('.', end='', flush=True)
 
-    print('Failed to query chaincode with added value', flush=True)
+    print('/!\ Failed to query chaincode with added value', flush=True)
     return False
 
 
@@ -373,7 +404,7 @@ def invokeChaincodeFirstPeerFirstOrg():
     call(['sleep', '3'])
 
     # create problem
-    args = '{"Args":["registerProblem", "MSI classification", "5c1d9cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b379", "https://toto/problem/222/description", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://toto/problem/222/metrics", "data_da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
+    args = '{"Args":["registerChallenge", "MSI classification", "5c1d9cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b379", "https://toto/problem/222/description", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://toto/problem/222/metrics", "data_da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
     invokeChainCode(args, org, peer)
 
 
@@ -655,6 +686,9 @@ def run():
 
     # Invoke chaincode on the 1st peer of the 1st org
     invokeChaincodeFirstPeerFirstOrg()
+
+    # Query chaincode from the 1st peer of the 1st org after Invoke
+    res = res and queryChaincodeFromFirstPeerFirstOrgAfterInvoke()
 
     # Install chaincode on 2nd peer of 2nd org
     installChainCodeOnSecondPeerSecondOrg()
