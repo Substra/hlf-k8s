@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import time
+import subprocess
 
 import requests
 
@@ -284,8 +285,8 @@ def queryChaincodeFromFirstPeerFirstOrg():
     while int(time.time()) - starttime < 15:
         call(['sleep', '1'])
         data = chainCodeQueryWith('{"Args":["queryChallenges"]}',
-                                 org_name,
-                                 peer)
+                                  org_name,
+                                  peer)
         # data should be null
         print(data, flush=True)
         if data is None:
@@ -309,8 +310,8 @@ def queryChaincodeFromFirstPeerFirstOrgAfterInvoke():
     while int(time.time()) - starttime < 15:
         call(['sleep', '1'])
         data = chainCodeQueryWith('{"Args":["queryChallenges"]}',
-                                 org_name,
-                                 peer)
+                                  org_name,
+                                  peer)
         # data should be null
         print(data, flush=True)
         if isinstance(data, list) and len(data) == 1:
@@ -362,22 +363,36 @@ def invokeChainCode(args, org, peer):
 
     print('Sending invoke transaction to %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
-    call(['peer',
-          'chaincode', 'invoke',
-          '-C', channel_name,
-          '-n', chaincode_name,
-          '-c', args,
-          '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
-          '--tls',
-          '--clientauth',
-          '--cafile', orderer['tls']['certfile'],
-          '--keyfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-          '--certfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
-          ])
+    output = subprocess.run(['peer',
+                  'chaincode', 'invoke',
+                  '-C', channel_name,
+                  '-n', chaincode_name,
+                  '-c', args,
+                  '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
+                  '--tls',
+                  '--clientauth',
+                  '--cafile', orderer['tls']['certfile'],
+                  '--keyfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
+                  '--certfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+                  ],
+                 stdout=subprocess.PIPE,
+                 stderr=subprocess.PIPE)
+
+    data = output.stderr.decode('utf-8')
+
+    print(data, flush=True)
 
     # clean env variables
     del os.environ['FABRIC_CFG_PATH']
     del os.environ['CORE_PEER_MSPCONFIGPATH']
+
+    try:
+        # Format it to get generated key
+        data = data.split('result: status:')[1].split('\n')[0].split('payload:')[1].replace(' ', '').replace('"', '')
+    except:
+        return ''
+    else:
+        return data
 
 
 def invokeChaincodeFirstPeerFirstOrg():
@@ -403,9 +418,57 @@ def invokeChaincodeFirstPeerFirstOrg():
     print('Sleeping 3 seconds for data to be created', flush=True)
     call(['sleep', '3'])
 
-    # create problem
+    # create challenge
     args = '{"Args":["registerChallenge", "MSI classification", "5c1d9cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b379", "https://toto/problem/222/description", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://toto/problem/222/metrics", "data_da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
     invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for challenge to be created', flush=True)
+    call(['sleep', '3'])
+
+    # create algo
+    args = '{"Args":["registerAlgo","hog + svm","fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","https://toto/algo/222/algo","e2dbb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dca","https://toto/algo/222/description","challenge_5c1d9cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b379","all"]}'
+    invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for algo to be created', flush=True)
+    call(['sleep', '3'])
+
+    args = '{"Args":["registerData","aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","dataset_do1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","100","false"]}'
+    invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for traindata to be created', flush=True)
+    call(['sleep', '3'])
+
+    args = '{"Args":["createTraintuple","challenge_5c1d9cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b379","algo_fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","algo_fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","data_aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, data_aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc"]}'
+    traintuple = invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for traintuple to be created', flush=True)
+    call(['sleep', '3'])
+
+    args = '{"Args":["logStartTrainTest","' + traintuple + '", "training"]}'
+    invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for traintuple status to be updated to `training`', flush=True)
+    call(['sleep', '3'])
+
+    args = '{"Args":["logSuccessTrain","' + traintuple + '","modbb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482mod, https://substrabac/model/toto","data_aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.90, data_aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.91","no error, ah ah ah"]}'
+    invokeChainCode(args, org, peer)
+
+    print(
+        'Sleeping 3 seconds for traintuple status to be updated to `trained`, endModel to be set and performances on train data to be set',
+        flush=True)
+    call(['sleep', '3'])
+
+    args = '{"Args":["logStartTrainTest","' + traintuple + '","testing"]}'
+    invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for traintuple status to be updated to `testing`', flush=True)
+    call(['sleep', '3'])
+
+    args = '{"Args":["logSuccessTest","' + traintuple + '","data_da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.90, data_da2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.91","0.99","still no error, suprah ah ah"]}'
+    invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for traintuple status to be updated to `done` and performances updated', flush=True)
+    call(['sleep', '3'])
 
 
 def revokeFabricUserAndGenerateCRL(org_name, username):
