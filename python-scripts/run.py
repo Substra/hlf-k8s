@@ -314,7 +314,7 @@ def queryChaincodeFromFirstPeerFirstOrgAfterInvoke():
                                   peer)
         # data should be null
         print(data, flush=True)
-        if isinstance(data, list) and len(data) == 1:
+        if isinstance(data, list) and len(data) == 2:
             print('Correctly added and got', flush=True)
             return True
 
@@ -337,7 +337,7 @@ def queryChaincodeFromSecondPeerSecondOrg():
         data = chainCodeQueryWith('{"Args":["queryChallenges"]}',
                                   org_name,
                                   peer)
-        if isinstance(data, list) and len(data) == 1:
+        if isinstance(data, list) and len(data) == 2:
             print('Correctly added and got', flush=True)
             return True
 
@@ -420,6 +420,13 @@ def invokeChaincodeFirstPeerFirstOrg():
 
     # create challenge
     args = '{"Args":["registerChallenge", "MSI classification", "5c1d9cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b379", "https://toto/problem/222/description", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://toto/problem/222/metrics", "data_da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
+    invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for challenge to be created', flush=True)
+    call(['sleep', '3'])
+
+    # create another challenge
+    args = '{"Args":["registerChallenge", "MSI classification 2", "8c1d0cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b456", "https://toto/problem/223/description", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://toto/problem/223/metrics", "data_da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for challenge to be created', flush=True)
