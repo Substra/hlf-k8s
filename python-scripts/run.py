@@ -295,7 +295,7 @@ def queryChaincodeFromFirstPeerFirstOrg():
 
         print('.', end='', flush=True)
 
-    print('/!\ Failed to query chaincode with initialized values', flush=True)
+    print('\n/!\ Failed to query chaincode with initialized values', flush=True)
     return False
 
 
@@ -312,7 +312,7 @@ def queryChaincodeFromFirstPeerFirstOrgAfterInvoke():
         data = chainCodeQueryWith('{"Args":["queryChallenges"]}',
                                   org_name,
                                   peer)
-        # data should be null
+        # data should not be null
         print(data, flush=True)
         if isinstance(data, list) and len(data) == 2:
             print('Correctly added and got', flush=True)
@@ -320,7 +320,7 @@ def queryChaincodeFromFirstPeerFirstOrgAfterInvoke():
 
         print('.', end='', flush=True)
 
-    print('/!\ Failed to query chaincode with initialized values', flush=True)
+    print('\n/!\ Failed to query chaincode after invoke', flush=True)
     return False
 
 
@@ -405,47 +405,47 @@ def invokeChaincodeFirstPeerFirstOrg():
     invokeChainCode(args, org, peer)
 
     # create dataset
-    args = '{"Args":["registerDataset","liver slide","do1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","https://toto/dataset/42234/opener","images","8d4bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482eee","https://toto/dataset/42234/description","","all"]}'
+    args = '{"Args":["registerDataset","liver slide","2b400bd655abd051384a5d8d2139bc1b2d3a8112c4550347d34f6ebaf95edadc","https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/dataset/isic2018/opener.py","images","15863c2af1fcfee9ca6f61f04be8a0eaaf6a45e4d50c421788d450d198e580f1","https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/dataset/isic2018/description.md","","all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for dataset to be created', flush=True)
     call(['sleep', '3'])
 
     # create data
-    args = '{"Args":["registerData","da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, da2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","dataset_do1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","100","true"]}'
+    args = '{"Args":["registerData","da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, da2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "2b400bd655abd051384a5d8d2139bc1b2d3a8112c4550347d34f6ebaf95edadc","100","true"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for data to be created', flush=True)
     call(['sleep', '3'])
 
     # create challenge
-    args = '{"Args":["registerChallenge", "MSI classification", "5c1d9cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b379", "https://toto/problem/222/description", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://toto/problem/222/metrics", "data_da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
+    args = '{"Args":["registerChallenge", "MSI classification", "eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033", "http://127.0.0.1:8000/media/challenges/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/description_0yVsrV1.md", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://toto/problem/222/metrics", "da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for challenge to be created', flush=True)
     call(['sleep', '3'])
 
     # create another challenge
-    args = '{"Args":["registerChallenge", "MSI classification 2", "8c1d0cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b456", "https://toto/problem/223/description", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://toto/problem/223/metrics", "data_da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
+    args = '{"Args":["registerChallenge", "Skin Lesion Classification Challenge", "f18517fcb44592e8214e67990b8313053446a2373f432be77b0ddb77b7d8d880", "https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/description.md", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/metrics.py", "da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for challenge to be created', flush=True)
     call(['sleep', '3'])
 
     # create algo
-    args = '{"Args":["registerAlgo","hog + svm","fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","https://toto/algo/222/algo","e2dbb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dca","https://toto/algo/222/description","challenge_5c1d9cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b379","all"]}'
+    args = '{"Args":["registerAlgo","hog + svm","fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","https://toto/algo/222/algo","e2dbb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dca","https://toto/algo/222/description","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for algo to be created', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["registerData","aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","dataset_do1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","100","false"]}'
+    args = '{"Args":["registerData","aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","2b400bd655abd051384a5d8d2139bc1b2d3a8112c4550347d34f6ebaf95edadc","100","false"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for traindata to be created', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["createTraintuple","challenge_5c1d9cd1c2c1082dde0921b56d11030c81f62fbb51932758b58ac2569dd0b379","algo_fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","algo_fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","data_aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, data_aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc"]}'
+    args = '{"Args":["createTraintuple","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc"]}'
     traintuple = invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for traintuple to be created', flush=True)
@@ -457,7 +457,7 @@ def invokeChaincodeFirstPeerFirstOrg():
     print('Sleeping 3 seconds for traintuple status to be updated to `training`', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["logSuccessTrain","' + traintuple + '","modbb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482mod, https://substrabac/model/toto","data_aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.90, data_aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.91","no error, ah ah ah"]}'
+    args = '{"Args":["logSuccessTrain","' + traintuple + '","modbb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482mod, https://substrabac/model/toto","aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.90, aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.91","no error, ah ah ah"]}'
     invokeChainCode(args, org, peer)
 
     print(
@@ -471,7 +471,7 @@ def invokeChaincodeFirstPeerFirstOrg():
     print('Sleeping 3 seconds for traintuple status to be updated to `testing`', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["logSuccessTest","' + traintuple + '","data_da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.90, data_da2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.91","0.99","still no error, suprah ah ah"]}'
+    args = '{"Args":["logSuccessTest","' + traintuple + '","da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.90, da2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.91","0.99","still no error, suprah ah ah"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for traintuple status to be updated to `done` and performances updated', flush=True)
