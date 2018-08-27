@@ -433,7 +433,7 @@ def invokeChaincodeFirstPeerFirstOrg():
     call(['sleep', '3'])
 
     # create algo
-    args = '{"Args":["registerAlgo","hog + svm","fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","https://toto/algo/222/algo","e2dbb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dca","https://toto/algo/222/description","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","all"]}'
+    args = '{"Args":["registerAlgo","hog + svm","082f972d09049fdb7e34659f6fea82c5082be717cc9dab89bb92f620e6517106","https://toto/algo/222/algo","e2dbb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dca","https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/algo/description.md","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for algo to be created', flush=True)
@@ -445,7 +445,7 @@ def invokeChaincodeFirstPeerFirstOrg():
     print('Sleeping 3 seconds for traindata to be created', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["createTraintuple","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc"]}'
+    args = '{"Args":["createTraintuple","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","082f972d09049fdb7e34659f6fea82c5082be717cc9dab89bb92f620e6517106","082f972d09049fdb7e34659f6fea82c5082be717cc9dab89bb92f620e6517106","aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc"]}'
     traintuple = invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for traintuple to be created', flush=True)
@@ -457,7 +457,7 @@ def invokeChaincodeFirstPeerFirstOrg():
     print('Sleeping 3 seconds for traintuple status to be updated to `training`', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["logSuccessTrain","' + traintuple + '","modbb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482mod, https://substrabac/model/toto","aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.90, aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.91","no error, ah ah ah"]}'
+    args = '{"Args":["logSuccessTrain","' + traintuple + '","678bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482432, https://substrabac/model/toto","aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.90, aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.91","no error, ah ah ah"]}'
     invokeChainCode(args, org, peer)
 
     print(
