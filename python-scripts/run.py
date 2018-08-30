@@ -405,13 +405,13 @@ def invokeChaincodeFirstPeerFirstOrg():
     invokeChainCode(args, org, peer)
 
     # create dataset
-    args = '{"Args":["registerDataset","liver slide","2b400bd655abd051384a5d8d2139bc1b2d3a8112c4550347d34f6ebaf95edadc","https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/dataset/isic2018/opener.py","images","15863c2af1fcfee9ca6f61f04be8a0eaaf6a45e4d50c421788d450d198e580f1","https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/dataset/isic2018/description.md","","all"]}'
+    args = '{"Args":["registerDataset","ISIC 2018","2b400bd655abd051384a5d8d2139bc1b2d3a8112c4550347d34f6ebaf95edadc","https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/dataset/isic2018/opener.py","Images","15863c2af1fcfee9ca6f61f04be8a0eaaf6a45e4d50c421788d450d198e580f1","https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/dataset/isic2018/description.md","","all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for dataset to be created', flush=True)
     call(['sleep', '3'])
 
-    # create data
+    # register test data
     args = '{"Args":["registerData","da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, da2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "2b400bd655abd051384a5d8d2139bc1b2d3a8112c4550347d34f6ebaf95edadc","100","true"]}'
     invokeChainCode(args, org, peer)
 
@@ -419,26 +419,27 @@ def invokeChaincodeFirstPeerFirstOrg():
     call(['sleep', '3'])
 
     # create challenge
-    args = '{"Args":["registerChallenge", "MSI classification", "eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033", "http://127.0.0.1:8000/media/challenges/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/description_0yVsrV1.md", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://toto/problem/222/metrics", "da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
+    args = '{"Args":["registerChallenge", "MSI classification", "eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033", "http://127.0.0.1:8000/media/challenges/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/description.md", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "http://127.0.0.1:8000/media/challenges/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/metrics.py", "da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for challenge to be created', flush=True)
     call(['sleep', '3'])
 
     # create another challenge
-    args = '{"Args":["registerChallenge", "Skin Lesion Classification Challenge", "f18517fcb44592e8214e67990b8313053446a2373f432be77b0ddb77b7d8d880", "https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/description.md", "accuracy", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/metrics.py", "da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
+    args = '{"Args":["registerChallenge", "Skin Lesion Classification Challenge", "f18517fcb44592e8214e67990b8313053446a2373f432be77b0ddb77b7d8d880", "https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/description.md", "macro-average recall", "fd1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482d8d", "https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/metrics.py", "da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for challenge to be created', flush=True)
     call(['sleep', '3'])
 
     # create algo
-    args = '{"Args":["registerAlgo","hog + svm","082f972d09049fdb7e34659f6fea82c5082be717cc9dab89bb92f620e6517106","https://toto/algo/222/algo","e2dbb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dca","https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/algo/description.md","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","all"]}'
+    args = '{"Args":["registerAlgo","Logistic regression","082f972d09049fdb7e34659f6fea82c5082be717cc9dab89bb92f620e6517106","https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/algo/algo.py","e2dbb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dca","https://raw.githubusercontent.com/SubstraFoundation/substra-challenge/master/skin-lesion-classification/algo/description.md","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for algo to be created', flush=True)
     call(['sleep', '3'])
 
+    # register train data
     args = '{"Args":["registerData","aa1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, aa2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc","2b400bd655abd051384a5d8d2139bc1b2d3a8112c4550347d34f6ebaf95edadc","100","false"]}'
     invokeChainCode(args, org, peer)
 
@@ -449,6 +450,11 @@ def invokeChaincodeFirstPeerFirstOrg():
     traintuple = invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for traintuple to be created', flush=True)
+    call(['sleep', '3'])
+
+    invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for second traintuple to be created', flush=True)
     call(['sleep', '3'])
 
     args = '{"Args":["logStartTrainTest","' + traintuple + '", "training"]}'
