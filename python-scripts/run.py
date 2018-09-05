@@ -412,7 +412,7 @@ def invokeChaincodeFirstPeers():
     call(['sleep', '3'])
 
     # register train data on dataset chu nantes (will take dataset creator as worker)
-    args = '{"Args":["registerData","082560e201c82a2a21e1681f4f20ffb377857398267e7d4676d3386ccdefcf36, 89829a4bf48c8b0afbd48562a39a3c0381dd1bc00c57a8e9c2616e7e91f8c7e2","%s","100","false"]}' % dataset_chunantes
+    args = '{"Args":["registerData","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9","%s","100","false"]}' % dataset_chunantes
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for train data to be created', flush=True)
@@ -439,7 +439,7 @@ def invokeChaincodeFirstPeers():
     call(['sleep', '3'])
 
     # register test data on dataset on owkin (will take dataset creator as worker)
-    args = '{"Args":["registerData","da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc, da2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "%s","100","true"]}' % dataset_owkin
+    args = '{"Args":["registerData","933cb232ac507f7f89661918e3f1280a330c37a82ba207d30cd94f7d1d95eb0b, 4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010", "%s","100","true"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for test data to be created', flush=True)
@@ -449,6 +449,13 @@ def invokeChaincodeFirstPeers():
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for datasets to be queried', flush=True)
+    call(['sleep', '3'])
+
+    # create challenge
+    args = '{"Args":["registerChallenge", "MSI classification", "eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033", "http://127.0.0.1:8000/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/description", "accuracy", "3727adff524e0616022eadd8f4af21a0778b29fc4c77bdfefd1afce2cbf5e4b7", "http://127.0.0.1:8000/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/metrics", "933cb232ac507f7f89661918e3f1280a330c37a82ba207d30cd94f7d1d95eb0b", "all"]}'
+    invokeChainCode(args, org, peer)
+
+    print('Sleeping 3 seconds for challenge to be created', flush=True)
     call(['sleep', '3'])
 
 
@@ -466,14 +473,7 @@ def invokeChaincodeFirstPeers():
     #######
 
     # create challenge
-    args = '{"Args":["registerChallenge", "MSI classification", "eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033", "http://127.0.0.1:8001/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/description", "accuracy", "3727adff524e0616022eadd8f4af21a0778b29fc4c77bdfefd1afce2cbf5e4b7", "http://127.0.0.1:8001/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/metrics", "da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
-    invokeChainCode(args, org, peer)
-
-    print('Sleeping 3 seconds for challenge to be created', flush=True)
-    call(['sleep', '3'])
-
-    # create another challenge
-    args = '{"Args":["registerChallenge", "Skin Lesion Classification Challenge", "d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f", "http://127.0.0.1:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/description", "macro-average recall", "750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756", "http://127.0.0.1:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/metrics", "da2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc", "all"]}'
+    args = '{"Args":["registerChallenge", "Skin Lesion Classification Challenge", "d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f", "http://127.0.0.1:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/description", "macro-average recall", "750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756", "http://127.0.0.1:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/metrics", "4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010", "all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for challenge to be created', flush=True)
@@ -506,7 +506,7 @@ def invokeChaincodeFirstPeers():
     print('Sleeping 3 seconds for traintuples to be queried', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["createTraintuple","ae5f5c5762e7ffbdfd5bf3a167629a142496195955f6d9a1a8853645dc7e1bf3","ae5f5c5762e7ffbdfd5bf3a167629a142496195955f6d9a1a8853645dc7e1bf3","082560e201c82a2a21e1681f4f20ffb377857398267e7d4676d3386ccdefcf36, 89829a4bf48c8b0afbd48562a39a3c0381dd1bc00c57a8e9c2616e7e91f8c7e2"]}'
+    args = '{"Args":["createTraintuple","ae5f5c5762e7ffbdfd5bf3a167629a142496195955f6d9a1a8853645dc7e1bf3","","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9"]}'
     traintuple = invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for traintuple to be created', flush=True)
@@ -530,7 +530,7 @@ def invokeChaincodeFirstPeers():
     print('Sleeping 3 seconds for traintuples to be queried', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["logSuccessTrain","' + traintuple + '","10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568, http://127.0.0.1:8001/model/10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568/file","082560e201c82a2a21e1681f4f20ffb377857398267e7d4676d3386ccdefcf36:0.90, 89829a4bf48c8b0afbd48562a39a3c0381dd1bc00c57a8e9c2616e7e91f8c7e2:0.91","no error, ah ah ah"]}'
+    args = '{"Args":["logSuccessTrain","' + traintuple + '","10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568, http://127.0.0.1:8001/model/10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568/file","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a:0.90, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9:0.91","no error, ah ah ah"]}'
     invokeChainCode(args, org, peer)
 
     print(
@@ -558,7 +558,7 @@ def invokeChaincodeFirstPeers():
     print('Sleeping 3 seconds for traintuple status to be updated to `testing`', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["logSuccessTest","' + traintuple + '","da1bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.90, da2bb7c31f62244c0f3a761cc168804227115793d01c270021fe3f7935482dcc:0.91","0.99","still no error, suprah ah ah"]}'
+    args = '{"Args":["logSuccessTest","' + traintuple + '","933cb232ac507f7f89661918e3f1280a330c37a82ba207d30cd94f7d1d95eb0b:0.90, 4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010:0.91","0.99","still no error, suprah ah ah"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for traintuple status to be updated to `done` and performances updated', flush=True)

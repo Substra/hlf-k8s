@@ -35,9 +35,11 @@ Go inside the `python-scripts` folder and run:
 
 It will build the network and run the tests.
 
+The `run` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on both orgs : owkin and chu-nantes. 
+
 If you do not want to init the chaincode and make queries, comment the run docker part in the docker-compose.
 
-You now will be able to play with the network !
+You now will be able to play with the network ! :tada:
 
 ### Network
 
@@ -74,4 +76,4 @@ Two choices :
     
     You are ready to use the substrabac backend with this ledger network.
 
-- Run the python file `get_conf_from_network.py` in the substrabac project for copying needed files.
+- Follow the instructions in the substrabac project for being able to query/invoke the ledger with the data created by the run container.
