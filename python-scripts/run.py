@@ -452,7 +452,7 @@ def invokeChaincodeFirstPeers():
     call(['sleep', '3'])
 
     # create challenge
-    args = '{"Args":["registerChallenge", "MSI classification", "eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033", "http://127.0.0.1:8000/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/description", "accuracy", "3727adff524e0616022eadd8f4af21a0778b29fc4c77bdfefd1afce2cbf5e4b7", "http://127.0.0.1:8000/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/metrics", "933cb232ac507f7f89661918e3f1280a330c37a82ba207d30cd94f7d1d95eb0b", "all"]}'
+    args = '{"Args":["registerChallenge", "MSI classification", "eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033", "http://127.0.0.1:8000/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/description", "accuracy", "750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756", "http://127.0.0.1:8000/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/metrics", "933cb232ac507f7f89661918e3f1280a330c37a82ba207d30cd94f7d1d95eb0b", "all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for challenge to be created', flush=True)
@@ -480,14 +480,14 @@ def invokeChaincodeFirstPeers():
     call(['sleep', '3'])
 
     # create algo
-    args = '{"Args":["registerAlgo","Logistic regression","381310d64a0dbeb21272eb432b7a948d841bf7dc20514d00f901c16dec0463c3","http://127.0.0.1:8001/algo/381310d64a0dbeb21272eb432b7a948d841bf7dc20514d00f901c16dec0463c3/file","124a0425b746d7072282d167b53cb6aab3a31bf1946dae89135c15b0126ebec3","http://127.0.0.1:8001/algo/381310d64a0dbeb21272eb432b7a948d841bf7dc20514d00f901c16dec0463c3/description","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","all"]}'
+    args = '{"Args":["registerAlgo","Logistic regression","117c27e3504b9e639de4bfea1a15aa9ffa0247c8f240836c93b2dd6974f6abb8","http://127.0.0.1:8001/algo/117c27e3504b9e639de4bfea1a15aa9ffa0247c8f240836c93b2dd6974f6abb8/file","124a0425b746d7072282d167b53cb6aab3a31bf1946dae89135c15b0126ebec3","http://127.0.0.1:8001/algo/117c27e3504b9e639de4bfea1a15aa9ffa0247c8f240836c93b2dd6974f6abb8/description","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for algo to be created', flush=True)
     call(['sleep', '3'])
 
     # create second algo
-    args = '{"Args":["registerAlgo","Logistic regression 2","f2718964e83a98dccb1e14464ec2582cf13b6583b0fc755456b73e7176924ff6","http://127.0.0.1:8001/algo/f2718964e83a98dccb1e14464ec2582cf13b6583b0fc755456b73e7176924ff6/file","8bf47bdf04cdfd37a4158e5c552863464b63b740ce2342bc7291ed528c4dad0e","http://127.0.0.1:8001/algo/f2718964e83a98dccb1e14464ec2582cf13b6583b0fc755456b73e7176924ff6/description","d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f","all"]}'
+    args = '{"Args":["registerAlgo","Logistic regression 2","3c10196dac4f62d139ccb736e162e7e940522bd24499dcb2cfec2abed7a7271d","http://127.0.0.1:8001/algo/3c10196dac4f62d139ccb736e162e7e940522bd24499dcb2cfec2abed7a7271d/file","8bf47bdf04cdfd37a4158e5c552863464b63b740ce2342bc7291ed528c4dad0e","http://127.0.0.1:8001/algo/3c10196dac4f62d139ccb736e162e7e940522bd24499dcb2cfec2abed7a7271d/description","d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f","all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for algo to be created', flush=True)
@@ -506,7 +506,7 @@ def invokeChaincodeFirstPeers():
     print('Sleeping 3 seconds for traintuples to be queried', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["createTraintuple","381310d64a0dbeb21272eb432b7a948d841bf7dc20514d00f901c16dec0463c3","","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9"]}'
+    args = '{"Args":["createTraintuple","117c27e3504b9e639de4bfea1a15aa9ffa0247c8f240836c93b2dd6974f6abb8","","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9"]}'
     traintuple = invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for traintuple to be created', flush=True)
