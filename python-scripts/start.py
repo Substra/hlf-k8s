@@ -214,7 +214,7 @@ def start():
 
     # Wait for the run container to start and complete
     dowait('the docker \'run\' container to run and complete',
-           120, os.path.join(dir_path, '..' + conf['misc']['run_logfile']),
+           160, os.path.join(dir_path, '..' + conf['misc']['run_logfile']),
            [os.path.join(dir_path, '..' + conf['misc']['run_success_file'])])
 
 
