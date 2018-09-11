@@ -506,7 +506,7 @@ def invokeChaincodeFirstPeers():
     print('Sleeping 3 seconds for traintuples to be queried', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["createTraintuple","6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f","","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9"]}'
+    args = '{"Args":["createTraintuple","094f479d77a2c71e643fe3efefe3fb1ee371e3100912379b70ad2eea2295bca4","","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9"]}'
     traintuple = invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for traintuple to be created', flush=True)
