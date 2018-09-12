@@ -405,7 +405,7 @@ def invokeChaincodeFirstPeers():
     invokeChainCode(args, org, peer)
 
     # create dataset with chu-nantes org
-    args = '{"Args":["registerDataset","ISIC 2018","ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994","http://127.0.0.1:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener","Images","f969e52d66a40c8f0fa00733baecf2d1b4c48d676c41186865f15032bf62f096","http://127.0.0.1:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description","","all"]}'
+    args = '{"Args":["registerDataset","ISIC 2018","ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994","http://127.0.0.1:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener","Images","7a90514f88c70002608a9868681dd1589ea598e78d00a8cd7783c3ea0f9ceb09","http://127.0.0.1:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description","","all"]}'
     dataset_chunantes = invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for dataset on chu-nantes to be created', flush=True)
@@ -432,7 +432,7 @@ def invokeChaincodeFirstPeers():
     #######
 
     # create dataset with owkin org
-    args = '{"Args":["registerDataset","ISIC 2019","a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0","http://127.0.0.1:8000/dataset/a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0/opener","Images","15863c2af1fcfee9ca6f61f04be8a0eaaf6a45e4d50c421788d450d198e580f1","http://127.0.0.1:8000/dataset/a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0/description","","all"]}'
+    args = '{"Args":["registerDataset","ISIC 2019","a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0","http://127.0.0.1:8000/dataset/a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0/opener","Images","f969e52d66a40c8f0fa00733baecf2d1b4c48d676c41186865f15032bf62f096","http://127.0.0.1:8000/dataset/a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0/description","","all"]}'
     dataset_owkin = invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for dataset on owkin to be created', flush=True)
