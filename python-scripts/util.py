@@ -185,3 +185,21 @@ def configUserLocalMSP(org_name, org):
 
         # Set up admincerts directory if required
         copytree(org_admin_home + '/msp/signcerts/', org_user_home + '/msp/admincerts')
+
+
+# Remove chaincode docker images
+def remove_chaincode_docker_images():
+    chaincodeImages = check_output('docker images | grep "^dev-peer" | awk \'{print $3}\'', shell=True)
+
+    if chaincodeImages:
+        print('Removing chaincode docker images ...', flush=True)
+        call('docker rmi -f ' + chaincodeImages.decode('utf-8').replace('\n', ' '), shell=True)
+
+
+# Remove chaincode docker containers
+def remove_chaincode_docker_containers():
+    chaincodeContainers = check_output('docker ps -a | grep "dev-peer" | awk \'{print $1}\'', shell=True)
+
+    if chaincodeContainers:
+        print('Removing chaincode docker containers ...', flush=True)
+        call('docker rm -f ' + chaincodeContainers.decode('utf-8').replace('\n', ' '), shell=True)
