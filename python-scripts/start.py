@@ -2,7 +2,7 @@ import os
 
 from subprocess import call, check_output
 from conf import conf
-from util import dowait, create_directory
+from util import dowait, create_directory, remove_chaincode_docker_images, remove_chaincode_docker_containers
 
 from yaml import load, dump
 
@@ -184,15 +184,6 @@ def stop():
     call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
 
-# Remove chaincode docker images
-def remove_chaincode_docker_images():
-    chaincodeImages = check_output('docker images | grep "^dev-peer" | awk \'{print $3}\'', shell=True)
-
-    if chaincodeImages:
-        print('Removing chaincode docker images ...', flush=True)
-        call('docker rmi -f ' + chaincodeImages.decode('utf-8').replace('\n', ' '), shell=True)
-
-
 def start():
     create_ca()
     create_configtx()
@@ -201,6 +192,7 @@ def start():
 
     stop()
 
+    remove_chaincode_docker_containers()
     remove_chaincode_docker_images()
 
     print('start docker-compose', flush=True)
