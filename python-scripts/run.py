@@ -530,7 +530,7 @@ def invokeChaincodeFirstPeers():
     print('Sleeping 3 seconds for traintuples to be queried', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["logSuccessTrain","' + traintuple + '","10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568, http://127.0.0.1:8001/model/10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568/file","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a:0.90, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9:0.91","no error, ah ah ah"]}'
+    args = '{"Args":["logSuccessTrain","' + traintuple + '","10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568, http://127.0.0.1:8001/model/10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568/file","0.91","no error, ah ah ah"]}'
     invokeChainCode(args, org, peer)
 
     print(
@@ -558,7 +558,7 @@ def invokeChaincodeFirstPeers():
     print('Sleeping 3 seconds for traintuple status to be updated to `testing`', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["logSuccessTest","' + traintuple + '","e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1:0.90, 4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010:0.91","0.99","still no error, suprah ah ah"]}'
+    args = '{"Args":["logSuccessTest","' + traintuple + '","0.99","still no error, suprah ah ah"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for traintuple status to be updated to `done` and performances updated', flush=True)
