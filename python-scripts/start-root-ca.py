@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     print('remove generated examples crt files by default for using those from config file with init generation', flush=True)
 
-    # http: // fabric - ca.readthedocs.io / en / latest / users - guide.html  # initializing-the-server
+    # http://fabric-ca.readthedocs.io/en/latest/users-guide.html  # initializing-the-server
     # If custom values for the CSR are required, you may customize the configuration file, delete the files specified by the ca.certfile and ca-keyfile configuration items, and then run the fabric-ca-server init -b admin:adminpw command again.
     # by default the docker image copy these files from payload examples and init does not overwrite them
     call('rm -rf *.pem', shell=True)  # ca-cert.pem, ca-key.pem

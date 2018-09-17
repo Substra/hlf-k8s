@@ -20,12 +20,7 @@ This project is developed under the Apache License, Version 2.0 (Apache-2.0), lo
 
 Run the `bootstrap.sh` script.
 
-### build custom docker images
-
-Before launching the network, you need to beforehand build the corresponding images.
-Go inside the images folder and for each directory, co inside and build the related docker image:
-
-`docker build -t substra/<directory_name> .` :warning: note the `.` at the end
+It will pull from the hyperledger registry the right docker images and than will build our own docker images from it.
 
 ### Test
 
