@@ -405,7 +405,7 @@ def invokeChaincodeFirstPeers():
     invokeChainCode(args, org, peer)
 
     # create dataset with chu-nantes org
-    args = '{"Args":["registerDataset","ISIC 2018","ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994","http://127.0.0.1:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener","Images","7a90514f88c70002608a9868681dd1589ea598e78d00a8cd7783c3ea0f9ceb09","http://127.0.0.1:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description","","all"]}'
+    args = '{"Args":["registerDataset","ISIC 2018","ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994","http://127.0.0.1:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener/","Images","7a90514f88c70002608a9868681dd1589ea598e78d00a8cd7783c3ea0f9ceb09","http://127.0.0.1:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description/","","all"]}'
     dataset_chunantes = invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for dataset on chu-nantes to be created', flush=True)
@@ -432,7 +432,7 @@ def invokeChaincodeFirstPeers():
     #######
 
     # create dataset with owkin org
-    args = '{"Args":["registerDataset","ISIC 2019","a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0","http://127.0.0.1:8000/dataset/a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0/opener","Images","f969e52d66a40c8f0fa00733baecf2d1b4c48d676c41186865f15032bf62f096","http://127.0.0.1:8000/dataset/a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0/description","","all"]}'
+    args = '{"Args":["registerDataset","ISIC 2019","a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0","http://127.0.0.1:8000/dataset/a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0/opener/","Images","f969e52d66a40c8f0fa00733baecf2d1b4c48d676c41186865f15032bf62f096","http://127.0.0.1:8000/dataset/a8b7c235abb9a93742e336bd76ff7cd8ecc49f612e5cf6ea506dc10f4fd6b6f0/description/","","all"]}'
     dataset_owkin = invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for dataset on owkin to be created', flush=True)
@@ -452,7 +452,7 @@ def invokeChaincodeFirstPeers():
     call(['sleep', '3'])
 
     # create challenge
-    args = '{"Args":["registerChallenge", "MSI classification", "eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033", "http://127.0.0.1:8000/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/description", "accuracy", "750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756", "http://127.0.0.1:8000/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/metrics", "e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1", "all"]}'
+    args = '{"Args":["registerChallenge", "MSI classification", "eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033", "http://127.0.0.1:8000/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/description/", "accuracy", "750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756", "http://127.0.0.1:8000/challenge/eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033/metrics/", "e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1", "all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for challenge to be created', flush=True)
@@ -473,21 +473,21 @@ def invokeChaincodeFirstPeers():
     #######
 
     # create challenge
-    args = '{"Args":["registerChallenge", "Skin Lesion Classification Challenge", "d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f", "http://127.0.0.1:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/description", "macro-average recall", "750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756", "http://127.0.0.1:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/metrics", "4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010", "all"]}'
+    args = '{"Args":["registerChallenge", "Skin Lesion Classification Challenge", "d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f", "http://127.0.0.1:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/description/", "macro-average recall", "750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756", "http://127.0.0.1:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/metrics/", "4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010", "all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for challenge to be created', flush=True)
     call(['sleep', '3'])
 
     # create algo
-    args = '{"Args":["registerAlgo","Logistic regression","6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f","http://127.0.0.1:8001/algo/6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f/file","124a0425b746d7072282d167b53cb6aab3a31bf1946dae89135c15b0126ebec3","http://127.0.0.1:8001/algo/6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f/description","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","all"]}'
+    args = '{"Args":["registerAlgo","Logistic regression","6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f","http://127.0.0.1:8001/algo/6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f/file/","124a0425b746d7072282d167b53cb6aab3a31bf1946dae89135c15b0126ebec3","http://127.0.0.1:8001/algo/6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f/description/","eb0295d98f37ae9e95102afae792d540137be2dedf6c4b00570ab1d1f355d033","all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for algo to be created', flush=True)
     call(['sleep', '3'])
 
     # create second algo
-    args = '{"Args":["registerAlgo","Logistic regression 2","094f479d77a2c71e643fe3efefe3fb1ee371e3100912379b70ad2eea2295bca4","http://127.0.0.1:8001/algo/094f479d77a2c71e643fe3efefe3fb1ee371e3100912379b70ad2eea2295bca4/file","8bf47bdf04cdfd37a4158e5c552863464b63b740ce2342bc7291ed528c4dad0e","http://127.0.0.1:8001/algo/094f479d77a2c71e643fe3efefe3fb1ee371e3100912379b70ad2eea2295bca4/description","d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f","all"]}'
+    args = '{"Args":["registerAlgo","Logistic regression 2","094f479d77a2c71e643fe3efefe3fb1ee371e3100912379b70ad2eea2295bca4","http://127.0.0.1:8001/algo/094f479d77a2c71e643fe3efefe3fb1ee371e3100912379b70ad2eea2295bca4/file/","8bf47bdf04cdfd37a4158e5c552863464b63b740ce2342bc7291ed528c4dad0e","http://127.0.0.1:8001/algo/094f479d77a2c71e643fe3efefe3fb1ee371e3100912379b70ad2eea2295bca4/description/","d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f","all"]}'
     invokeChainCode(args, org, peer)
 
     print('Sleeping 3 seconds for algo to be created', flush=True)
@@ -530,7 +530,7 @@ def invokeChaincodeFirstPeers():
     print('Sleeping 3 seconds for traintuples to be queried', flush=True)
     call(['sleep', '3'])
 
-    args = '{"Args":["logSuccessTrain","' + traintuple + '","10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568, http://127.0.0.1:8001/model/10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568/file","0.91","no error, ah ah ah"]}'
+    args = '{"Args":["logSuccessTrain","' + traintuple + '","10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568, http://127.0.0.1:8001/model/10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568/file/","0.91","no error, ah ah ah"]}'
     invokeChainCode(args, org, peer)
 
     print(
