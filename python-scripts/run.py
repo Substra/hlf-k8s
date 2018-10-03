@@ -430,28 +430,29 @@ def invokeChaincodeFirstPeers():
     #######
 
 
-    # register test data on dataset on owkin center (will take dataset creator as worker)
-    args = '{"Args":["registerData","e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1, 4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010", "%s","100","true"]}' % dataset_chunantes
-    invokeChainCode(args, org, peer)
-    print('Sleeping 3 seconds for test data to be created', flush=True)
-    call(['sleep', '3'])
-
     # create second dataset with chu-nantes org
     args = '{"Args":["registerDataset","Simplified ISIC 2018","b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0","http://127.0.0.1:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/opener/","Images","258bef187a166b3fef5cb86e68c8f7e154c283a148cd5bc344fec7e698821ad3","http://127.0.0.1:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/description/","","all"]}'
     dataset_owkin = invokeChainCode(args, org, peer)
     print('Sleeping 3 seconds for dataset 2 on chu-nantes to be created', flush=True)
     call(['sleep', '3'])
 
-    # register train data on dataset chu-nantes 2
-    args = '{"Args":["registerData","93e4b1e040b08cfa8a68b13f9dddb95a6672e8a377378545b2b1254691cfc060, eed4c6ea09babe7ca6428377fff6e54102ef5cdb0cae593732ddbe3f224217cb", "%s","100","true"]}' % dataset_owkin
+
+    # register test data on dataset on owkin center (will take dataset creator as worker)
+    args = '{"Args":["registerData","e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1, 4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010", "%s","100","true"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
-    print('Sleeping 3 seconds for train data on dataset chu-nantes 2 to be created', flush=True)
+    print('Sleeping 3 seconds for test data to be created', flush=True)
     call(['sleep', '3'])
 
-    # register test data on dataset chu-nantes 2
+    # register train data on dataset_owkin
+    args = '{"Args":["registerData","93e4b1e040b08cfa8a68b13f9dddb95a6672e8a377378545b2b1254691cfc060, eed4c6ea09babe7ca6428377fff6e54102ef5cdb0cae593732ddbe3f224217cb", "%s","100","true"]}' % dataset_owkin
+    invokeChainCode(args, org, peer)
+    print('Sleeping 3 seconds for train data on dataset_owkin to be created', flush=True)
+    call(['sleep', '3'])
+
+    # register test data on dataset_owkin
     args = '{"Args":["registerData","2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1", "%s","100","true"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
-    print('Sleeping 3 seconds for test data on dataset chu-nantes 2 to be created', flush=True)
+    print('Sleeping 3 seconds for test data on dataset_owkin to be created', flush=True)
     call(['sleep', '3'])
 
     args = '{"Args":["queryDatasets"]}'
