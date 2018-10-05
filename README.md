@@ -8,18 +8,19 @@ The owkin and chu-nantes organizations have each one 2 peers named peer1 and pee
 
 Each organization has a root ca instance for dealing with the users.
 
+> :warning: This project is under active development. Please, wait some times before using it...
+
+## License
+
+This project is developed under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](./LICENSE) file.
+
 ## Launch
 
 ### get docker images
 
 Run the `bootstrap.sh` script.
 
-### build custom docker images
-
-Before launching the network, you need to beforehand build the corresponding images.
-Go inside the images folder and for each directory, co inside and build the related docker image:
-
-`docker build -t substra/<directory_name> .` :warning: note the `.` at the end
+It will pull from the hyperledger registry the right docker images and than will build our own docker images from it.
 
 ### Test
 
@@ -29,9 +30,11 @@ Go inside the `python-scripts` folder and run:
 
 It will build the network and run the tests.
 
+The `run` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on both orgs : owkin and chu-nantes. 
+
 If you do not want to init the chaincode and make queries, comment the run docker part in the docker-compose.
 
-You now will be able to play with the network !
+You now will be able to play with the network ! :tada:
 
 ### Network
 
@@ -68,9 +71,4 @@ Two choices :
     
     You are ready to use the substrabac backend with this ledger network.
 
-- Run the python file `get_conf_from_network.py` in the substrabac project for copying needed files.
-
-
-## License
-
-This project is developed under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](./LICENSE) file.
+- Follow the instructions in the substrabac project for being able to query/invoke the ledger with the data created by the run container.

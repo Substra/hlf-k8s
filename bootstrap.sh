@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+BASEDIR=$(dirname "$0")
 # current version of fabric-ca released
 export CA_VERSION=${1:-1.1.0}
 export ARCH=$(echo "$(uname -s|tr '[:upper:]' '[:lower:]'|sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
@@ -17,14 +18,25 @@ dockerCaPull() {
       echo
       for image in "" "-tools" "-orderer" "-peer"; do
          docker pull hyperledger/fabric-ca${image}:$CA_TAG
-         docker tag hyperledger/fabric-ca${image}:$CA_TAG hyperledger/fabric-ca${image}
+         docker tag hyperledger/fabric-ca${image}:$CA_TAG hyperledger/fabric-ca${image}:latest
       done
 }
 
 : ${CA_TAG:="$MARCH-$CA_VERSION"}
+
+
+createCustomDockerImages() {
+    for dir in $BASEDIR/images/*/; do
+        dir=`basename $dir`
+        docker build -t substra/$dir $BASEDIR/images/$dir
+    done
+}
 
 echo "===> Pulling fabric ca Image"
 dockerCaPull ${CA_TAG}
 
 echo "===> List out hyperledger docker images"
 docker images | grep hyperledger*
+
+echo "===> Create custom docker images"
+createCustomDockerImages

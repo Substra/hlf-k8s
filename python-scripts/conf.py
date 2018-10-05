@@ -36,7 +36,8 @@ conf = {
             },
             'csr': {
                 'cn': 'rca-owkin',
-                'hosts': ['rca-orderer', 'rca-owkin', 'rca-chu-nantes']
+                # The "hosts" value is a list of the domain names which the certificate should be valid for.
+                'hosts': ['rca-owkin']
             },
             'core': {
                 'peer_home': '/opt/gopath/src/github.com/hyperledger/fabric/peer',
@@ -97,7 +98,8 @@ conf = {
             },
             'csr': {
                 'cn': 'rca-chu-nantes',
-                'hosts': ['rca-orderer', 'rca-owkin', 'rca-chu-nantes']
+                # The "hosts" value is a list of the domain names which the certificate should be valid for.
+                'hosts': ['rca-chu-nantes']
             },
             'core': {
                 'peer_home': '/opt/gopath/src/github.com/hyperledger/fabric/peer',
@@ -164,7 +166,8 @@ conf = {
             },
             'csr': {
                 'cn': 'rca-orderer',
-                'hosts': ['rca-orderer', 'rca-owkin', 'rca-chu-nantes']
+                # The "hosts" value is a list of the domain names which the certificate should be valid for.
+                'hosts': ['rca-orderer']
             },
         }
     },

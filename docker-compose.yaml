@@ -203,7 +203,7 @@ services:
     volumes:
       - ./python-scripts:/scripts
       - ./data:/data
-      - ../substra-chaincode:/opt/gopath/src/github.com/hyperledger/chaincode
+      - ../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode
 
       # needed for revoking user
       - ./conf/owkin/fabric-ca-client-config.yaml:/data/orgs/owkin/admin/fabric-ca-client-config.yaml
