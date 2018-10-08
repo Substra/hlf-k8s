@@ -175,7 +175,7 @@ def makePolicy():
     return policy
 
 
-def instanciateChainCode(args, org_name, peer):
+def  instanciateChainCode(args, org_name, peer):
     # :warning: for instanciating chaincode make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     policy = makePolicy()
@@ -841,8 +841,8 @@ def run():
     instanciateChaincodeFirstPeerSecondOrg()
 
     # wait chaincode is instanciated and initialized before querying it
-    print('Wait 3sec until chaincode is instanciated and initialized before querying it', flush=True)
-    call(['sleep', '3'])
+    print('Wait 10sec until chaincode is instanciated and initialized before querying it', flush=True)
+    call(['sleep', '10'])
 
     # Query chaincode from the 1st peer of the 1st org
     res = res and queryChaincodeFromFirstPeerFirstOrg()
