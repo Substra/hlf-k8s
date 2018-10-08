@@ -175,7 +175,58 @@ def makePolicy():
     return policy
 
 
-def  instanciateChainCode(args, org_name, peer):
+def waitForInstantiation():
+    org_name = 'chu-nantes'
+    org = conf['orgs'][org_name]
+    peer = org['peers'][0]
+
+    org = conf['orgs'][org_name]
+    org_admin_home = org['admin_home']
+    org_admin_msp_dir = org_admin_home + '/msp'
+    orderer = conf['orderers']['orderer']
+
+    # update config path for using right core.yaml
+    os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
+
+    # update mspconfigpath for getting one in /data
+    os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
+
+    def clean_env_variables():
+        del os.environ['FABRIC_CFG_PATH']
+        del os.environ['CORE_PEER_MSPCONFIGPATH']
+
+    print('Test if chaincode is instantiated on %(PEER_HOST)s ... (timeout 15 seconds)' % {'PEER_HOST': peer['host']}, flush=True)
+
+    starttime = int(time.time())
+    while int(time.time()) - starttime < 15:
+        output = subprocess.run(['peer',
+                                 '--logging-level=info',
+                                 'chaincode', 'list',
+                                 '-C', conf['misc']['channel_name'],
+                                 '--instantiated',
+                                 '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
+                                 '--tls',
+                                 '--clientauth',
+                                 '--cafile', orderer['tls']['certfile'],
+                                 # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
+                                 '--keyfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
+                                 # for orderer
+                                 '--certfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+                                 ],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        data = output.stdout.decode('utf-8')
+
+        if len(data.split('Get instantiated chaincodes on channel mychannel:')[1].replace('\n', '')):
+            print(data, flush=True)
+            clean_env_variables()
+            return True
+
+    clean_env_variables()
+    return False
+
+
+def instanciateChainCode(args, org_name, peer):
     # :warning: for instanciating chaincode make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     policy = makePolicy()
@@ -252,12 +303,13 @@ def chainCodeQueryWith(arg, org_name, peer):
                                '-c', arg]).decode()
     except CalledProcessError as e:
         output = e.output.decode()
-        print(output)
-    else:
+        print('Error:', flush=True)
         print(output, flush=True)
+        # clean env variables
+        clean_env_variables()
+    else:
         try:
-            value = output.split(': ')[1].replace('\n', '')
-            value = json.loads(value)
+            value = json.loads(output)
         except:
             value = output
         else:
@@ -364,19 +416,19 @@ def invokeChainCode(args, org, peer):
     print('Sending invoke transaction to %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
     output = subprocess.run(['peer',
-                  'chaincode', 'invoke',
-                  '-C', channel_name,
-                  '-n', chaincode_name,
-                  '-c', args,
-                  '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
-                  '--tls',
-                  '--clientauth',
-                  '--cafile', orderer['tls']['certfile'],
-                  '--keyfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-                  '--certfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
-                  ],
-                 stdout=subprocess.PIPE,
-                 stderr=subprocess.PIPE)
+                             'chaincode', 'invoke',
+                             '-C', channel_name,
+                             '-n', chaincode_name,
+                             '-c', args,
+                             '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
+                             '--tls',
+                             '--clientauth',
+                             '--cafile', orderer['tls']['certfile'],
+                             '--keyfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
+                             '--certfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+                             ],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
 
     data = output.stderr.decode('utf-8')
 
@@ -429,13 +481,11 @@ def invokeChaincodeFirstPeers():
     # /!\ #
     #######
 
-
     # create second dataset with chu-nantes org
     args = '{"Args":["registerDataset","Simplified ISIC 2018","b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0","http://127.0.0.1:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/opener/","Images","258bef187a166b3fef5cb86e68c8f7e154c283a148cd5bc344fec7e698821ad3","http://127.0.0.1:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/description/","","all"]}'
     dataset_owkin = invokeChainCode(args, org, peer)
     print('Sleeping 3 seconds for dataset 2 on chu-nantes to be created', flush=True)
     call(['sleep', '3'])
-
 
     # register test data on dataset on owkin center (will take dataset creator as worker)
     args = '{"Args":["registerData","e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1, 4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010", "%s","100","true"]}' % dataset_owkin
@@ -485,7 +535,6 @@ def invokeChaincodeFirstPeers():
     invokeChainCode(args, org, peer)
     print('Sleeping 3 seconds for challenge to be created', flush=True)
     call(['sleep', '3'])
-
 
     # create algo
     args = '{"Args":["registerAlgo","Logistic regression","6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f","http://127.0.0.1:8001/algo/6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f/file/","124a0425b746d7072282d167b53cb6aab3a31bf1946dae89135c15b0126ebec3","http://127.0.0.1:8001/algo/6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f/description/","d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f","all"]}'
@@ -840,9 +889,8 @@ def run():
     # Instantiate chaincode on the 1st peer of the 2nd org
     instanciateChaincodeFirstPeerSecondOrg()
 
-    # wait chaincode is instanciated and initialized before querying it
-    print('Wait 10sec until chaincode is instanciated and initialized before querying it', flush=True)
-    call(['sleep', '10'])
+    # Wait chaincode is correctly instantiated and initialized
+    res = res and waitForInstantiation()
 
     # Query chaincode from the 1st peer of the 1st org
     res = res and queryChaincodeFromFirstPeerFirstOrg()
