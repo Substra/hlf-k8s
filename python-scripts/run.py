@@ -216,8 +216,8 @@ def waitForInstantiation():
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
         data = output.stdout.decode('utf-8')
-
-        if len(data.split('Get instantiated chaincodes on channel mychannel:')[1].replace('\n', '')):
+        split_msg = 'Get instantiated chaincodes on channel mychannel:'
+        if split_msg in data and len(data.split(split_msg)[1].replace('\n', '')):
             print(data, flush=True)
             clean_env_variables()
             return True
