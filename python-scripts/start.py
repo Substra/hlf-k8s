@@ -196,13 +196,30 @@ def start():
     remove_chaincode_docker_images()
 
     print('start docker-compose', flush=True)
-    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--remove-orphans'])
+    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--remove-orphans',
+          'rca-orderer', 'rca-owkin', 'rca-chu-nantes', 'setup'])
     call(['docker', 'ps', '-a'])
 
     # Wait for the setup container to complete
     dowait('the \'setup\' container to finish registering identities, creating the genesis block and other artifacts',
            90, os.path.join(dir_path, '..' + conf['misc']['setup_logfile']),
            [os.path.join(dir_path, '..' + conf['misc']['setup_success_file'])])
+
+    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps',
+          'orderer1-orderer', 'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes'])
+
+    peers_orgs_files = []
+    for org_name in conf['orgs'].keys():
+        org = conf['orgs'][org_name]
+        for peer in org['peers']:
+            peers_orgs_files.append(os.path.join(dir_path, '../data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'))
+
+    dowait('the docker \'peer\' containers to complete',
+           30, None,
+           peers_orgs_files)
+
+    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps',
+          'run'])
 
     # Wait for the run container to start and complete
     dowait('the docker \'run\' container to run and complete',

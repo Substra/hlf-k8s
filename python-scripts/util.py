@@ -57,7 +57,7 @@ def dowait(what, secs, logFile, files):
                 print('Failed waiting for %(what)s; see %(logFile)s\n' % {'what': what, 'logFile': logFile}, flush=True)
                 break
             print('.', end='', flush=True)
-        print('')
+    print('')
 
 
 def removeIntermediateCerts(intermediatecerts_dir):
