@@ -57,15 +57,16 @@ def dowait(what, secs, logFile, files):
                 print('Failed waiting for %(what)s; see %(logFile)s\n' % {'what': what, 'logFile': logFile}, flush=True)
                 break
             print('.', end='', flush=True)
-        print('')
+    print('')
 
 
 def removeIntermediateCerts(intermediatecerts_dir):
     print('Delete intermediate certs in ' + intermediatecerts_dir, flush=True)
-    for file in os.listdir(intermediatecerts_dir):
-        file_path = os.path.join(intermediatecerts_dir, file)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
+    if os.path.exists(intermediatecerts_dir):
+        for file in os.listdir(intermediatecerts_dir):
+            file_path = os.path.join(intermediatecerts_dir, file)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
 
 
 def completeMSPSetup(org_msp_dir):
