@@ -231,9 +231,8 @@ def start():
 
 if __name__ == "__main__":
     # create directory with correct rights
-    # careful you need to be sudo for this to work
-    call(['sudo', 'rm', '-rf', os.path.join(dir_path, '../data')])
-    call(['sudo', 'rm', '-rf', os.path.join(dir_path, '../conf')])
+    call(['rm', '-rf', os.path.join(dir_path, '../data')])
+    call(['rm', '-rf', os.path.join(dir_path, '../conf')])
 
     create_directory(os.path.join(dir_path, '../data/logs'))
     for org in list(conf['orgs'].keys()) + list(conf['orderers'].keys()):
