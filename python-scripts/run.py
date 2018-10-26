@@ -853,16 +853,16 @@ def run():
     res = res and queryChaincodeFromFirstPeerFirstOrg()
 
     # Invoke chaincode with 1st peers of each org
-    invokeChaincodeFirstPeers()
-
-    # Query chaincode from the 1st peer of the 1st org after Invoke
-    res = res and queryChaincodeFromFirstPeerFirstOrgAfterInvoke()
-
-    # Install chaincode on 2nd peer of 2nd org
-    installChainCodeOnSecondPeerSecondOrg()
-
-    # Query chaincode on 2nd peer of 2nd org
-    res = res and queryChaincodeFromSecondPeerSecondOrg()
+    # invokeChaincodeFirstPeers()
+    #
+    # # Query chaincode from the 1st peer of the 1st org after Invoke
+    # res = res and queryChaincodeFromFirstPeerFirstOrgAfterInvoke()
+    #
+    # # Install chaincode on 2nd peer of 2nd org
+    # installChainCodeOnSecondPeerSecondOrg()
+    #
+    # # Query chaincode on 2nd peer of 2nd org
+    # res = res and queryChaincodeFromSecondPeerSecondOrg()
 
     # Revoke first org user
     # res = res and revokeFirstOrgUser()
