@@ -220,8 +220,7 @@ def start():
            30, None,
            peers_orgs_files)
 
-    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps',
-          'run'])
+    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps', 'run'])
 
     # Wait for the run container to start and complete
     dowait('the docker \'run\' container to run and complete',

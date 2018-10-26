@@ -18,9 +18,10 @@ This project is developed under the Apache License, Version 2.0 (Apache-2.0), lo
 
 ### get docker images
 
-Run the `bootstrap.sh` script.
+Run the `bootstrap.sh` script.  
+:warning: If you are on linux and want to play with the substrabac projects, please read its documentation first. 
 
-It will pull from the hyperledger registry the right docker images and than will build our own docker images from it.
+It will pull from the hyperledger registry the right docker images and then will build our own docker images from it.
 
 ### Test
 
@@ -28,9 +29,11 @@ Go inside the `python-scripts` folder and run:
 
 `python start.py`
 
-It will build the network and run the tests.
+It will build the network and run init config.
 
-The `run` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on both orgs : owkin and chu-nantes. 
+The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.  
+The `fixtures` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on both orgs : owkin and chu-nantes. It is commented by default. Uncomment it in `docker-compose.yaml` for testing and debugging.   
+The `revoke` docker instance allow you to revoke an user, Recommandation is to leave this undocumented  
 
 If you do not want to init the chaincode and make queries, comment the run docker part in the docker-compose.
 
@@ -60,6 +63,9 @@ A backend is available named substrabac which can interact with this ledger.
 
 Two choices : 
 
+- [RECOMMENDED] Follow the instructions in the substrabac project for being able to query/invoke the ledger with the data created by the run container.
+
+
 - You'll have to modify the rights of the `data` created folder after running the `./start.py` file with the current user you are executing `substrabac` or simply copy needed files, usually conf files and msp folders generated, then modify the `core.yaml` file in substrabac for having correlated data.
 
     In my case:
@@ -70,5 +76,3 @@ Two choices :
     Make sure you have correctly set your `/etc/hosts`file too.
     
     You are ready to use the substrabac backend with this ledger network.
-
-- Follow the instructions in the substrabac project for being able to query/invoke the ledger with the data created by the run container.
