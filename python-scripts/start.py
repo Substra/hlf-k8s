@@ -181,6 +181,8 @@ def create_orderer_config():
 
 def stop():
     print('stopping container', flush=True)
+    call(['docker', 'rm', '-f', 'rca-orderer', 'rca-owkin', 'rca-chu-nantes', 'setup', 'orderer1-orderer',
+          'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes', 'run'])
     call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
 
@@ -218,8 +220,7 @@ def start():
            30, None,
            peers_orgs_files)
 
-    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps',
-          'run'])
+    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps', 'run'])
 
     # Wait for the run container to start and complete
     dowait('the docker \'run\' container to run and complete',
@@ -229,9 +230,8 @@ def start():
 
 if __name__ == "__main__":
     # create directory with correct rights
-    # careful you need to be sudo for this to work
-    call(['sudo', 'rm', '-rf', os.path.join(dir_path, '../data')])
-    call(['sudo', 'rm', '-rf', os.path.join(dir_path, '../conf')])
+    call(['rm', '-rf', os.path.join(dir_path, '../data')])
+    call(['rm', '-rf', os.path.join(dir_path, '../conf')])
 
     create_directory(os.path.join(dir_path, '../data/logs'))
     for org in list(conf['orgs'].keys()) + list(conf['orderers'].keys()):
