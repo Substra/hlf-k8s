@@ -1,7 +1,6 @@
 import os
 
 from subprocess import call
-from conf import conf
 from util import dowait, create_directory, remove_chaincode_docker_images, remove_chaincode_docker_containers
 
 from yaml import load, dump
@@ -62,15 +61,19 @@ def create_ca_client_config(orgs):
             f.write(dump(yaml_data, default_flow_style=False))
 
 
-def create_ca():
-    print('Creating ca server/client files for each orgs', flush=True)
-    create_ca_server_config(conf['orgs'])
+def create_ca(conf):
+    print('Creating ca server/client files for each orderer', flush=True)
     create_ca_server_config(conf['orderers'])
-    create_ca_client_config(conf['orgs'])
     create_ca_client_config(conf['orderers'])
 
+    print('Creating ca server/client files for each org', flush=True)
+    create_ca_server_config(conf['orgs'])
+    create_ca_client_config(conf['orgs'])
 
-def create_configtx():
+
+def create_configtx(conf):
+
+    print('Creating configtx of the substra network', flush=True)
     stream = open(os.path.join(dir_path, '../templates/configtx.yaml'), 'r')
     yaml_data = load(stream, Loader=Loader)
 
@@ -107,7 +110,7 @@ def create_configtx():
         f.write(dump(yaml_data, default_flow_style=False))
 
 
-def create_core_peer_config():
+def create_core_peer_config(conf):
     for org_name in conf['orgs'].keys():
         org = conf['orgs'][org_name]
         for peer in org['peers']:
@@ -170,7 +173,7 @@ def create_core_peer_config():
                 f.write(dump(yaml_data, default_flow_style=False))
 
 
-def create_orderer_config():
+def create_orderer_config(conf):
     for org_name in conf['orderers'].keys():
         org = conf['orderers'][org_name]
 
@@ -200,27 +203,153 @@ def create_orderer_config():
             f.write(dump(yaml_data, default_flow_style=False))
 
 
-def stop():
+def generate_docker_compose_file(conf, conf_path):
+    try:
+        from ruamel import yaml
+    except ImportError:
+        import yaml
+
+    conf_file = os.path.basename(conf_path)
+
+    # Docker compose config
+    docker_compose = {'substra_services': {'rca': [],
+                                           'svc': []},
+                      'substra_tools': {'setup': {'container_name': 'setup',
+                                                  'image': 'substra/fabric-ca-tools',
+                                                  'command': '/bin/bash -c "python3 /scripts/setup.py --config %s 2>&1 | tee /data/log/setup.log; sleep 99999"' % conf_file,
+                                                  'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server',
+                                                                  'FABRIC_CFG_PATH=/data'],
+                                                  'volumes': ['./data:/data', './python-scripts:/scripts',
+                                                              '%s:/%s' % (conf_path, conf_file)],
+                                                  'networks': ['substra'],
+                                                  'depends_on': []},
+
+                                        'run': {'container_name': 'run',
+                                                'image': 'substra/fabric-ca-tools',
+                                                'command': '/bin/bash -c "sleep 3;python3 /scripts/run.py --config %s 2>&1 | tee /data/log/run.log; sleep 99999"' % conf_file,
+                                                'environment': ['GOPATH=/opt/gopath'],
+                                                'volumes': ['./data:/data', './conf:/conf', './python-scripts:/scripts',
+                                                            '%s:/%s' % (conf_path, conf_file),
+                                                            '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode'],
+                                                'networks': ['substra'],
+                                                'depends_on': []},
+                                        },
+                      'path': os.path.join(dir_path, '../docker-compose-dynamic.yaml')}
+
+    for orderer_name, orderer_conf in conf['orderers'].items():
+        # RCA
+        rca = {'container_name': orderer_conf['ca']['host'],
+               'image': 'substra/fabric-ca',
+               'ports': ['%s:%s' % (orderer_conf['ca']['host_port'], orderer_conf['ca']['port'])],
+               'command': '/bin/bash -c "python3 /scripts/start-root-ca.py 2>&1 | tee /data/logs/%s.log; sleep 99999"' % orderer_conf['ca']['host'],
+               'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server',
+                               'TARGET_CERTFILE=/data/orgs/%s/' % orderer_conf['org_name']],
+               'volumes': ['./data:/data', './python-scripts:/scripts',
+                           './conf/%s/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml' % orderer_conf['org_name']],
+               'networks': ['substra']}
+
+        docker_compose['substra_tools']['setup']['depends_on'].append(orderer_conf['ca']['host'])
+        docker_compose['substra_tools']['setup']['volumes'].append('./conf/%s/fabric-ca-client-config.yaml:/root/cas/%s/fabric-ca-client-config.yaml' % (orderer_conf['org_name'], orderer_conf['ca']['host']))
+        docker_compose['substra_services']['rca'].append((orderer_conf['ca']['host'], rca))
+
+        # ORDERER
+        svc = {'container_name': orderer_conf['host'],
+               'image': 'substra/fabric-ca-orderer',
+               'command': '/bin/bash -c "python3 /scripts/start-orderer.py 2>&1 | tee /data/logs/%s.log; sleep 99999"' % orderer_conf['host'],
+               'environment': ['ORG=%s' % orderer_conf['org_name'],
+                               'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/orderer'],
+               'volumes': ['./data:/data', './python-scripts:/scripts',
+                           './conf/%s/fabric-ca-client-config.yaml:/etc/hyperledger/orderer/fabric-ca-client-config.yaml' % orderer_conf['org_name'],
+                           './conf/%s/orderer.yaml:/etc/hyperledger/fabric/orderer.yaml' % orderer_conf['org_name']],
+               'networks': ['substra'],
+               'depends_on': ['setup']}
+
+        docker_compose['substra_tools']['run']['depends_on'].append(orderer_conf['host'])
+        docker_compose['substra_services']['svc'].append((orderer_conf['host'], svc))
+
+    for org_name, org_conf in conf['orgs'].items():
+        # RCA
+        rca = {'container_name': org_conf['ca']['host'],
+               'image': 'substra/fabric-ca',
+               'ports': ['%s:%s' % (org_conf['ca']['host_port'], org_conf['ca']['port'])],
+               'command': '/bin/bash -c "python3 /scripts/start-root-ca.py 2>&1 | tee /data/logs/%s.log; sleep 99999"' % org_conf['ca']['host'],
+               'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server',
+                               'TARGET_CERTFILE=/data/orgs/%s/' % org_conf['org_name']],
+               'volumes': ['./data:/data', './python-scripts:/scripts',
+                           './conf/%s/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml' % org_conf['org_name']],
+               'networks': ['substra']}
+
+        docker_compose['substra_tools']['setup']['depends_on'].append(org_conf['ca']['host'])
+        docker_compose['substra_tools']['setup']['volumes'].append('./conf/%s/fabric-ca-client-config.yaml:/root/cas/%s/fabric-ca-client-config.yaml' % (org_conf['org_name'], org_conf['ca']['host']))
+        docker_compose['substra_services']['rca'].append((org_conf['ca']['host'], rca))
+
+        # Peer
+
+        for index, peer in enumerate(org_conf['peers']):
+            svc = {'container_name': peer['host'],
+                   'image': 'substra/fabric-ca-peer',
+                   'command': '/bin/bash -c "python3 /scripts/start-peer.py 2>&1 | tee /data/logs/%s.log; sleep 99999"' % peer['host'],
+                   'environment': ['ORG=%s' % org_conf['org_name'],
+                                   'PEER_INDEX=%s' % index,
+                                   'FABRIC_CA_CLIENT_HOME=/opt/gopath/src/github.com/hyperledger/fabric/peer'],
+                   'working_dir': '/opt/gopath/src/github.com/hyperledger/fabric/peer',
+                   'ports': ['%s:%s' % (peer['host_port'], peer['port']),
+                             '%s:%s' % (peer['host_event_port'], peer['event_port'])],
+                   'volumes': ['./data:/data', './python-scripts:/scripts', '/var/run:/host/var/run',
+                               './conf/%s/fabric-ca-client-config.yaml:/opt/gopath/src/github.com/hyperledger/fabric/peer/fabric-ca-client-config.yaml' % org_conf['org_name'],
+                               './conf/%s/%s/core.yaml:/etc/hyperledger/fabric/core.yaml' % (org_conf['org_name'], peer['name'])],
+                   'networks': ['substra'],
+                   'depends_on': ['setup']}
+
+            docker_compose['substra_tools']['run']['depends_on'].append(peer['host'])
+            docker_compose['substra_services']['svc'].append((peer['host'], svc))
+
+    # Create all services along to conf
+
+    COMPOSITION = {'services': {}, 'version': '2', 'networks': {'substra': None}}
+
+    for name, dconfig in docker_compose['substra_services']['rca']:
+        COMPOSITION['services'][name] = dconfig
+
+    for name, dconfig in docker_compose['substra_services']['svc']:
+        COMPOSITION['services'][name] = dconfig
+
+    for name, dconfig in docker_compose['substra_tools'].items():
+        COMPOSITION['services'][name] = dconfig
+
+    with open(docker_compose['path'], 'w+') as f:
+            f.write(yaml.dump(COMPOSITION, default_flow_style=False, indent=4, line_break=None))
+
+    return docker_compose
+
+
+def stop(docker_compose):
     print('stopping container', flush=True)
-    call(['docker', 'rm', '-f', 'rca-orderer', 'rca-owkin', 'rca-chu-nantes', 'setup', 'orderer1-orderer',
-          'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes', 'run'])
-    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
-
-def start():
-    create_ca()
-    create_configtx()
-    create_core_peer_config()
-    create_orderer_config()
-
-    stop()
+    services = [name for name, _ in docker_compose['substra_services']['svc']]
+    services += [name for name, _ in docker_compose['substra_services']['rca']]
+    services += list(docker_compose['substra_tools'].keys())
+    call(['docker', 'rm', '-f'] + services)
+    call(['docker-compose', '-f', docker_compose['path'], 'down', '--remove-orphans'])
 
     remove_chaincode_docker_containers()
     remove_chaincode_docker_images()
 
+
+def start(conf, conf_path):
+    create_ca(conf)
+    create_configtx(conf)
+    create_core_peer_config(conf)
+    create_orderer_config(conf)
+
+    print('Generate docker-compose file\n')
+    docker_compose = generate_docker_compose_file(conf, conf_path)
+
+    stop(docker_compose)
+
     print('start docker-compose', flush=True)
-    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--remove-orphans',
-          'rca-orderer', 'rca-owkin', 'rca-chu-nantes', 'setup'])
+    services = [name for name, _ in docker_compose['substra_services']['rca']] + ['setup']
+    call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--remove-orphans'] + services)
     call(['docker', 'ps', '-a'])
 
     # Wait for the setup container to complete
@@ -228,8 +357,8 @@ def start():
            90, conf['misc']['setup_logfile'],
            [conf['misc']['setup_success_file']])
 
-    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps',
-          'orderer1-orderer', 'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes'])
+    services = [name for name, _ in docker_compose['substra_services']['svc']]
+    call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--no-deps'] + services)
 
     peers_orgs_files = []
     for org_name in conf['orgs'].keys():
@@ -254,13 +383,36 @@ if __name__ == "__main__":
     call(['rm', '-rf', '/substra/data'])
     call(['rm', '-rf', '/substra/conf'])
 
-
     create_directory('/substra/data/logs')
+    create_directory('/substra/conf/')
+
+    import json
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', nargs='?', type=str, action='store', default='', help="JSON config file to be used")
+    args = vars(parser.parse_args())
+
+    if args['config']:
+        conf_path = os.path.join(dir_path, args['config'])
+    else:
+        conf_path = '/substra/conf/conf.json'
+
+    conf = json.load(open(conf_path, 'r'))
+
+    print('Build substra-network for : ', flush=True)
+    print('  Orderer :')
+    for org_name in conf['orderers'].keys():
+        print('   -', org_name, flush=True)
+
+    print('  Organizations :', flush=True)
+    for org_name in conf['orgs'].keys():
+        print('   -', org_name, flush=True)
+
+    print('', flush=True)
+
     for org in list(conf['orgs'].keys()) + list(conf['orderers'].keys()):
         create_directory('/substra/data/orgs/%s' % org)
         create_directory('/substra/conf/%s' % org)
 
-    # regenerate conf.json
-    call(['python3', os.path.join(dir_path, './conf.py')])
-
-    start()
+    start(conf, conf_path)

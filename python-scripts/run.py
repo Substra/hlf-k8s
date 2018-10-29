@@ -3,11 +3,12 @@ import os
 import time
 import subprocess
 
-from conf import conf
 from subprocess import call, check_output, STDOUT, CalledProcessError, Popen
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
-def createChannel(org_name, peer):
+
+def createChannel(conf, org_name, peer):
     # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     org = conf['orgs'][org_name]
@@ -41,7 +42,7 @@ def createChannel(org_name, peer):
 
 
 # Enroll as a fabric admin and join the channel
-def joinChannel(peer, org_name):
+def joinChannel(conf, peer, org_name):
     # :warning: for joining channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     org = conf['orgs'][org_name]
@@ -71,15 +72,15 @@ def joinChannel(peer, org_name):
     del os.environ['CORE_PEER_MSPCONFIGPATH']
 
 
-def peersJoinChannel():
+def peersJoinChannel(conf):
     for org_name in conf['orgs'].keys():
         org = conf['orgs'][org_name]
         for peer in org['peers']:
-            joinChannel(peer, org_name)
+            joinChannel(conf, peer, org_name)
 
 
 # Update the anchor peers
-def updateAnchorPeers():
+def updateAnchorPeers(conf):
     # :warning: for updating anchor peers make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     for org_name in conf['orgs'].keys():
@@ -115,7 +116,7 @@ def updateAnchorPeers():
         del os.environ['CORE_PEER_MSPCONFIGPATH']
 
 
-def installChainCode(org_name, peer):
+def installChainCode(conf, org_name, peer):
     # :warning: for installing chaincode make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     org = conf['orgs'][org_name]
@@ -143,21 +144,14 @@ def installChainCode(org_name, peer):
     del os.environ['CORE_PEER_MSPCONFIGPATH']
 
 
-def installChainCodeOnFirstPeers():
+def installChainCodeOnPeers(conf):
     for org_name in conf['orgs'].keys():
         org = conf['orgs'][org_name]
-        peer = org['peers'][0]
-        installChainCode(org_name, peer)
+        for peer in org['peers']:
+            installChainCode(conf, org_name, peer)
 
 
-def installChainCodeOnSecondPeerSecondOrg():
-    org_name = 'chu-nantes'
-    org = conf['orgs'][org_name]
-    peer = org['peers'][1]
-    installChainCode(org_name, peer)
-
-
-def makePolicy():
+def makePolicy(conf):
     policy = 'OR('
 
     for index, org_name in enumerate(conf['orgs']):
@@ -171,8 +165,8 @@ def makePolicy():
     return policy
 
 
-def waitForInstantiation():
-    org_name = 'chu-nantes'
+def waitForInstantiation(conf):
+    org_name = list(conf['orgs'].keys())[0]
     org = conf['orgs'][org_name]
     peer = org['peers'][0]
 
@@ -222,10 +216,10 @@ def waitForInstantiation():
     return False
 
 
-def instanciateChainCode(args, org_name, peer):
+def instanciateChainCode(conf, args, org_name, peer):
     # :warning: for instanciating chaincode make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
-    policy = makePolicy()
+    policy = makePolicy(conf)
 
     org = conf['orgs'][org_name]
     org_admin_home = org['admin_home']
@@ -261,14 +255,14 @@ def instanciateChainCode(args, org_name, peer):
     del os.environ['CORE_PEER_MSPCONFIGPATH']
 
 
-def instanciateChaincodeFirstPeerSecondOrg():
-    org_name = 'chu-nantes'
+def instanciateChaincode(conf):
+    org_name = list(conf['orgs'].keys())[0]
     org = conf['orgs'][org_name]
     peer = org['peers'][0]
-    instanciateChainCode('{"Args":["init"]}', org_name, peer)
+    instanciateChainCode(conf, '{"Args":["init"]}', org_name, peer)
 
 
-def chainCodeQueryWith(arg, org_name, peer):
+def chainCodeQueryWith(conf, arg, org_name, peer):
     org = conf['orgs'][org_name]
     org_user_home = org['user_home']
     org_user_msp_dir = org_user_home + '/msp'
@@ -321,8 +315,8 @@ def chainCodeQueryWith(arg, org_name, peer):
             return value
 
 
-def queryChaincodeFromFirstPeerFirstOrg():
-    org_name = 'owkin'
+def queryChaincodeFromFirstPeerFirstOrg(conf):
+    org_name = list(conf['orgs'].keys())[0]
     org = conf['orgs'][org_name]
     peer = org['peers'][0]
 
@@ -331,7 +325,8 @@ def queryChaincodeFromFirstPeerFirstOrg():
     starttime = int(time.time())
     while int(time.time()) - starttime < 15:
         call(['sleep', '1'])
-        data = chainCodeQueryWith('{"Args":["queryChallenges"]}',
+        data = chainCodeQueryWith(conf,
+                                  '{"Args":["queryChallenges"]}',
                                   org_name,
                                   peer)
         # data should be null
@@ -346,24 +341,24 @@ def queryChaincodeFromFirstPeerFirstOrg():
     return False
 
 
-def run():
+def run(conf):
     res = True
+    org_chan = list(conf['orgs'].keys())[0]
+    createChannel(conf, org_chan, conf['orgs'][org_chan]['peers'][0])
+    peersJoinChannel(conf)
+    updateAnchorPeers(conf)
 
-    createChannel('owkin', conf['orgs']['owkin']['peers'][0])
-    peersJoinChannel()
-    updateAnchorPeers()
-
-    # Install chaincode on the 1st peer in each org
-    installChainCodeOnFirstPeers()
+    # Install chaincode on peer in each org
+    installChainCodeOnPeers(conf)
 
     # Instantiate chaincode on the 1st peer of the 2nd org
-    instanciateChaincodeFirstPeerSecondOrg()
+    instanciateChaincode(conf)
 
     # Wait chaincode is correctly instantiated and initialized
-    res = res and waitForInstantiation()
+    res = res and waitForInstantiation(conf)
 
     # Query chaincode from the 1st peer of the 1st org
-    res = res and queryChaincodeFromFirstPeerFirstOrg()
+    res = res and queryChaincodeFromFirstPeerFirstOrg(conf)
 
     if res:
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
@@ -374,4 +369,18 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Editeur")
+    parser.add_argument('-c', '--config', nargs='?', type=str, action='store', default='', help="JSON config file to be used")
+    args = vars(parser.parse_args())
+
+    if args['config']:
+        conf_path = os.path.join(dir_path, args['config'])
+    else:
+        conf_path = os.path.join(dir_path, 'conf.json')
+
+    conf = json.load(open(conf_path, 'r'))
+
+    run(conf)
