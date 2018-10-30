@@ -4,6 +4,6 @@ hkdf >= 0.0.3
 pycryptodomex >= 3.4.2
 pycurl
 pysha3 == 1.0b1
-requests == 2.18.4
+requests == 2.20.0
 rx >= 1.5.3
 six >= 1.4.0

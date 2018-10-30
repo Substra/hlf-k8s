@@ -33,7 +33,7 @@ if __name__ == '__main__':
           '--csr.hosts', peer['host']])
 
     # Copy the TLS key and cert to the appropriate place
-    tlsdir = org['core']['peer_home'] + '/tls'
+    tlsdir = org['core']['docker']['peer_home'] + '/tls'
     create_directory(tlsdir)
 
     tlscert = tlsdir + '/' + org['core']['tls']['cert']
@@ -42,34 +42,34 @@ if __name__ == '__main__':
     copy_last_file_ext('*_sk', '/tmp/tls/keystore/', tlskey)
     call(['rm', '-rf', '/tmp/tls'])
 
-    create_directory('/data/orgs/' + org_name + '/tls/' + peer['name'])
+    create_directory('/substra/data/orgs/' + org_name + '/tls/' + peer['name'])
 
     # Generate client TLS cert and key pair for the peer
     genClientTLSCert(peer['name'],
-                     '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/client.crt',
-                     '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/client.key',
+                     '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/client.crt',
+                     '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/client.key',
                      enrollment_url)
 
     # Generate client TLS cert and key pair for the peer CLI
     genClientTLSCert(peer['name'],
-                     '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt',
-                     '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
+                     '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt',
+                     '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
                      enrollment_url)
 
     # Enroll the peer to get an enrollment certificate and set up the core's local MSP directory
     call(['fabric-ca-client',
           'enroll', '-d',
           '-u', enrollment_url,
-          '-M', org['core']['msp_config_path']])
+          '-M', org['core']['docker']['msp_config_path']])
 
-    completeMSPSetup(org['core']['msp_config_path'])
+    completeMSPSetup(org['core']['docker']['msp_config_path'])
 
-    copyAdminCert(org['core']['msp_config_path'], org_name, conf['misc']['setup_logfile'], org_msp_dir + '/admincerts/cert.pem')
+    copyAdminCert(org['core']['docker']['msp_config_path'], org_name, conf['misc']['setup_logfile'], org_msp_dir + '/admincerts/cert.pem')
 
     # Start the peer
     print('Starting peer \'%(CORE_PEER_ID)s\' with MSP at \'%(CORE_PEER_MSPCONFIGPATH)s\'' % {
         'CORE_PEER_ID': peer['host'],
-        'CORE_PEER_MSPCONFIGPATH': org['core']['msp_config_path']
+        'CORE_PEER_MSPCONFIGPATH': org['core']['docker']['msp_config_path']
     }, flush=True)
     call('env | grep CORE', shell=True)
     call(['peer', 'node', 'start'])

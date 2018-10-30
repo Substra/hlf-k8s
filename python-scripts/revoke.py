@@ -24,7 +24,7 @@ def revokeFabricUserAndGenerateCRL(org_name, username):
 
     call(['fabric-ca-client',
           'revoke', '-d',
-          '-c', '/data/orgs/' + org_name + '/admin/fabric-ca-client-config.yaml',
+          '-c', '/substra/data/orgs/' + org_name + '/admin/fabric-ca-client-config.yaml',
           '--revoke.name', username,
           '--gencrl'])
 
@@ -41,7 +41,7 @@ def fetchConfigBlock(org_name, peer):
     print('Fetching the configuration block of the channel \'%s\'' % channel_name, flush=True)
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
     # update mspconfigpath for getting the one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
@@ -51,8 +51,8 @@ def fetchConfigBlock(org_name, peer):
           '--tls',
           '--clientauth',
           '--cafile', orderer['tls']['certfile'],
-          '--keyfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-          '--certfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+          '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
+          '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
           ])
 
     # clean env variables
@@ -167,7 +167,7 @@ def updateConfigBlock(org_name, peer):
     config_update_envelope_file = conf['misc']['config_update_envelope_file']
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
     # update mspconfigpath for getting the one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
@@ -179,8 +179,8 @@ def updateConfigBlock(org_name, peer):
           '--tls',
           '--clientauth',
           '--cafile', orderer['tls']['certfile'],
-          '--keyfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-          '--certfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+          '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
+          '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
           ])
 
     # clean env variables
@@ -194,7 +194,7 @@ def queryAsRevokedUser(arg, org_name, peer, username):
     org_user_msp_dir = org_user_home + '/msp'
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
     # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
 

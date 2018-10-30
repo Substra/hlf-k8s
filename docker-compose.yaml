@@ -13,48 +13,48 @@ services:
   rca-orderer:
     container_name: rca-orderer
     image: substra/fabric-ca
-    command: /bin/bash -c 'python3 /scripts/start-root-ca.py 2>&1 | tee /data/logs/rca-orderer.log; sleep 99999'
+    command: /bin/bash -c 'python3 /scripts/start-root-ca.py 2>&1 | tee /substra/data/logs/rca-orderer.log; sleep 99999'
     ports:
       - "9054:7054"
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - TARGET_CERTFILE=/data/orgs/orderer/
+      - TARGET_CERTFILE=/substra/data/orgs/orderer/
     volumes:
-      - ./python-scripts:/scripts
-      - ./data:/data
-      - ./conf/orderer/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml
+      - ./python-scripts:/scripts # to be removed
+      - /substra/data:/substra/data
+      - /substra/conf/orderer/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml
     networks:
       - substra
 
   rca-owkin:
     container_name: rca-owkin
     image: substra/fabric-ca
-    command: /bin/bash -c 'python3 /scripts/start-root-ca.py 2>&1 | tee /data/logs/rca-owkin.log; sleep 99999'
+    command: /bin/bash -c 'python3 /scripts/start-root-ca.py 2>&1 | tee /substra/data/logs/rca-owkin.log; sleep 99999'
     ports:
       - "7054:7054"
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - TARGET_CERTFILE=/data/orgs/owkin/
+      - TARGET_CERTFILE=/substra/data/orgs/owkin/
     volumes:
-      - ./python-scripts:/scripts
-      - ./data:/data
-      - ./conf/owkin/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml
+      - ./python-scripts:/scripts # to be removed
+      - /substra/data:/substra/data
+      - /substra/conf/owkin/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml
     networks:
       - substra
 
   rca-chu-nantes:
     container_name: rca-chu-nantes
     image: substra/fabric-ca
-    command: /bin/bash -c 'python3 /scripts/start-root-ca.py 2>&1 | tee /data/logs/rca-chu-nantes.log; sleep 99999'
+    command: /bin/bash -c 'python3 /scripts/start-root-ca.py 2>&1 | tee /substra/data/logs/rca-chu-nantes.log; sleep 99999'
     ports:
       - "8054:7054"
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - TARGET_CERTFILE=/data/orgs/chu-nantes/
+      - TARGET_CERTFILE=/substra/data/orgs/chu-nantes/
     volumes:
-      - ./python-scripts:/scripts
-      - ./data:/data
-      - ./conf/chu-nantes/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml
+      - ./python-scripts:/scripts # to be removed
+      - /substra/data:/substra/data
+      - /substra/conf/chu-nantes/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml
     networks:
       - substra
 
@@ -62,18 +62,18 @@ services:
     container_name: setup
     image: substra/fabric-ca-tools
     # image: substra/fabric-ca-tools-debug
-    command: /bin/bash -c 'python3 /scripts/setup.py 2>&1 | tee /data/logs/setup.log; sleep 99999'
+    command: /bin/bash -c 'python3 /scripts/setup.py 2>&1 | tee /substra/data/logs/setup.log; sleep 99999'
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - FABRIC_CFG_PATH=/data
+      - FABRIC_CFG_PATH=/substra/data
         # - PYTHONPATH=$PYTHONPATH:/fabric-sdk-py
     volumes:
-      - ./data:/data
+      - /substra/data:/substra/data
 
       - ./python-scripts:/scripts
-      - ./conf/orderer/fabric-ca-client-config.yaml:/root/cas/rca-orderer/fabric-ca-client-config.yaml
-      - ./conf/owkin/fabric-ca-client-config.yaml:/root/cas/rca-owkin/fabric-ca-client-config.yaml
-      - ./conf/chu-nantes/fabric-ca-client-config.yaml:/root/cas/rca-chu-nantes/fabric-ca-client-config.yaml
+      - /substra/conf/orderer/fabric-ca-client-config.yaml:/root/cas/rca-orderer/fabric-ca-client-config.yaml
+      - /substra/conf/owkin/fabric-ca-client-config.yaml:/root/cas/rca-owkin/fabric-ca-client-config.yaml
+      - /substra/conf/chu-nantes/fabric-ca-client-config.yaml:/root/cas/rca-chu-nantes/fabric-ca-client-config.yaml
 
       # - ../../fabric-sdk-py:/fabric-sdk-py # for debugging with fabric-ca-tools-debug
     networks:
@@ -89,14 +89,14 @@ services:
     environment:
       - ORG=orderer
       - FABRIC_CA_CLIENT_HOME=/etc/hyperledger/orderer
-    command: /bin/bash -c 'python3 scripts/start-orderer.py 2>&1 | tee /data/logs/orderer1-orderer.log; sleep 99999'
+    command: /bin/bash -c 'python3 scripts/start-orderer.py 2>&1 | tee /substra/data/logs/orderer1-orderer.log; sleep 99999'
     ports:
       - 7050:7050
     volumes:
       - ./python-scripts:/scripts
-      - ./data:/data
-      - ./conf/orderer/fabric-ca-client-config.yaml:/etc/hyperledger/orderer/fabric-ca-client-config.yaml
-      - ./conf/orderer/orderer.yaml:/etc/hyperledger/fabric/orderer.yaml
+      - /substra/data:/substra/data
+      - /substra/conf/orderer/fabric-ca-client-config.yaml:/etc/hyperledger/orderer/fabric-ca-client-config.yaml
+      - /substra/conf/orderer/orderer.yaml:/etc/hyperledger/fabric/orderer.yaml
     networks:
       - substra
     depends_on:
@@ -110,16 +110,16 @@ services:
       - PEER_INDEX=0
       - FABRIC_CA_CLIENT_HOME=/opt/gopath/src/github.com/hyperledger/fabric/peer
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
-    command: /bin/bash -c 'python3 /scripts/start-peer.py 2>&1 | tee /data/logs/peer1-owkin.log; sleep 99999'
+    command: /bin/bash -c 'python3 /scripts/start-peer.py 2>&1 | tee /substra/data/logs/peer1-owkin.log; sleep 99999'
     ports:
       - 7051:7051
       - 7053:7053
     volumes:
-      - ./data:/data
+      - /substra/data:/substra/data
       - /var/run:/host/var/run
       - ./python-scripts:/scripts
-      - ./conf/owkin/fabric-ca-client-config.yaml:/opt/gopath/src/github.com/hyperledger/fabric/peer/fabric-ca-client-config.yaml
-      - ./conf/owkin/peer1/core.yaml:/etc/hyperledger/fabric/core.yaml
+      - /substra/conf/owkin/fabric-ca-client-config.yaml:/opt/gopath/src/github.com/hyperledger/fabric/peer/fabric-ca-client-config.yaml
+      - /substra/conf/owkin/peer1/core.yaml:/etc/hyperledger/fabric/core.yaml
     networks:
       - substra
     depends_on:
@@ -133,16 +133,16 @@ services:
       - PEER_INDEX=1
       - FABRIC_CA_CLIENT_HOME=/opt/gopath/src/github.com/hyperledger/fabric/peer
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
-    command: /bin/bash -c 'python3 /scripts/start-peer.py 2>&1 | tee /data/logs/peer2-owkin.log; sleep 99999'
+    command: /bin/bash -c 'python3 /scripts/start-peer.py 2>&1 | tee /substra/data/logs/peer2-owkin.log; sleep 99999'
     ports:
       - 8051:7051
       - 8053:7053
     volumes:
-      - ./data:/data
+      - /substra/data:/substra/data
       - /var/run:/host/var/run
       - ./python-scripts:/scripts
-      - ./conf/owkin/fabric-ca-client-config.yaml:/opt/gopath/src/github.com/hyperledger/fabric/peer/fabric-ca-client-config.yaml
-      - ./conf/owkin/peer2/core.yaml:/etc/hyperledger/fabric/core.yaml
+      - /substra/conf/owkin/fabric-ca-client-config.yaml:/opt/gopath/src/github.com/hyperledger/fabric/peer/fabric-ca-client-config.yaml
+      - /substra/conf/owkin/peer2/core.yaml:/etc/hyperledger/fabric/core.yaml
     networks:
       - substra
     depends_on:
@@ -156,16 +156,16 @@ services:
       - PEER_INDEX=0
       - FABRIC_CA_CLIENT_HOME=/opt/gopath/src/github.com/hyperledger/fabric/peer
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
-    command: /bin/bash -c 'python3 /scripts/start-peer.py 2>&1 | tee /data/logs/peer1-chu-nantes.log; sleep 99999'
+    command: /bin/bash -c 'python3 /scripts/start-peer.py 2>&1 | tee /substra/data/logs/peer1-chu-nantes.log; sleep 99999'
     ports:
       - 9051:7051
       - 9053:7053
     volumes:
-      - ./data:/data
+      - /substra/data:/substra/data
       - /var/run:/host/var/run
       - ./python-scripts:/scripts
-      - ./conf/chu-nantes/fabric-ca-client-config.yaml:/opt/gopath/src/github.com/hyperledger/fabric/peer/fabric-ca-client-config.yaml
-      - ./conf/chu-nantes/peer1/core.yaml:/etc/hyperledger/fabric/core.yaml
+      - /substra/conf/chu-nantes/fabric-ca-client-config.yaml:/opt/gopath/src/github.com/hyperledger/fabric/peer/fabric-ca-client-config.yaml
+      - /substra/conf/chu-nantes/peer1/core.yaml:/etc/hyperledger/fabric/core.yaml
     networks:
       - substra
     depends_on:
@@ -179,16 +179,16 @@ services:
       - PEER_INDEX=1
       - FABRIC_CA_CLIENT_HOME=/opt/gopath/src/github.com/hyperledger/fabric/peer
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
-    command: /bin/bash -c 'python3 /scripts/start-peer.py 2>&1 | tee /data/logs/peer2-chu-nantes.log; sleep 99999'
+    command: /bin/bash -c 'python3 /scripts/start-peer.py 2>&1 | tee /substra/data/logs/peer2-chu-nantes.log; sleep 99999'
     ports:
       - 10051:7051
       - 10053:7053
     volumes:
-      - ./data:/data
+      - /substra/data:/substra/data
       - /var/run:/host/var/run
       - ./python-scripts:/scripts
-      - ./conf/chu-nantes/fabric-ca-client-config.yaml:/opt/gopath/src/github.com/hyperledger/fabric/peer/fabric-ca-client-config.yaml
-      - ./conf/chu-nantes/peer2/core.yaml:/etc/hyperledger/fabric/core.yaml
+      - /substra/conf/chu-nantes/fabric-ca-client-config.yaml:/opt/gopath/src/github.com/hyperledger/fabric/peer/fabric-ca-client-config.yaml
+      - /substra/conf/chu-nantes/peer2/core.yaml:/etc/hyperledger/fabric/core.yaml
     networks:
       - substra
     depends_on:
@@ -199,12 +199,12 @@ services:
     image: substra/fabric-ca-tools
     environment:
       - GOPATH=/opt/gopath
-    command: /bin/bash -c 'sleep 3;python3 /scripts/run.py 2>&1 | tee /data/logs/run.log; sleep 99999'
+    command: /bin/bash -c 'sleep 3;python3 /scripts/run.py 2>&1 | tee /substra/data/logs/run.log; sleep 99999'
     volumes:
       - ./python-scripts:/scripts
-      - ./data:/data
+      - /substra/data:/substra/data
       - ../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode
-      - ./conf:/conf
+      - /substra/conf:/substra/conf
 
     networks:
       - substra
@@ -223,10 +223,10 @@ services:
 #    image: substra/fabric-ca-tools
 #    environment:
 #    - GOPATH=/opt/gopath
-#    command: /bin/bash -c 'sleep 3;python3 /scripts/fixtures.py 2>&1 | tee /data/logs/fixtures.log; sleep 99999'
+#    command: /bin/bash -c 'sleep 3;python3 /scripts/fixtures.py 2>&1 | tee /substra/data/logs/fixtures.log; sleep 99999'
 #    volumes:
 #    - ./python-scripts:/scripts
-#    - ./data:/data
+#    - /substra/data:/substra/data
 #    - ../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode
 #
 #
@@ -243,10 +243,10 @@ services:
 #    image: substra/fabric-ca-tools
 #    environment:
 #    - GOPATH=/opt/gopath
-#    command: /bin/bash -c 'sleep 3;python3 /scripts/revoke.py 2>&1 | tee /data/logs/revoke.log; sleep 99999'
+#    command: /bin/bash -c 'sleep 3;python3 /scripts/revoke.py 2>&1 | tee /substra/data/logs/revoke.log; sleep 99999'
 #    volumes:
 #    - ./python-scripts:/scripts
-#    - ./data:/data
+#    - /substra/data:/substra/data
 #    - ../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode
 #
 #    # needed for revoking user
@@ -262,11 +262,11 @@ services:
   test:
     container_name: test
     image: substra/fabric-ca-tools
-    command: /bin/bash -c 'sleep 3;python3 /scripts/test.py 2>&1 | tee /data/logs/test.log; sleep 99999'
+    command: /bin/bash -c 'sleep 3;python3 /scripts/test.py 2>&1 | tee /substra/data/logs/test.log; sleep 99999'
     volumes:
       - ./python-scripts:/scripts
-      - ./data:/data
-      - ./conf:/conf
+      - /substra/data:/substra/data
+      - /substra/conf:/substra/conf
     networks:
       - substra
     depends_on:
