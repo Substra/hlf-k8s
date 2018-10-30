@@ -25,6 +25,13 @@ It will pull from the hyperledger registry the right docker images and then will
 
 ### Test
 
+Create at the root of your system a `substra` folder with your user rights:
+```bash
+$> sudo mkdir /substra
+$> sudo chown guillaume:guillaume/substra
+```
+Replace `guillaume:guillaume` by your `user:group`.
+
 Go inside the `python-scripts` folder and run:
 
 `python start.py`
@@ -33,7 +40,7 @@ It will build the network and run init config.
 
 The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.  
 The `fixtures` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on both orgs : owkin and chu-nantes. It is commented by default. Uncomment it in `docker-compose.yaml` for testing and debugging.   
-The `revoke` docker instance allow you to revoke an user, Recommandation is to leave this undocumented  
+The `revoke` docker instance allow you to revoke an user, Recommendation is to leave this uncommented.  
 
 If you do not want to init the chaincode and make queries, comment the run docker part in the docker-compose.
 
@@ -63,18 +70,4 @@ Do not hesitate to reboot your machine for updating your new modified hosts valu
 
 A backend is available named substrabac which can interact with this ledger.
 
-Two choices : 
-
-- [RECOMMENDED] Follow the instructions in the substrabac project for being able to query/invoke the ledger with the data created by the run container.
-
-
-- You'll have to modify the rights of the `data` created folder after running the `./start.py` file with the current user you are executing `substrabac` or simply copy needed files, usually conf files and msp folders generated, then modify the `core.yaml` file in substrabac for having correlated data.
-
-    In my case:
-    ```shell
-    sudo chown -R guillaume:guillaume ./data
-    ```
-
-    Make sure you have correctly set your `/etc/hosts`file too.
-    
-    You are ready to use the substrabac backend with this ledger network.
+Follow the instructions in the substrabac project for being able to query/invoke the ledger with the setup created by the run container.
