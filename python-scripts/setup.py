@@ -1,4 +1,5 @@
 import sys
+import json
 
 # from hfc.fabric_ca.caservice import ca_service
 from subprocess import call, check_output, STDOUT, CalledProcessError
@@ -183,18 +184,7 @@ def generateChannelArtifacts(conf):
 
 if __name__ == '__main__':
 
-    import json
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Editeur")
-    parser.add_argument('-c', '--config', nargs='?', type=str, action='store', default='', help="JSON config file to be used")
-    args = vars(parser.parse_args())
-
-    if args['config']:
-        conf_path = os.path.join(dir_path, args['config'])
-    else:
-        conf_path = os.path.join(dir_path, 'conf.json')
-
+    conf_path = '/substra/conf/conf.json'
     conf = json.load(open(conf_path, 'r'))
 
     registerIdentities(conf)

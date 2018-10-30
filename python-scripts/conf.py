@@ -19,7 +19,7 @@ conf = {
                 'host': 'rca-owkin',
                 'certfile': 'ca-cert.pem',
                 'port': 7054,
-                'localhost_port': 7054,
+                'host_port': 7054,
                 'url': 'https://rca-owkin:7054',
                 'logfile': 'data/logs/rca-owkin.log'
             },
@@ -94,7 +94,7 @@ conf = {
                 'host': 'rca-chu-nantes',
                 'certfile': 'ca-cert.pem',
                 'port': 7054,
-                'localhost_port': 8054,
+                'host_port': 8054,
                 'url': 'https://rca-chu-nantes:7054',
                 'logfile': 'data/logs/rca-chu-nantes.log'
             },
@@ -175,7 +175,7 @@ conf = {
                 'host': 'rca-orderer',
                 'certfile': 'ca-cert.pem',
                 'port': 7054,
-                'localhost_port': 9054,
+                'host_port': 9054,
                 'url': 'https://rca-orderer:7054',
                 'logfile': 'data/logs/rca-orderer.log',
             },

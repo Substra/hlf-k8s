@@ -19,7 +19,7 @@ conf = {
                 'host': 'rca-owkin',
                 'certfile': 'ca-cert.pem',
                 'port': 7054,
-                'localhost_port': 7054,
+                'host_port': 7054,
                 'url': 'https://rca-owkin:7054',
                 'logfile': 'data/logs/rca-owkin.log'
             },
@@ -100,7 +100,7 @@ conf = {
                 'host': 'rca-orderer',
                 'certfile': 'ca-cert.pem',
                 'port': 7054,
-                'localhost_port': 9054,
+                'host_port': 9054,
                 'url': 'https://rca-orderer:7054',
                 'logfile': 'data/logs/rca-orderer.log',
             },
