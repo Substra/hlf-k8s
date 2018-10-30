@@ -397,6 +397,8 @@ if __name__ == "__main__":
         conf_path = os.path.join(dir_path, args['config'])
     else:
         conf_path = '/substra/conf/conf.json'
+        call(['python3', 'conf.py'])
+        conf_path = conf_path = '/substra/conf/conf.json'
 
     conf = json.load(open(conf_path, 'r'))
 

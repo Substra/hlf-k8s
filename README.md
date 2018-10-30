@@ -34,9 +34,23 @@ Replace `guillaume:guillaume` by your `user:group`.
 
 Go inside the `python-scripts` folder and run:
 
-`python start.py`
+```
+    python3 conf.py                     // 2 orgs (owkin, chu-nantes)
+    python3 conf-1org.py                // 1 org (owkin)
+```
 
-It will build the network and run init config.
+It will generate a conf.json file that you can use to start the network
+
+```
+    python3 start.py --config conf.json
+```
+
+:warning:
+Launching `start.py` without the config option, will make a call of `python3 conf.py` before.
+
+
+
+It will generate a docker-compose file (docker-compose-dynamic.yaml), build the network and run init config.
 
 The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.  
 The `fixtures` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on both orgs : owkin and chu-nantes. It is commented by default. Uncomment it in `docker-compose.yaml` for testing and debugging.   
