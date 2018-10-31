@@ -1,4 +1,6 @@
 import os
+import json
+import argparse
 
 from subprocess import call
 from util import dowait, create_directory, remove_chaincode_docker_images, remove_chaincode_docker_containers
@@ -321,14 +323,17 @@ def generate_docker_compose_file(conf, conf_path):
     return docker_compose
 
 
-def stop(docker_compose):
+def stop(docker_compose=None):
     print('stopping container', flush=True)
 
-    services = [name for name, _ in docker_compose['substra_services']['svc']]
-    services += [name for name, _ in docker_compose['substra_services']['rca']]
-    services += list(docker_compose['substra_tools'].keys())
-    call(['docker', 'rm', '-f'] + services)
-    call(['docker-compose', '-f', docker_compose['path'], 'down', '--remove-orphans'])
+    if docker_compose is not None:
+        services = [name for name, _ in docker_compose['substra_services']['svc']]
+        services += [name for name, _ in docker_compose['substra_services']['rca']]
+        services += list(docker_compose['substra_tools'].keys())
+        call(['docker', 'rm', '-f'] + services)
+        call(['docker-compose', '-f', docker_compose['path'], 'down', '--remove-orphans'])
+    else:
+        call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
     remove_chaincode_docker_containers()
     remove_chaincode_docker_images()
@@ -383,9 +388,6 @@ if __name__ == "__main__":
 
     create_directory('/substra/data/logs')
     create_directory('/substra/conf/')
-
-    import json
-    import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', nargs='?', type=str, action='store', default='', help="JSON config file to be used")
