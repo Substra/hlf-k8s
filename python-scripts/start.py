@@ -454,6 +454,9 @@ def start(conf, conf_path, fixtures):
         # Revoke User
         call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--no-deps', 'revoke'])
 
+    # Revoke User
+    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps', 'revoke'])
+
 
 if __name__ == "__main__":
     # create directory with correct rights
