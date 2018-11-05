@@ -1,15 +1,63 @@
 import sys
 import json
-
 # from hfc.fabric_ca.caservice import ca_service
-from subprocess import call, check_output, STDOUT, CalledProcessError
-
-from util import waitPort, completeMSPSetup, configAdminLocalMSP, configUserLocalMSP
 import os
+from subprocess import call
+from shutil import copytree
+
+from util import waitPort, completeMSPSetup, dowait
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+def configLocalMSP(org, user, is_admin=False):
+    org_msp_dir = org['msp_dir']
+    org_user_home = org['users'][user]['home']
+    org_user_msp_dir = org['users'][user]['home'] + '/msp'
 
+    # if local admin msp does not exist, create it by enrolling user
+    if not os.path.exists(org_user_msp_dir):
+        print('enroll user and copy in admincert for configtxgen', flush=True)
+
+        # wait tls certfile exists before enrolling
+        dowait('%(ca_name)s to start' % {'ca_name': org['ca']['name']},
+               90,
+               org['ca']['logfile'],
+               [org['ca']['certfile']])
+
+        msg = 'Enrolling user \'%(user_name)s\' for organization %(org)s with %(ca_host)s and home directory %(org_user_home)s...'
+        print(msg % {
+            'user_name': org['users'][user]['name'],
+            'org': org['name'],
+            'ca_host': org['ca']['host'],
+            'org_user_home': org_user_home
+        }, flush=True)
+
+        enrollment_url = 'https://%(name)s:%(pass)s@%(host)s:%(port)s' % {
+            'name': org['users'][user]['name'],
+            'pass': org['users'][user]['pass'],
+            'host': org['ca']['host'],
+            'port': org['ca']['port']
+        }
+
+        call(['fabric-ca-client',
+              'enroll', '-d',
+              #'--enrollment.profile', 'tls',
+              '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
+              '-u', enrollment_url,
+              '-M', org_user_msp_dir])  # :warning: note the msp dir
+
+        # no intermediate cert in this config, delete generated files for not seeing warning
+        # removeIntermediateCerts(org_admin_msp_dir + '/intermediatecerts/')
+
+        # admincerts is required for configtxgen binary
+        # will copy cert.pem from admin/msp/signcerts to msp/admincerts
+        if is_admin:
+            copytree(org_user_msp_dir + '/signcerts/', org_msp_dir + '/admincerts')
+        # will copy cert.pem from <user>/msp/signcerts to <user>/msp/admincerts
+        copytree(org_user_msp_dir + '/signcerts/', org_user_msp_dir + '/admincerts')
+
+
+# create ca-cert.pem file
 def enrollCABootstrapAdmin(org):
     waitPort('%(CA_NAME)s to start' % {'CA_NAME': org['ca']['name']},
              90,
@@ -18,22 +66,21 @@ def enrollCABootstrapAdmin(org):
              org['ca']['port'])
     print('Enrolling with %(CA_NAME)s as bootstrap identity ...' % {'CA_NAME': org['ca']['name']}, flush=True)
 
-    data = {
-        'CA_ADMIN_USER_PASS': '%(name)s:%(pass)s' % {
-            'name': org['users']['bootstrap_admin']['name'],
-            'pass': org['users']['bootstrap_admin']['pass'],
-        },
-        'CA_URL': '%(host)s:%(port)s' % {'host': org['ca']['host'], 'port': org['ca']['port']}
+    enrollment_url = 'https://%(name)s:%(pass)s@%(host)s:%(port)s' % {
+        'name': org['users']['bootstrap_admin']['name'],
+        'pass': org['users']['bootstrap_admin']['pass'],
+        'host': org['ca']['host'],
+        'port': org['ca']['port']
     }
 
     call(['fabric-ca-client',
           'enroll', '-d',
           '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
-          '-u', 'https://%(CA_ADMIN_USER_PASS)s@%(CA_URL)s' % data])
+          '-u', enrollment_url])
 
     # python sdk
     # caClient = ca_service(target=org['ca']['url'],
-    #                       ca_certs_path=org['tls']['certfile'],
+    #                       ca_certs_path=org['ca']['certfile'],
     #                       ca_name=org['ca']['name'])
     # enrollment = caClient.enroll(org['bootstrap_admin']['name'], org['bootstrap_admin']['pass'])
 
@@ -110,52 +157,61 @@ def getCACerts(conf):
 
     for org_name in list(conf['orgs'].keys()):
         org = conf['orgs'][org_name]
-        org_msp_dir = org['org_msp_dir']
+        org_msp_dir = org['msp_dir']
 
         msg = 'Getting CA certs for organization %(org_name)s and storing in %(org_msp_dir)s'
         print(msg % {'org_msp_dir': org_msp_dir, 'org_name': org_name}, flush=True)
 
-        # get ca-cert which will be the same a the tls cert...
         # http://hyperledger-fabric-ca.readthedocs.io/en/latest/users-guide.html#enabling-tls
+        # will populate msp dir and create cacert pem file
         call(['fabric-ca-client',
               'getcacert', '-d',
+              #'--enrollment.profile', 'tls',
               '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
               '-u', org['ca']['url'],
               '-M', org_msp_dir])
 
-        # https://hyperledger-fabric.readthedocs.io/en/release-1.1/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # create tlscacerts directory and remove intermediatecerts
         completeMSPSetup(org_msp_dir)
-        configAdminLocalMSP(org)
-        configUserLocalMSP(org_name, org)
+
+        # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
+        # will create admin and user folder with an msp folder and populate it. Populate admincerts for configtxgen to work
+        # TODO admincerts should be generated by cryptogen, not copied from signcert
+        # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
+        configLocalMSP(org, 'admin', True)
+        configLocalMSP(org, 'user')
 
     for org_name in list(conf['orderers'].keys()):
         org = conf['orderers'][org_name]
-        org_msp_dir = org['org_msp_dir']
+        org_msp_dir = org['msp_dir']
 
         msg = 'Getting CA certs for organization %(org_name)s and storing in %(org_msp_dir)s'
         print(msg % {'org_msp_dir': org_msp_dir, 'org_name': org_name}, flush=True)
 
         call(['fabric-ca-client',
               'getcacert', '-d',
+              #'--enrollment.profile', 'tls',
               '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
               '-u', org['ca']['url'],
               '-M', org_msp_dir])
 
         # create tlscacerts directory and remove intermediatecerts
-        # https://hyperledger-fabric.readthedocs.io/en/release-1.1/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         completeMSPSetup(org_msp_dir)
+
+        # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # will create admincerts for configtxgen to work
-        configAdminLocalMSP(org)
+        configLocalMSP(org, 'admin', True)
 
 
 def generateChannelArtifacts(conf):
     print('Generating orderer genesis block at %(genesis_bloc_file)s' % {
-        'genesis_bloc_file': conf['misc']['genesis_bloc_file']}, flush=True)
+        'genesis_bloc_file': conf['misc']['genesis_bloc_file']
+    }, flush=True)
+
     # Note: For some unknown reason (at least for now) the block file can't be
     # named orderer.genesis.block or the orderer will fail to launch
 
-    # configtxgen -profile OrgsOrdererGenesis -outputBlock /data/genesis.block
+    # configtxgen -profile OrgsOrdererGenesis -outputBlock /substra/data/genesis.block
     call(['configtxgen',
           '-profile', 'OrgsOrdererGenesis',
           '-outputBlock', conf['misc']['genesis_bloc_file']])

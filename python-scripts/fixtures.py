@@ -11,7 +11,7 @@ def installChainCode(org_name, peer):
     # :warning: for installing chaincode make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     chaincode_name = conf['misc']['chaincode_name']
@@ -19,8 +19,7 @@ def installChainCode(org_name, peer):
     print('Installing chaincode on %(peer_host)s ...' % {'peer_host': peer['host']}, flush=True)
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
-
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
     # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
@@ -35,13 +34,6 @@ def installChainCode(org_name, peer):
     del os.environ['CORE_PEER_MSPCONFIGPATH']
 
 
-def installChainCodeOnFirstPeers():
-    for org_name in conf['orgs'].keys():
-        org = conf['orgs'][org_name]
-        peer = org['peers'][0]
-        installChainCode(org_name, peer)
-
-
 def installChainCodeOnSecondPeerSecondOrg():
     org_name = 'chu-nantes'
     org = conf['orgs'][org_name]
@@ -49,126 +41,13 @@ def installChainCodeOnSecondPeerSecondOrg():
     installChainCode(org_name, peer)
 
 
-def makePolicy():
-    policy = 'OR('
-
-    for index, org_name in enumerate(conf['orgs']):
-        if index != 0:
-            policy += ','
-        policy += '\'' + conf['orgs'][org_name]['org_msp_id'] + '.member\''
-
-    policy += ')'
-    print('policy: %s' % policy, flush=True)
-
-    return policy
-
-
-def waitForInstantiation():
-    org_name = 'chu-nantes'
-    org = conf['orgs'][org_name]
-    peer = org['peers'][0]
-
-    org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers']['orderer']
-
-    # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
-
-    # update mspconfigpath for getting one in /data
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
-
-    def clean_env_variables():
-        del os.environ['FABRIC_CFG_PATH']
-        del os.environ['CORE_PEER_MSPCONFIGPATH']
-
-    print('Test if chaincode is instantiated on %(PEER_HOST)s ... (timeout 15 seconds)' % {'PEER_HOST': peer['host']}, flush=True)
-
-    starttime = int(time.time())
-    while int(time.time()) - starttime < 15:
-        output = subprocess.run(['peer',
-                                 '--logging-level=info',
-                                 'chaincode', 'list',
-                                 '-C', conf['misc']['channel_name'],
-                                 '--instantiated',
-                                 '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
-                                 '--tls',
-                                 '--clientauth',
-                                 '--cafile', orderer['tls']['certfile'],
-                                 # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-                                 '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-                                 # for orderer
-                                 '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
-                                 ],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        data = output.stdout.decode('utf-8')
-        split_msg = 'Get instantiated chaincodes on channel mychannel:'
-        if split_msg in data and len(data.split(split_msg)[1].replace('\n', '')):
-            print(data, flush=True)
-            clean_env_variables()
-            return True
-
-    clean_env_variables()
-    return False
-
-
-def instanciateChainCode(args, org_name, peer):
-    # :warning: for instanciating chaincode make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
-
-    policy = makePolicy()
-
-    org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers']['orderer']
-
-    # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
-
-    # update mspconfigpath for getting one in /data
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
-
-    print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
-
-    call(['peer',
-          'chaincode', 'instantiate',
-          '--logging-level=DEBUG',
-          '-C', conf['misc']['channel_name'],
-          '-n', conf['misc']['chaincode_name'],
-          '-v', '1.0',
-          '-c', args,
-          '-P', policy,
-          '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
-          '--tls',
-          '--clientauth',
-          '--cafile', orderer['tls']['certfile'],
-          # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',  # for orderer
-          '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
-          ])
-
-    # clean env variables
-    del os.environ['FABRIC_CFG_PATH']
-    del os.environ['CORE_PEER_MSPCONFIGPATH']
-
-
-def instanciateChaincodeFirstPeerSecondOrg():
-    org_name = 'chu-nantes'
-    org = conf['orgs'][org_name]
-    peer = org['peers'][0]
-    instanciateChainCode('{"Args":["init"]}', org_name, peer)
-
-
 def chainCodeQueryWith(arg, org_name, peer):
     org = conf['orgs'][org_name]
-    org_user_home = org['user_home']
+    org_user_home = org['users']['user']['home']
     org_user_msp_dir = org_user_home + '/msp'
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
-
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
     # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
 
@@ -288,20 +167,20 @@ def queryChaincodeFromSecondPeerSecondOrg():
 
 
 def invokeChainCode(args, org, peer):
-    org_name = org['org_name']
-    org_user_home = org['user_home']
+    org_name = org['name']
+    org_user_home = org['users']['user']['home']
     org_user_msp_dir = org_user_home + '/msp'
     orderer = conf['orderers']['orderer']
     channel_name = conf['misc']['channel_name']
     chaincode_name = conf['misc']['chaincode_name']
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
-
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
     # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
 
-    print('Sending invoke transaction (with waitForEvent) to %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
+    print('Sending invoke transaction (with waitForEvent) to %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']},
+          flush=True)
 
     output = subprocess.run(['peer',
                              'chaincode', 'invoke',
@@ -311,9 +190,9 @@ def invokeChainCode(args, org, peer):
                              '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
                              '--tls',
                              '--clientauth',
-                             '--cafile', orderer['tls']['certfile'],
-                             '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-                             '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt',
+                             '--cafile', orderer['ca']['certfile'],
+                             '--keyfile', peer['tls']['clientKey'],
+                             '--certfile', peer['tls']['clientCert'],
                              '--waitForEvent'
                              ],
                             stdout=subprocess.PIPE,
@@ -482,10 +361,10 @@ def run():
 
     if res:
         print('Congratulations! The fixtures have been loaded successfully.', flush=True)
-        call(['touch', conf['misc']['run_success_fixtures_file']])
+        call(['touch', conf['misc']['fixtures_success_file']])
     else:
         print('Loading fixtures failed.', flush=True)
-        call(['touch', conf['misc']['run_fail_fixtures_file']])
+        call(['touch', conf['misc']['fixtures_fail_file']])
 
 
 if __name__ == "__main__":

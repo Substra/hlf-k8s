@@ -37,7 +37,7 @@
 #############################################################################
 
 # Version of config file
-version: 1.1.0
+version: 1.2.1
 
 # Server's listening port (default: 7054)
 port: 7054

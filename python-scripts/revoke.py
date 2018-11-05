@@ -13,7 +13,7 @@ from subprocess import call, check_output, STDOUT, CalledProcessError, Popen
 
 def revokeFabricUserAndGenerateCRL(org_name, username):
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
 
     print(
         'Revoking the user \'%(username)s\' of the organization \'%(org_name)s\' with Fabric CA Client home directory set to %(org_admin_home)s and generating CRL ...' % {
@@ -24,7 +24,7 @@ def revokeFabricUserAndGenerateCRL(org_name, username):
 
     call(['fabric-ca-client',
           'revoke', '-d',
-          '-c', '/substra/data/orgs/' + org_name + '/admin/fabric-ca-client-config.yaml',
+          '-c', org['ca-server-config-path'],
           '--revoke.name', username,
           '--gencrl'])
 
@@ -32,7 +32,7 @@ def revokeFabricUserAndGenerateCRL(org_name, username):
 def fetchConfigBlock(org_name, peer):
     org = conf['orgs'][org_name]
 
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
     channel_name = conf['misc']['channel_name']
     orderer = conf['orderers']['orderer']
@@ -41,7 +41,7 @@ def fetchConfigBlock(org_name, peer):
     print('Fetching the configuration block of the channel \'%s\'' % channel_name, flush=True)
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
     # update mspconfigpath for getting the one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
@@ -50,9 +50,9 @@ def fetchConfigBlock(org_name, peer):
           '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
           '--tls',
           '--clientauth',
-          '--cafile', orderer['tls']['certfile'],
-          '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-          '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+          '--cafile', orderer['ca']['certfile'],
+          '--keyfile', peer['tls']['clientKey'],
+          '--certfile', peer['tls']['clientCert']
           ])
 
     # clean env variables
@@ -62,7 +62,7 @@ def fetchConfigBlock(org_name, peer):
 
 def createConfigUpdatePayloadWithCRL(org_name):
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     channel_name = conf['misc']['channel_name']
@@ -159,7 +159,7 @@ def createConfigUpdatePayloadWithCRL(org_name):
 
 def updateConfigBlock(org_name, peer):
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     channel_name = conf['misc']['channel_name']
@@ -167,7 +167,7 @@ def updateConfigBlock(org_name, peer):
     config_update_envelope_file = conf['misc']['config_update_envelope_file']
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
     # update mspconfigpath for getting the one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
@@ -178,9 +178,9 @@ def updateConfigBlock(org_name, peer):
           '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
           '--tls',
           '--clientauth',
-          '--cafile', orderer['tls']['certfile'],
-          '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-          '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+          '--cafile', orderer['ca']['certfile'],
+          '--keyfile', peer['tls']['clientKey'],
+          '--certfile', peer['tls']['clientCert']
           ])
 
     # clean env variables
@@ -194,7 +194,7 @@ def queryAsRevokedUser(arg, org_name, peer, username):
     org_user_msp_dir = org_user_home + '/msp'
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
     # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
 
@@ -264,7 +264,7 @@ def revokeFirstOrgUser():
     createConfigUpdatePayloadWithCRL('owkin')
     updateConfigBlock(org_name, peer)
 
-    return queryAsRevokedUser('{"Args":["queryObjects", "problem"]}', org_name, peer, username)
+    return queryAsRevokedUser('{"Args":["queryChallenges"]}', org_name, peer, username)
 
 
 def run():

@@ -12,7 +12,7 @@ def createChannel(conf, org_name, peer):
     # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
     orderer = conf['orderers']['orderer']
 
@@ -27,13 +27,13 @@ def createChannel(conf, org_name, peer):
         'create',
         '--logging-level=DEBUG',
         '-c', 'mychannel',
-        '-f', '/substra/data/channel.tx',
+        '-f', conf['misc']['channel_tx_file'],
         '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
         '--tls',
         '--clientauth',
-        '--cafile', orderer['tls']['certfile'],
-        '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-        '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+        '--cafile', orderer['ca']['certfile'],
+        '--keyfile', peer['tls']['clientKey'],
+        '--certfile', peer['tls']['clientCert']
     ])
 
     # clean env variables
@@ -46,17 +46,15 @@ def joinChannel(conf, peer, org_name):
     # :warning: for joining channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
     channel_name = conf['misc']['channel_name']
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
-
-    # update mspconfigpath for getting one in /substra/data/
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
+    # update mspconfigpath
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
-    # configAdminLocalMSP(org)
     print('Peer %(peer_host)s is attempting to join channel \'%(channel_name)s\' ...' % {
         'peer_host': peer['host'],
         'channel_name': channel_name}, flush=True)
@@ -85,7 +83,7 @@ def updateAnchorPeers(conf):
 
     for org_name in conf['orgs'].keys():
         org = conf['orgs'][org_name]
-        org_admin_home = org['admin_home']
+        org_admin_home = org['users']['admin']['home']
         org_admin_msp_dir = org_admin_home + '/msp'
         orderer = conf['orderers']['orderer']
 
@@ -93,8 +91,7 @@ def updateAnchorPeers(conf):
         print('Updating anchor peers for %(peer_host)s ...' % {'peer_host': org['peers'][0]['host']}, flush=True)
 
         # update config path for using right core.yaml
-        os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
-
+        os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
         # update mspconfigpath for getting the one in /substra/data/
         os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
@@ -105,10 +102,10 @@ def updateAnchorPeers(conf):
               '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
               '--tls',
               '--clientauth',
-              '--cafile', orderer['tls']['certfile'],
+              '--cafile', orderer['ca']['certfile'],
               # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-              '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',  # for orderer
-              '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+              '--keyfile', peer['tls']['clientKey'],
+        '--certfile', peer['tls']['clientCert']
               ])
 
         # clean env variables
@@ -120,7 +117,7 @@ def installChainCode(conf, org_name, peer):
     # :warning: for installing chaincode make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     chaincode_name = conf['misc']['chaincode_name']
@@ -128,9 +125,8 @@ def installChainCode(conf, org_name, peer):
     print('Installing chaincode on %(peer_host)s ...' % {'peer_host': peer['host']}, flush=True)
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
-
-    # update mspconfigpath for getting one in /substra/data/
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
+    # update mspconfigpath
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
     call(['peer',
@@ -157,7 +153,7 @@ def makePolicy(conf):
     for index, org_name in enumerate(conf['orgs']):
         if index != 0:
             policy += ','
-        policy += '\'' + conf['orgs'][org_name]['org_msp_id'] + '.member\''
+        policy += '\'' + conf['orgs'][org_name]['msp_id'] + '.member\''
 
     policy += ')'
     print('policy: %s' % policy, flush=True)
@@ -171,13 +167,12 @@ def waitForInstantiation(conf):
     peer = org['peers'][0]
 
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
     orderer = conf['orderers']['orderer']
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
-
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
     # update mspconfigpath for getting one in /substra/data/
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
@@ -199,9 +194,8 @@ def waitForInstantiation(conf):
                                  '--clientauth',
                                  '--cafile', orderer['tls']['certfile'],
                                  # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-                                 '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-                                 # for orderer
-                                 '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+                                 '--keyfile', peer['tls']['clientKey'],
+        '--certfile', peer['tls']['clientCert']
                                  ],
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
@@ -211,6 +205,7 @@ def waitForInstantiation(conf):
             print(data, flush=True)
             clean_env_variables()
             return True
+        print('.', end='', flush=True)
 
     clean_env_variables()
     return False
@@ -222,12 +217,12 @@ def instanciateChainCode(conf, args, org_name, peer):
     policy = makePolicy(conf)
 
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
     orderer = conf['orderers']['orderer']
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
     # update mspconfigpath for getting one in /substra/data/
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
@@ -244,10 +239,10 @@ def instanciateChainCode(conf, args, org_name, peer):
           '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
           '--tls',
           '--clientauth',
-          '--cafile', orderer['tls']['certfile'],
+          '--cafile', orderer['ca']['certfile'],
           # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',  # for orderer
-          '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+          '--keyfile', peer['tls']['clientKey'],
+          '--certfile', peer['tls']['clientCert']
           ])
 
     # clean env variables
@@ -268,7 +263,7 @@ def chainCodeQueryWith(conf, arg, org_name, peer):
     org_user_msp_dir = org_user_home + '/msp'
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
 
     # update mspconfigpath for getting one in /substra/data/
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
@@ -293,7 +288,7 @@ def chainCodeQueryWith(conf, arg, org_name, peer):
     except CalledProcessError as e:
         output = e.output.decode()
         print('Error:', flush=True)
-        print(output, flush=True)
+        print('Output: %s' % output, flush=True)
         # clean env variables
         clean_env_variables()
     else:
@@ -307,7 +302,7 @@ def chainCodeQueryWith(conf, arg, org_name, peer):
                 'peer_host': peer['host']
             }
             print(msg, flush=True)
-            print(value, flush=True)
+            print('Value: %s' % value, flush=True)
 
         finally:
             # clean env variables

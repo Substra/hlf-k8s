@@ -35,7 +35,7 @@ def create_ca_server_config(orgs):
         yaml_data['registry']['identities'][0]['name'] = org['users']['bootstrap_admin']['name']
         yaml_data['registry']['identities'][0]['pass'] = org['users']['bootstrap_admin']['pass']
 
-        filename = '/substra/conf/%(org)s/fabric-ca-server-config.yaml' % {'org': org_name}
+        filename = org['ca-server-config-path']
         with open(filename, 'w+') as f:
             f.write(dump(yaml_data, default_flow_style=False))
 
@@ -58,7 +58,7 @@ def create_ca_client_config(orgs):
 
         yaml_data['url'] = org['ca']['url']
 
-        filename = '/substra/conf/%(org)s/fabric-ca-client-config.yaml' % {'org': org_name}
+        filename = org['ca-client-config-path']
         with open(filename, 'w+') as f:
             f.write(dump(yaml_data, default_flow_style=False))
 
@@ -88,18 +88,18 @@ def create_configtx(conf):
 
     orderers = [{
         'Name': x,
-        'ID': conf['orderers'][x]['org_msp_id'],
-        'MSPDir': conf['orderers'][x]['org_msp_dir'],
+        'ID': conf['orderers'][x]['msp_id'],
+        'MSPDir': conf['orderers'][x]['msp_dir'],
     } for x in conf['orderers'].keys()]
 
     orgs = [{
         'Name': x,
-        'ID': conf['orgs'][x]['org_msp_id'],
-        'MSPDir': conf['orgs'][x]['org_msp_dir'],
+        'ID': conf['orgs'][x]['msp_id'],
+        'MSPDir': conf['orgs'][x]['msp_dir'],
         'AnchorPeers': [{
-            'Host': conf['orgs'][x]['peers'][0]['host'],
-            'Port': conf['orgs'][x]['peers'][0]['port']
-        }]
+            'Host': peer['host'],
+            'Port': peer['port']
+        } for peer in conf['orgs'][x]['peers'] if peer['anchor']]
     } for x in conf['orgs'].keys()]
     yaml_data['Organizations'] = orderers + orgs
 
@@ -107,7 +107,7 @@ def create_configtx(conf):
     yaml_data['Profiles']['OrgsOrdererGenesis']['Consortiums']['SampleConsortium']['Organizations'] = orgs
     yaml_data['Profiles']['OrgsChannel']['Application']['Organizations'] = orgs
 
-    filename = '/substra/data/configtx.yaml'
+    filename = conf['misc']['configtx-config-path']
     with open(filename, 'w+') as f:
         f.write(dump(yaml_data, default_flow_style=False))
 
@@ -123,19 +123,17 @@ def create_core_peer_config(conf):
 
             yaml_data['peer']['id'] = peer['host']
             yaml_data['peer']['address'] = '%(host)s:%(port)s' % {'host': peer['host'], 'port': peer['port']}
-            yaml_data['peer']['localMspId'] = org['org_msp_id']
+            yaml_data['peer']['localMspId'] = org['msp_id']
             yaml_data['peer']['mspConfigPath'] = org['core']['docker']['msp_config_path']
 
             yaml_data['peer']['tls']['cert']['file'] = org['core']['docker']['peer_home'] + '/tls/' + org['core']['tls']['cert']
             yaml_data['peer']['tls']['key']['file'] = org['core']['docker']['peer_home'] + '/tls/' + org['core']['tls']['key']
-            yaml_data['peer']['tls']['clientCert']['file'] = '/substra/data/orgs/' + org_name + '/tls/' + peer[
-                'name'] + '/cli-client.crt'
-            yaml_data['peer']['tls']['clientKey']['file'] = '/substra/data/orgs/' + org_name + '/tls/' + peer[
-                'name'] + '/cli-client.key'
+            yaml_data['peer']['tls']['clientCert']['file'] = peer['tls']['clientCert']
+            yaml_data['peer']['tls']['clientKey']['file'] = peer['tls']['clientKey']
             yaml_data['peer']['tls']['enabled'] = 'true'
-            yaml_data['peer']['tls']['rootcert']['file'] = org['tls']['certfile']
+            yaml_data['peer']['tls']['rootcert']['file'] = org['ca']['certfile']
             yaml_data['peer']['tls']['clientAuthRequired'] = 'true'
-            yaml_data['peer']['tls']['clientRootCAs'] = [org['tls']['certfile']]
+            yaml_data['peer']['tls']['clientRootCAs'] = [org['ca']['certfile']]
 
             yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
             yaml_data['peer']['gossip']['orgLeader'] = 'false'
@@ -147,30 +145,19 @@ def create_core_peer_config(conf):
 
             yaml_data['logging']['level'] = 'debug'
 
-            create_directory('/substra/conf/%(org_name)s/%(peer_name)s' % {'org_name': org_name, 'peer_name': peer['name']})
-            filename = '/substra/conf/%(org_name)s/%(peer_name)s/core.yaml' % {'org_name': org_name, 'peer_name': peer['name']}
+            create_directory(peer['docker_core_dir'])
+            filename = '%(dir)s/core.yaml' % {'dir': peer['docker_core_dir']}
             with open(filename, 'w+') as f:
                 f.write(dump(yaml_data, default_flow_style=False))
 
-            # create if for host binaries
-            stream = open(os.path.join(dir_path, '../templates/core.yaml'), 'r')
-            yaml_data = load(stream, Loader=Loader)
-            yaml_data['peer']['id'] = peer['host']
-            yaml_data['peer']['address'] = '%(host)s:%(port)s' % {'host': peer['host'], 'port': peer['host_port']}
-            yaml_data['peer']['localMspId'] = org['org_msp_id']
+            ###############################
+            # create if for host binaries #
+            ###############################
             yaml_data['peer']['mspConfigPath'] = org['core']['host']['msp_config_path']
-            yaml_data['peer']['tls']['clientCert']['file'] = '/substra/data/orgs/' + org_name + '/tls/' + peer[
-                'name'] + '/cli-client.crt'
-            yaml_data['peer']['tls']['clientKey']['file'] = '/substra/data/orgs/' + org_name + '/tls/' + peer[
-                'name'] + '/cli-client.key'
-            yaml_data['peer']['tls']['enabled'] = 'true'
-            yaml_data['peer']['tls']['rootcert']['file'] = org['tls']['certfile']
-            yaml_data['peer']['tls']['clientAuthRequired'] = 'true'
-            yaml_data['peer']['tls']['clientRootCAs'] = [org['tls']['certfile']]
-            yaml_data['logging']['level'] = 'debug'
+            yaml_data['peer']['address'] = '%(host)s:%(port)s' % {'host': peer['host'], 'port': peer['host_port']}
 
-            create_directory('/substra/conf/%(org_name)s/%(peer_name)s-host' % {'org_name': org_name, 'peer_name': peer['name']})
-            filename = '/substra/conf/%(org_name)s/%(peer_name)s-host/core.yaml' % {'org_name': org_name, 'peer_name': peer['name']}
+            create_directory(peer['host_core_dir'])
+            filename = '%(dir)s/core.yaml' % {'dir': peer['host_core_dir']}
             with open(filename, 'w+') as f:
                 f.write(dump(yaml_data, default_flow_style=False))
 
@@ -193,14 +180,13 @@ def create_orderer_config(conf):
         yaml_data['General']['ListenAddress'] = '0.0.0.0'
         yaml_data['General']['GenesisMethod'] = 'file'
         yaml_data['General']['GenesisFile'] = conf['misc']['genesis_bloc_file']
-        yaml_data['General']['LocalMSPID'] = org['org_msp_id']
+        yaml_data['General']['LocalMSPID'] = org['msp_id']
         yaml_data['General']['LocalMSPDir'] = org['local_msp_dir']
         yaml_data['General']['LogLevel'] = 'debug'
 
         yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']
 
-        create_directory('/substra/conf/%(org_name)s' % {'org_name': org_name})
-        filename = '/substra/conf/%(org_name)s/orderer.yaml' % {'org_name': org_name}
+        filename = org['config-path']
         with open(filename, 'w+') as f:
             f.write(dump(yaml_data, default_flow_style=False))
 
@@ -325,6 +311,9 @@ def generate_docker_compose_file(conf, conf_path):
 
 def stop(docker_compose=None):
     print('stopping container', flush=True)
+    call(['docker', 'rm', '-f', 'rca-orderer', 'rca-owkin', 'rca-chu-nantes', 'setup', 'orderer1-orderer',
+          'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes', 'run', 'fixtures', 'test'])
+    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
     if docker_compose is not None:
         services = [name for name, _ in docker_compose['substra_services']['svc']]
@@ -366,8 +355,7 @@ def start(conf, conf_path):
     peers_orgs_files = []
     for org_name in conf['orgs'].keys():
         org = conf['orgs'][org_name]
-        for peer in org['peers']:
-            peers_orgs_files.append('/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt')
+        peers_orgs_files = [peer['tls']['clientCert'] for peer in org['peers']]
 
     dowait('the docker \'peer\' containers to complete',
            30, None,
@@ -379,6 +367,20 @@ def start(conf, conf_path):
     dowait('the docker \'run\' container to run and complete',
            160, conf['misc']['run_logfile'],
            [conf['misc']['run_success_file']])
+
+    ##############################################
+    # uncomment for filling ledger with fixtures #
+    ##############################################
+    # Load Fixtures
+    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps', 'fixtures'])
+
+    # Wait for the run container to start and complete
+    dowait('the docker \'fixtures\' container to run and complete',
+           160, conf['misc']['fixtures_logfile'],
+           [conf['misc']['fixtures_success_file']])
+
+    # Load Tests
+    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps', 'test'])
 
 
 if __name__ == "__main__":

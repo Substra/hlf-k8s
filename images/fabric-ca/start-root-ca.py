@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     print('Initialize the root CA', flush=True)
 
-    chdir('/etc/hyperledger/fabric-ca-server')
+    chdir(os.environ['FABRIC_CA_HOME'])
 
     print('remove generated examples crt files by default for using those from config file with init generation', flush=True)
 
@@ -47,13 +47,6 @@ if __name__ == '__main__':
 
     # will create ca-cert.pem, fabric-ca-server.db, msp
     call('fabric-ca-server init -d -c fabric-ca-server-config.yaml', shell=True)
-
-    print('Copy the root CA\'s signing certificate to the data directory to be used by others (especially setup)', flush=True)
-
-    call('cp -r %(FABRIC_CA_HOME)s/ca-cert.pem %(TARGET_CERTFILE)s' % {
-        'FABRIC_CA_HOME': os.environ['FABRIC_CA_HOME'],
-        'TARGET_CERTFILE': os.environ['TARGET_CERTFILE']
-    }, shell=True)
 
     print('Start the root CA', flush=True)
     call('fabric-ca-server start', shell=True)

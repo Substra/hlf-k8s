@@ -7,14 +7,13 @@ from conf import conf
 org_name = 'owkin'
 
 org = conf['orgs'][org_name]
-org_user_home = org['user_home']
+org_user_home = org['users']['user']['home']
 org_user_msp_dir = org_user_home + '/msp'
 peer = org['peers'][0]
-args = '{"Args":["queryAllProblems"]}'
+args = '{"Args":["queryChallenges"]}'
 
 # update config path for using right core.yaml
-os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
-
+os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
 # update mspconfigpath for getting one in /data
 os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
 
@@ -26,13 +25,9 @@ print('Querying chaincode in the channel \'%(channel_name)s\' on the peer \'%(pe
     'peer_host': peer['host']
 }, flush=True)
 
-# wait until chaincode is initialized and instanciated
-subprocess.call(['sleep', '30'])
-
 output = subprocess.run(['peer',
                          '--logging-level=debug',
                          'chaincode', 'query',
-                         '-r',
                          '-C', channel_name,
                          '-n', chaincode_name,
                          '-c', args],
