@@ -49,7 +49,7 @@ def create_ca_client_config(orgs):
         yaml_data = load(stream, Loader=Loader)
 
         # override template here
-        yaml_data['tls']['certfiles'] = org['tls']['certfile']
+        yaml_data['tls']['certfiles'] = org['ca']['certfile']
 
         yaml_data['caname'] = org['ca']['name']
 
@@ -57,6 +57,8 @@ def create_ca_client_config(orgs):
         yaml_data['csr']['hosts'] += org['csr']['hosts']
 
         yaml_data['url'] = org['ca']['url']
+
+        yaml_data['mspdir'] = org['msp_dir'] # for revoking user
 
         filename = org['ca-client-config-path']
         with open(filename, 'w+') as f:
@@ -312,7 +314,7 @@ def generate_docker_compose_file(conf, conf_path):
 def stop(docker_compose=None):
     print('stopping container', flush=True)
     call(['docker', 'rm', '-f', 'rca-orderer', 'rca-owkin', 'rca-chu-nantes', 'setup', 'orderer1-orderer',
-          'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes', 'run', 'fixtures', 'test'])
+          'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes', 'run', 'fixtures', 'test', 'revoke'])
     call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
     if docker_compose is not None:
@@ -381,6 +383,9 @@ def start(conf, conf_path):
 
     # Load Tests
     call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps', 'test'])
+
+    # Revoke User
+    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps', 'revoke'])
 
 
 if __name__ == "__main__":

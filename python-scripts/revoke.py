@@ -1,6 +1,5 @@
 import base64
 import copy
-import json
 import os
 import time
 import subprocess
@@ -24,7 +23,7 @@ def revokeFabricUserAndGenerateCRL(org_name, username):
 
     call(['fabric-ca-client',
           'revoke', '-d',
-          '-c', org['ca-server-config-path'],
+          '-c', org['ca-client-config-path'],
           '--revoke.name', username,
           '--gencrl'])
 
@@ -87,10 +86,9 @@ def createConfigUpdatePayloadWithCRL(org_name):
 
     # Update crl in the config json
     updated_config = copy.deepcopy(config)
-    with open(org_admin_msp_dir + '/crls/crl.pem', 'rb') as f:
+    with open(org['msp_dir'] + '/crls/crl.pem', 'rb') as f:
         crl = base64.b64encode(f.read()).decode('utf8')
-        updated_config['channel_group']['groups']['Application']['groups'][org_name]['values']['MSP']['value'][
-            'config']['revocation_list'] = [crl]
+        updated_config['channel_group']['groups']['Application']['groups'][org_name]['values']['MSP']['value']['config']['revocation_list'] = [crl]
 
     # Create the config diff protobuf
     r = requests.post(CTLURL + '/protolator/encode/common.Config', json=config, stream=True)
@@ -275,10 +273,10 @@ def run():
 
     if res:
         print('Congratulations! User has been correctly revoked', flush=True)
-        call(['touch', conf['misc']['run_success_revoke_file']])
+        call(['touch', conf['misc']['revoke_success_file']])
     else:
         print('User revokation failed failed.', flush=True)
-        call(['touch', conf['misc']['run_fail_revoke_file']])
+        call(['touch', conf['misc']['revoke_fail_file']])
 
 
 if __name__ == "__main__":

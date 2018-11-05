@@ -255,6 +255,7 @@ conf = {
 
         'setup_logfile': '/substra/data/logs/setup.log',
         'setup_success_file': '/substra/data/logs/setup.successful',
+
         'run_logfile': '/substra/data/logs/run.log',
         'run_sumfile': '/substra/data/logs/run.sum',
         'run_success_file': '/substra/data/logs/run.successful',
@@ -262,7 +263,11 @@ conf = {
 
         'fixtures_logfile': '/substra/data/logs/fixtures.log',
         'fixtures_success_file': '/substra/data/logs/fixtures.successful',
-        'fixtures_fail_file': '/substra/data/logs/fixtures.fail'
+        'fixtures_fail_file': '/substra/data/logs/fixtures.fail',
+
+        'revoke_logfile': '/substra/data/logs/revoke.log',
+        'revoke_success_file': '/substra/data/logs/revoke.successful',
+        'revoke_fail_file': '/substra/data/logs/revoke.fail'
     }
 }
 
