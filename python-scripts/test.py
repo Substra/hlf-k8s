@@ -28,7 +28,10 @@ print('Querying chaincode in the channel \'%(channel_name)s\' on the peer \'%(pe
 output = subprocess.run(['peer',
                          '--logging-level=debug',
                          'chaincode', 'query',
+<<<<<<< HEAD
                          '-x',
+=======
+>>>>>>> Cleaned project
                          '-C', channel_name,
                          '-n', chaincode_name,
                          '-c', args],

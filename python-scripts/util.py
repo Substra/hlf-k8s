@@ -70,6 +70,7 @@ def removeIntermediateCerts(intermediatecerts_dir):
 
 
 def completeMSPSetup(org_msp_dir):
+
     src = org_msp_dir + '/cacerts/'
     dst = org_msp_dir + '/tlscacerts'
 

@@ -232,6 +232,7 @@ services:
     - /substra/data:/substra/data
     - /substra/conf:/substra/conf
     - ../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode
+<<<<<<< HEAD
 
 
     networks:
@@ -255,6 +256,38 @@ services:
     - substra
     depends_on:
     - fixtures
+=======
+
+
+    networks:
+    - substra
+    depends_on:
+    - run
+
+###############################
+# uncomment for revoking user #
+###############################
+#  revoke:
+#    container_name: revoke
+#    image: substra/fabric-ca-tools
+#    environment:
+#    - GOPATH=/opt/gopath
+#    command: /bin/bash -c 'sleep 3;python3 /scripts/revoke.py 2>&1 | tee /substra/data/logs/revoke.log; sleep 99999'
+#    volumes:
+#    - ./python-scripts:/scripts
+#    - /substra/data:/substra/data
+#    - /substra/conf:/substra/conf
+#    - ../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode
+#
+#    # needed for revoking user
+#    - ./conf/owkin/fabric-ca-client-config.yaml:/data/orgs/owkin/admin/fabric-ca-client-config.yaml
+#    - ./conf:/conf
+#
+#    networks:
+#    - substra
+#    depends_on:
+#    - run
+>>>>>>> Cleaned project
 
 
   test:

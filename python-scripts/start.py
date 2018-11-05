@@ -133,10 +133,8 @@ def create_core_peer_config(conf):
             yaml_data['peer']['localMspId'] = org['msp_id']
             yaml_data['peer']['mspConfigPath'] = org['core']['docker']['msp_config_path']
 
-            yaml_data['peer']['tls']['cert']['file'] = org['core']['docker']['peer_home'] + '/tls/' + \
-                                                       org['core']['tls']['cert']
-            yaml_data['peer']['tls']['key']['file'] = org['core']['docker']['peer_home'] + '/tls/' + org['core']['tls'][
-                'key']
+            yaml_data['peer']['tls']['cert']['file'] = org['core']['docker']['peer_home'] + '/tls/' + org['core']['tls']['cert']
+            yaml_data['peer']['tls']['key']['file'] = org['core']['docker']['peer_home'] + '/tls/' + org['core']['tls']['key']
             yaml_data['peer']['tls']['clientCert']['file'] = peer['tls']['clientCert']
             yaml_data['peer']['tls']['clientKey']['file'] = peer['tls']['clientKey']
             yaml_data['peer']['tls']['enabled'] = 'true'

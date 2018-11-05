@@ -2,7 +2,6 @@ import json
 import os
 from subprocess import call
 from util import copyAdminCert, dowait, genTLSCert, create_directory
-
 conf_path = '/substra/conf/conf.json'
 
 conf = json.load(open(conf_path, 'r'))

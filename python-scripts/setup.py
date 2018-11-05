@@ -1,4 +1,3 @@
-import sys
 import json
 # from hfc.fabric_ca.caservice import ca_service
 import os
@@ -7,7 +6,6 @@ from shutil import copytree
 
 from util import waitPort, completeMSPSetup, dowait
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
 
 def configLocalMSP(org, user, is_admin=False):
     org_msp_dir = org['msp_dir']
@@ -46,16 +44,12 @@ def configLocalMSP(org, user, is_admin=False):
               '-u', enrollment_url,
               '-M', org_user_msp_dir])  # :warning: note the msp dir
 
-        # no intermediate cert in this config, delete generated files for not seeing warning
-        # removeIntermediateCerts(org_admin_msp_dir + '/intermediatecerts/')
-
         # admincerts is required for configtxgen binary
         # will copy cert.pem from admin/msp/signcerts to msp/admincerts
         if is_admin:
             copytree(org_user_msp_dir + '/signcerts/', org_msp_dir + '/admincerts')
         # will copy cert.pem from <user>/msp/signcerts to <user>/msp/admincerts
         copytree(org_user_msp_dir + '/signcerts/', org_user_msp_dir + '/admincerts')
-
 
 # create ca-cert.pem file
 def enrollCABootstrapAdmin(org):
