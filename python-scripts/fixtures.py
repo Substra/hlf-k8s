@@ -19,7 +19,7 @@ def installChainCode(org_name, peer):
     print('Installing chaincode on %(peer_host)s ...' % {'peer_host': peer['host']}, flush=True)
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
 
     # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
@@ -74,7 +74,7 @@ def waitForInstantiation():
     orderer = conf['orderers']['orderer']
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
 
     # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
@@ -97,9 +97,9 @@ def waitForInstantiation():
                                  '--clientauth',
                                  '--cafile', orderer['tls']['certfile'],
                                  # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-                                 '--keyfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
+                                 '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
                                  # for orderer
-                                 '--certfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+                                 '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
                                  ],
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
@@ -125,7 +125,7 @@ def instanciateChainCode(args, org_name, peer):
     orderer = conf['orderers']['orderer']
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
 
     # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
@@ -145,8 +145,8 @@ def instanciateChainCode(args, org_name, peer):
           '--clientauth',
           '--cafile', orderer['tls']['certfile'],
           # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--keyfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',  # for orderer
-          '--certfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+          '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',  # for orderer
+          '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
           ])
 
     # clean env variables
@@ -167,7 +167,7 @@ def chainCodeQueryWith(arg, org_name, peer):
     org_user_msp_dir = org_user_home + '/msp'
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
 
     # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
@@ -296,7 +296,7 @@ def invokeChainCode(args, org, peer):
     chaincode_name = conf['misc']['chaincode_name']
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
 
     # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
@@ -312,8 +312,8 @@ def invokeChainCode(args, org, peer):
                              '--tls',
                              '--clientauth',
                              '--cafile', orderer['tls']['certfile'],
-                             '--keyfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-                             '--certfile', '/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt',
+                             '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
+                             '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt',
                              '--waitForEvent'
                              ],
                             stdout=subprocess.PIPE,
