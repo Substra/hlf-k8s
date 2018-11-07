@@ -3,5 +3,4 @@
 docker-compose.yml
 docker-compose-dynamic.yaml
 data
-data-back
 conf

@@ -1,9 +1,11 @@
+import json
 import os
-from shutil import copy2
 from subprocess import call
-from util import completeMSPSetup, copyAdminCert, dowait, copy_last_file_ext
-from conf import conf
-from util import create_directory
+from util import copyAdminCert, dowait, genTLSCert, create_directory
+
+conf_path = '/substra/conf/conf.json'
+
+conf = json.load(open(conf_path, 'r'))
 
 if __name__ == '__main__':
 
@@ -11,6 +13,8 @@ if __name__ == '__main__':
 
     org_name = os.environ['ORG']
     org = conf['orderers'][org_name]
+    org_msp_dir = org['msp_dir']
+    org_admin_msp_dir = org['users']['admin']['home'] + '/msp'
 
     # Enroll to get orderer's TLS cert (using the "tls" profile)
     # fabric-ca-client enroll -d --enrollment.profile tls -u $ENROLLMENT_URL -M /tmp/tls --csr.hosts $ORDERER_HOST
@@ -20,32 +24,17 @@ if __name__ == '__main__':
         'host': org['ca']['host'],
         'port': org['ca']['port']
     }
-    call(['fabric-ca-client',
-          'enroll', '-d',
-          '--enrollment.profile', 'tls',
-          '-u', enrollment_url,
-          '-M', '/tmp/tls',
-          '--csr.hosts', org['host']])
-
     # Copy the TLS key and cert to the appropriate place
     tlsdir = org['home'] + '/tls'
     create_directory(tlsdir)
-
     tlscert = tlsdir + '/' + org['tls']['cert']
     tlskey = tlsdir + '/' + org['tls']['key']
-    copy2('/tmp/tls/signcerts/cert.pem', tlscert)
-    copy_last_file_ext('*_sk', '/tmp/tls/keystore/', tlskey)
-    call(['rm', '-rf', '/tmp/tls'])
+    genTLSCert(org['host'], tlscert, tlskey, enrollment_url)
 
     # Enroll again to get the orderer's enrollment certificate (default profile)
     # fabric-ca-client enroll -d -u $ENROLLMENT_URL -M $ORDERER_GENERAL_LOCALMSPDIR
     call(['fabric-ca-client', 'enroll', '-d', '-u', enrollment_url, '-M', org['local_msp_dir']])
-
-    # Finish setting up the local MSP for the orderer
-    completeMSPSetup(org['local_msp_dir'])
-
-    org_msp_dir = org['org_msp_dir']
-    copyAdminCert(org['local_msp_dir'], org_name, conf['misc']['setup_logfile'], org_msp_dir + '/admincerts/cert.pem')
+    copyAdminCert(org_msp_dir + '/admincerts/cert.pem', org['local_msp_dir'] + '/admincerts', org_name, conf['misc']['setup_logfile'])
 
     # Wait for the genesis block to be created
     dowait("genesis block to be created", 60, conf['misc']['setup_logfile'], [conf['misc']['genesis_bloc_file']])

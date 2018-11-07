@@ -1,19 +1,18 @@
 import base64
 import copy
-import json
 import os
 import time
 import subprocess
 
 import requests
 
-from conf import conf
+from conf2orgs import conf
 from subprocess import call, check_output, STDOUT, CalledProcessError, Popen
 
 
 def revokeFabricUserAndGenerateCRL(org_name, username):
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
 
     print(
         'Revoking the user \'%(username)s\' of the organization \'%(org_name)s\' with Fabric CA Client home directory set to %(org_admin_home)s and generating CRL ...' % {
@@ -24,7 +23,7 @@ def revokeFabricUserAndGenerateCRL(org_name, username):
 
     call(['fabric-ca-client',
           'revoke', '-d',
-          '-c', '/substra/data/orgs/' + org_name + '/admin/fabric-ca-client-config.yaml',
+          '-c', org['ca-client-config-path'],
           '--revoke.name', username,
           '--gencrl'])
 
@@ -32,7 +31,7 @@ def revokeFabricUserAndGenerateCRL(org_name, username):
 def fetchConfigBlock(org_name, peer):
     org = conf['orgs'][org_name]
 
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
     channel_name = conf['misc']['channel_name']
     orderer = conf['orderers']['orderer']
@@ -41,7 +40,7 @@ def fetchConfigBlock(org_name, peer):
     print('Fetching the configuration block of the channel \'%s\'' % channel_name, flush=True)
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
     # update mspconfigpath for getting the one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
@@ -50,9 +49,9 @@ def fetchConfigBlock(org_name, peer):
           '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
           '--tls',
           '--clientauth',
-          '--cafile', orderer['tls']['certfile'],
-          '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-          '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+          '--cafile', orderer['ca']['certfile'],
+          '--keyfile', peer['tls']['clientKey'],
+          '--certfile', peer['tls']['clientCert']
           ])
 
     # clean env variables
@@ -62,7 +61,7 @@ def fetchConfigBlock(org_name, peer):
 
 def createConfigUpdatePayloadWithCRL(org_name):
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     channel_name = conf['misc']['channel_name']
@@ -87,10 +86,9 @@ def createConfigUpdatePayloadWithCRL(org_name):
 
     # Update crl in the config json
     updated_config = copy.deepcopy(config)
-    with open(org_admin_msp_dir + '/crls/crl.pem', 'rb') as f:
+    with open(org['msp_dir'] + '/crls/crl.pem', 'rb') as f:
         crl = base64.b64encode(f.read()).decode('utf8')
-        updated_config['channel_group']['groups']['Application']['groups'][org_name]['values']['MSP']['value'][
-            'config']['revocation_list'] = [crl]
+        updated_config['channel_group']['groups']['Application']['groups'][org_name]['values']['MSP']['value']['config']['revocation_list'] = [crl]
 
     # Create the config diff protobuf
     r = requests.post(CTLURL + '/protolator/encode/common.Config', json=config, stream=True)
@@ -159,7 +157,7 @@ def createConfigUpdatePayloadWithCRL(org_name):
 
 def updateConfigBlock(org_name, peer):
     org = conf['orgs'][org_name]
-    org_admin_home = org['admin_home']
+    org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     channel_name = conf['misc']['channel_name']
@@ -167,7 +165,7 @@ def updateConfigBlock(org_name, peer):
     config_update_envelope_file = conf['misc']['config_update_envelope_file']
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
     # update mspconfigpath for getting the one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
@@ -178,9 +176,9 @@ def updateConfigBlock(org_name, peer):
           '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
           '--tls',
           '--clientauth',
-          '--cafile', orderer['tls']['certfile'],
-          '--keyfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.key',
-          '--certfile', '/substra/data/orgs/' + org_name + '/tls/' + peer['name'] + '/cli-client.crt'
+          '--cafile', orderer['ca']['certfile'],
+          '--keyfile', peer['tls']['clientKey'],
+          '--certfile', peer['tls']['clientCert']
           ])
 
     # clean env variables
@@ -194,7 +192,7 @@ def queryAsRevokedUser(arg, org_name, peer, username):
     org_user_msp_dir = org_user_home + '/msp'
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
     # update mspconfigpath for getting one in /data
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
 
@@ -264,7 +262,7 @@ def revokeFirstOrgUser():
     createConfigUpdatePayloadWithCRL('owkin')
     updateConfigBlock(org_name, peer)
 
-    return queryAsRevokedUser('{"Args":["queryObjects", "problem"]}', org_name, peer, username)
+    return queryAsRevokedUser('{"Args":["queryChallenges"]}', org_name, peer, username)
 
 
 def run():
@@ -275,10 +273,10 @@ def run():
 
     if res:
         print('Congratulations! User has been correctly revoked', flush=True)
-        call(['touch', conf['misc']['run_success_revoke_file']])
+        call(['touch', conf['misc']['revoke_success_file']])
     else:
         print('User revokation failed failed.', flush=True)
-        call(['touch', conf['misc']['run_fail_revoke_file']])
+        call(['touch', conf['misc']['revoke_fail_file']])
 
 
 if __name__ == "__main__":
