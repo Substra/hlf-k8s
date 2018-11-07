@@ -9,7 +9,13 @@ def stop():
     print('stopping container')
     remove_chaincode_docker_containers()
     remove_chaincode_docker_images()
-    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
+
+    docker_compose_path = '../docker-compose.yaml'
+
+    if os.path.exists(os.path.join(dir_path, '../docker-compose-dynamic.yaml')):
+        docker_compose_path = '../docker-compose-dynamic.yaml'
+
+    call(['docker-compose', '-f', os.path.join(dir_path, docker_compose_path), 'down', '--remove-orphans'])
 
 
 if __name__ == "__main__":

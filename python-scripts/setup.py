@@ -1,10 +1,13 @@
 import sys
+import json
 
 # from hfc.fabric_ca.caservice import ca_service
 from subprocess import call, check_output, STDOUT, CalledProcessError
 
-from conf import conf
 from util import waitPort, completeMSPSetup, configAdminLocalMSP, configUserLocalMSP
+import os
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
 def enrollCABootstrapAdmin(org):
@@ -35,7 +38,7 @@ def enrollCABootstrapAdmin(org):
     # enrollment = caClient.enroll(org['bootstrap_admin']['name'], org['bootstrap_admin']['pass'])
 
 
-def registerOrdererIdentities():
+def registerOrdererIdentities(conf):
     for orderer_name in list(conf['orderers'].keys()):
         orderer = conf['orderers'][orderer_name]
         enrollCABootstrapAdmin(orderer)
@@ -62,7 +65,7 @@ def registerOrdererIdentities():
               '--id.attrs', 'admin=true:ecert'])
 
 
-def registerPeerIdentities():
+def registerPeerIdentities(conf):
     for org_name in list(conf['orgs'].keys()):
         org = conf['orgs'][org_name]
         enrollCABootstrapAdmin(org)
@@ -95,14 +98,14 @@ def registerPeerIdentities():
               '--id.secret', org['users']['user']['pass']])
 
 
-def registerIdentities():
+def registerIdentities(conf):
     print('Registering identities...\n', flush=True)
 
-    registerOrdererIdentities()
-    registerPeerIdentities()
+    registerOrdererIdentities(conf)
+    registerPeerIdentities(conf)
 
 
-def getCACerts():
+def getCACerts(conf):
     print('Getting CA certificates ...\n', flush=True)
 
     for org_name in list(conf['orgs'].keys()):
@@ -146,7 +149,7 @@ def getCACerts():
         configAdminLocalMSP(org)
 
 
-def generateChannelArtifacts():
+def generateChannelArtifacts(conf):
     print('Generating orderer genesis block at %(genesis_bloc_file)s' % {
         'genesis_bloc_file': conf['misc']['genesis_bloc_file']}, flush=True)
     # Note: For some unknown reason (at least for now) the block file can't be
@@ -180,8 +183,12 @@ def generateChannelArtifacts():
 
 
 if __name__ == '__main__':
-    registerIdentities()
-    getCACerts()
-    generateChannelArtifacts()
+
+    conf_path = '/substra/conf/conf.json'
+    conf = json.load(open(conf_path, 'r'))
+
+    registerIdentities(conf)
+    getCACerts(conf)
+    generateChannelArtifacts(conf)
     print('Finished building channel artifacts', flush=True)
     call(['touch', conf['misc']['setup_success_file']])
