@@ -10,6 +10,7 @@ if __name__ == '__main__':
     org_name = os.environ['ORG']
     org = conf['orderers'][org_name]
     org_msp_dir = org['msp_dir']
+    org_admin_msp_dir = org['users']['admin']['home'] + '/msp'
 
     # Enroll to get orderer's TLS cert (using the "tls" profile)
     # fabric-ca-client enroll -d --enrollment.profile tls -u $ENROLLMENT_URL -M /tmp/tls --csr.hosts $ORDERER_HOST

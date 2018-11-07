@@ -28,6 +28,7 @@ print('Querying chaincode in the channel \'%(channel_name)s\' on the peer \'%(pe
 output = subprocess.run(['peer',
                          '--logging-level=debug',
                          'chaincode', 'query',
+                         '-x',
                          '-C', channel_name,
                          '-n', chaincode_name,
                          '-c', args],
@@ -37,8 +38,7 @@ output = subprocess.run(['peer',
 data = output.stdout.decode('utf-8')
 if data:
     try:
-        data = data.split(': ')[1].replace('\n', '')
-        data = json.loads(data)
+        data = json.loads(bytes.fromhex(data.rstrip()).decode('utf-8'))
     except:
         pass
     else:
@@ -47,6 +47,7 @@ if data:
             'peer_host': peer['host']
         }
         print(msg, flush=True)
+        print(data, flush=True)
 else:
     try:
         msg = output.stderr.decode('utf-8').split('Error')[2].split('\n')[0]

@@ -17,8 +17,8 @@ def createChannel(conf, org_name, peer):
     orderer = conf['orderers']['orderer']
 
     # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = '/substra/conf/' + org_name + '/' + peer['name']
-    # update mspconfigpath for getting the one in /substra/data/
+    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
+    # update mspconfigpath
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
     call([
@@ -62,7 +62,7 @@ def joinChannel(conf, peer, org_name):
     call(['peer',
           'channel', 'join',
           '--logging-level=DEBUG',
-          '-b', channel_name + '.block'
+          '-b', channel_name + '.block',
           ])
 
     # clean env variables
@@ -105,7 +105,7 @@ def updateAnchorPeers(conf):
               '--cafile', orderer['ca']['certfile'],
               # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
               '--keyfile', peer['tls']['clientKey'],
-        '--certfile', peer['tls']['clientCert']
+              '--certfile', peer['tls']['clientCert']
               ])
 
         # clean env variables
@@ -183,9 +183,10 @@ def waitForInstantiation(conf):
     print('Test if chaincode is instantiated on %(PEER_HOST)s ... (timeout 15 seconds)' % {'PEER_HOST': peer['host']}, flush=True)
 
     starttime = int(time.time())
-    while int(time.time()) - starttime < 15:
+    while int(time.time()) - starttime < 30:
+        call(['sleep', '1'])
         output = subprocess.run(['peer',
-                                 '--logging-level=info',
+                                 '--logging-level=DEBUG',
                                  'chaincode', 'list',
                                  '-C', conf['misc']['channel_name'],
                                  '--instantiated',
@@ -195,11 +196,12 @@ def waitForInstantiation(conf):
                                  '--cafile', orderer['tls']['certfile'],
                                  # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
                                  '--keyfile', peer['tls']['clientKey'],
-        '--certfile', peer['tls']['clientCert']
+                                 '--certfile', peer['tls']['clientCert']
                                  ],
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
         data = output.stdout.decode('utf-8')
+        print(data, flush=True)
         split_msg = 'Get instantiated chaincodes on channel mychannel:'
         if split_msg in data and len(data.split(split_msg)[1].replace('\n', '')):
             print(data, flush=True)

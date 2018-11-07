@@ -10,6 +10,7 @@ if __name__ == '__main__':
     org_name = os.environ['ORG']
     org = conf['orgs'][org_name]
     org_msp_dir = org['msp_dir']
+    org_admin_msp_dir = org['users']['admin']['home'] + '/msp'
     peer = org['peers'][int(os.environ['PEER_INDEX'])]
 
     # Although a peer may use the same TLS key and certificate file for both inbound and outbound TLS,

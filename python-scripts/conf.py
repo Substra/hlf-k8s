@@ -27,7 +27,8 @@ conf = {
             'users': {
                 'bootstrap_admin': {
                     'name': 'admin',
-                    'pass': 'adminpw'
+                    'pass': 'adminpw',
+                    'home': '/substra/data/orgs/owkin'
                 },
                 'admin': {
                     'name': 'admin-owkin',
@@ -122,7 +123,8 @@ conf = {
             'users': {
                 'bootstrap_admin': {
                     'name': 'admin',
-                    'pass': 'adminpw'
+                    'pass': 'adminpw',
+                    'home': '/substra/data/orgs/chu-nantes'
                 },
                 'admin': {
                     'name': 'admin-chu-nantes',
@@ -224,7 +226,8 @@ conf = {
             'users': {
                 'bootstrap_admin': {
                     'name': 'admin',
-                    'pass': 'adminpw'
+                    'pass': 'adminpw',
+                    'home': '/substra/data/orgs/orderer'
                 },
                 'admin': {
                     'name': 'admin-orderer',

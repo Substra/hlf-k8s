@@ -49,6 +49,7 @@ def create_ca_client_config(orgs):
         yaml_data = load(stream, Loader=Loader)
 
         # override template here
+        # https://hyperledger-fabric-ca.readthedocs.io/en/release-1.2/users-guide.html#enabling-tls
         yaml_data['tls']['certfiles'] = org['ca']['certfile']
 
         yaml_data['caname'] = org['ca']['name']
@@ -58,7 +59,8 @@ def create_ca_client_config(orgs):
 
         yaml_data['url'] = org['ca']['url']
 
-        yaml_data['mspdir'] = org['msp_dir'] # for revoking user
+        # yaml_data['mspdir'] = org['users']['admin']['home'] + '/msp'  # for revoking user
+        yaml_data['mspdir'] = org['msp_dir']  # for revoking user
 
         filename = org['ca-client-config-path']
         with open(filename, 'w+') as f:
@@ -92,12 +94,14 @@ def create_configtx(conf):
         'Name': x,
         'ID': conf['orderers'][x]['msp_id'],
         'MSPDir': conf['orderers'][x]['msp_dir'],
+        # 'MSPDir': conf['orderers'][x]['users']['admin']['home'] + '/msp',
     } for x in conf['orderers'].keys()]
 
     orgs = [{
         'Name': x,
         'ID': conf['orgs'][x]['msp_id'],
         'MSPDir': conf['orgs'][x]['msp_dir'],
+        # 'MSPDir': conf['orgs'][x]['users']['admin']['home'] + '/msp',
         'AnchorPeers': [{
             'Host': peer['host'],
             'Port': peer['port']
@@ -384,6 +388,9 @@ def start(conf, conf_path):
     # Load Tests
     call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps', 'test'])
 
+    #####################################
+    # uncomment for revoking user owkin #
+    #####################################
     # Revoke User
     call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps', 'revoke'])
 
