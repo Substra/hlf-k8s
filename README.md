@@ -1,7 +1,7 @@
 # Substra network
 
 This project demonstrates how you can set multiples organizations for dealing with the hyperledger project.
-It is composed of 3 organizations : orderer, owkin and chu-nantes.
+It is composed of at most 3 organizations : orderer, owkin and chu-nantes (optional).
 
 The orderer organization contains an orderer instance named orderer1.
 The owkin and chu-nantes organizations have each one 2 peers named peer1 and peer2.
@@ -32,31 +32,21 @@ $> sudo chown guillaume:guillaume/substra
 ```
 Replace `guillaume:guillaume` by your `user:group`.
 
-Go inside the `python-scripts` folder and run:
-
 ```
-    python3 conf.py                     // 2 orgs (owkin, chu-nantes)
-    python3 conf-1org.py                // 1 org (owkin)
-```
-
-It will generate a conf.json file that you can use to start the network
-
-```
-    python3 start.py --config conf.json
+$> python3 start.py --config conf1org.py
 ```
 
 :warning:
-Launching `start.py` without the config option, will make a call of `python3 conf.py` before.
+Launching `start.py` without the config option, will make a call of `python3 conf2orgs.py` before.
 
-
+For loading fixtures, test and revoke containers, pass the `--fixtures` or `-f` option.  
+If you do not want to call the `revoke` container, please comment it in the `start.py` file.
 
 It will generate a docker-compose file (docker-compose-dynamic.yaml), build the network and run init config.
 
 The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.  
 The `fixtures` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on both orgs : owkin and chu-nantes. It is commented by default. Uncomment it in `docker-compose.yaml` for testing and debugging.   
 The `revoke` docker instance allow you to revoke an user, Recommendation is to leave this uncommented.  
-
-If you do not want to init the chaincode and make queries, comment the run docker part in the docker-compose.
 
 You now will be able to play with the network ! :tada:
 
@@ -66,16 +56,16 @@ The docker-compose use the `net_substra` private network for running its docker,
 
 `/etc/hosts` file:
 ```shell
-127.0.0.1       rca-owkin
-127.0.0.1       rca-chu-nantes
+127.0.0.1       rca-owkin            # one or two org(s) setup
+127.0.0.1       rca-chu-nantes       # two orgs setup
 127.0.0.1       rca-orderer
-127.0.0.1       peer1-owkin
-127.0.0.1       peer2-owkin
-127.0.0.1       peer1-chu-nantes
-127.0.0.1       peer2-chu-nantes
+127.0.0.1       peer1-owkin          # one or two org(s) setup
+127.0.0.1       peer2-owkin          # one or two org(s) setup
+127.0.0.1       peer1-chu-nantes     # two orgs setup
+127.0.0.1       peer2-chu-nantes     # two orgs setup
 127.0.0.1       orderer1-orderer
-127.0.0.1       owkin.substrabac
-127.0.0.1       chunantes.substrabac
+127.0.0.1       owkin.substrabac     # one or two org(s) setup
+127.0.0.1       chunantes.substrabac # two orgs setup
 ```
 
 Do not hesitate to reboot your machine for updating your new modified hosts values.

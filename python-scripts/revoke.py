@@ -6,7 +6,7 @@ import subprocess
 
 import requests
 
-from conf import conf
+from conf2orgs import conf
 from subprocess import call, check_output, STDOUT, CalledProcessError, Popen
 
 

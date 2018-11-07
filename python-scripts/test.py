@@ -2,7 +2,7 @@ import json
 import os
 import subprocess
 
-from conf import conf
+from conf2orgs import conf
 
 org_name = 'owkin'
 

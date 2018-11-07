@@ -270,7 +270,9 @@ conf = {
 
         'revoke_logfile': '/substra/data/logs/revoke.log',
         'revoke_success_file': '/substra/data/logs/revoke.successful',
-        'revoke_fail_file': '/substra/data/logs/revoke.fail'
+        'revoke_fail_file': '/substra/data/logs/revoke.fail',
+
+        'fixtures_path': 'fixtures2orgs.py'
     }
 }
 
