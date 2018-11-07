@@ -13,6 +13,7 @@ from subprocess import call, check_output, STDOUT, CalledProcessError, Popen
 def revokeFabricUserAndGenerateCRL(org_name, username):
     org = conf['orgs'][org_name]
     org_admin_home = org['users']['admin']['home']
+    org_admin_msp_dir = org_admin_home + '/msp'
 
     print(
         'Revoking the user \'%(username)s\' of the organization \'%(org_name)s\' with Fabric CA Client home directory set to %(org_admin_home)s and generating CRL ...' % {
@@ -24,6 +25,7 @@ def revokeFabricUserAndGenerateCRL(org_name, username):
     call(['fabric-ca-client',
           'revoke', '-d',
           '-c', org['ca-client-config-path'],
+          '-M', org_admin_msp_dir, # override msp dir for not taking one fronm bootstrap admin, but from admin
           '--revoke.name', username,
           '--gencrl'])
 
@@ -86,7 +88,7 @@ def createConfigUpdatePayloadWithCRL(org_name):
 
     # Update crl in the config json
     updated_config = copy.deepcopy(config)
-    with open(org['msp_dir'] + '/crls/crl.pem', 'rb') as f:
+    with open(org_admin_msp_dir + '/crls/crl.pem', 'rb') as f:
         crl = base64.b64encode(f.read()).decode('utf8')
         updated_config['channel_group']['groups']['Application']['groups'][org_name]['values']['MSP']['value']['config']['revocation_list'] = [crl]
 

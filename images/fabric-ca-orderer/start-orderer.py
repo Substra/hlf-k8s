@@ -12,7 +12,6 @@ if __name__ == '__main__':
 
     org_name = os.environ['ORG']
     org = conf['orderers'][org_name]
-    org_msp_dir = org['msp_dir']
     org_admin_msp_dir = org['users']['admin']['home'] + '/msp'
 
     # Enroll to get orderer's TLS cert (using the "tls" profile)
@@ -33,7 +32,7 @@ if __name__ == '__main__':
     # Enroll again to get the orderer's enrollment certificate (default profile)
     # fabric-ca-client enroll -d -u $ENROLLMENT_URL -M $ORDERER_GENERAL_LOCALMSPDIR
     call(['fabric-ca-client', 'enroll', '-d', '-u', enrollment_url, '-M', org['local_msp_dir']])
-    copyAdminCert(org_msp_dir + '/admincerts/cert.pem', org['local_msp_dir'] + '/admincerts', org_name, conf['misc']['setup_logfile'])
+    copyAdminCert(org_admin_msp_dir + '/admincerts/cert.pem', org['local_msp_dir'] + '/admincerts', org_name, conf['misc']['setup_logfile'])
 
     # Wait for the genesis block to be created
     dowait("genesis block to be created", 60, conf['misc']['setup_logfile'], [conf['misc']['genesis_bloc_file']])

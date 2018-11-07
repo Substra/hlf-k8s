@@ -167,7 +167,6 @@ def queryChaincodeFromSecondPeerSecondOrg():
 
 
 def invokeChainCode(args, org, peer):
-    org_name = org['name']
     org_user_home = org['users']['user']['home']
     org_user_msp_dir = org_user_home + '/msp'
     orderer = conf['orderers']['orderer']

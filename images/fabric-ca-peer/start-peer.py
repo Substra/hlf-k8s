@@ -13,7 +13,6 @@ if __name__ == '__main__':
 
     org_name = os.environ['ORG']
     org = conf['orgs'][org_name]
-    org_msp_dir = org['msp_dir']
     org_admin_msp_dir = org['users']['admin']['home'] + '/msp'
     peer = org['peers'][int(os.environ['PEER_INDEX'])]
 
@@ -49,7 +48,7 @@ if __name__ == '__main__':
           'enroll', '-d',
           '-u', enrollment_url,
           '-M', org['core']['docker']['msp_config_path']]) # '/opt/gopath/src/github.com/hyperledger/fabric/peer/msp'
-    copyAdminCert(org_msp_dir + '/admincerts/cert.pem',  # '/substra/data/orgs/owkin/msp/admincerts/cert.pem '
+    copyAdminCert(org_admin_msp_dir + '/admincerts/cert.pem',  # '/substra/data/orgs/owkin/msp/admincerts/cert.pem '
                   org['core']['docker']['msp_config_path'] + '/admincerts', # '/opt/gopath/src/github.com/hyperledger/fabric/peer/msp'
                   org_name,
                   conf['misc']['setup_logfile'])

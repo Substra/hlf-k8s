@@ -94,15 +94,15 @@ def create_configtx(conf):
     orderers = [{
         'Name': x,
         'ID': conf['orderers'][x]['msp_id'],
-        'MSPDir': conf['orderers'][x]['msp_dir'],
-        # 'MSPDir': conf['orderers'][x]['users']['admin']['home'] + '/msp',
+        # 'MSPDir': conf['orderers'][x]['msp_dir'],
+        'MSPDir': conf['orderers'][x]['users']['admin']['home'] + '/msp',
     } for x in conf['orderers'].keys()]
 
     orgs = [{
         'Name': x,
         'ID': conf['orgs'][x]['msp_id'],
-        'MSPDir': conf['orgs'][x]['msp_dir'],
-        # 'MSPDir': conf['orgs'][x]['users']['admin']['home'] + '/msp',
+        #'MSPDir': conf['orgs'][x]['msp_dir'],
+        'MSPDir': conf['orgs'][x]['users']['admin']['home'] + '/msp',
         'AnchorPeers': [{
             'Host': peer['host'],
             'Port': peer['port']
@@ -380,7 +380,7 @@ def generate_docker_compose_file(conf, conf_path):
 def stop(docker_compose=None):
     print('stopping container', flush=True)
     call(['docker', 'rm', '-f', 'rca-orderer', 'rca-owkin', 'rca-chu-nantes', 'setup', 'orderer1-orderer',
-          'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes', 'run', 'fixtures', 'test', 'revoke'])
+          'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes', 'run', 'fixtures', 'queryUser', 'revoke'])
     call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
     if docker_compose is not None:
@@ -445,17 +445,11 @@ def start(conf, conf_path, fixtures):
                160, conf['misc']['fixtures_logfile'],
                [conf['misc']['fixtures_success_file']])
 
-        # Load Tests
-        call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--no-deps', 'test'])
+        # Query with an user MSP
+        call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--no-deps', 'queryUser'])
 
-        #####################################
-        # uncomment for revoking user owkin #
-        #####################################
         # Revoke User
         call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--no-deps', 'revoke'])
-
-    # Revoke User
-    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'up', '-d', '--no-deps', 'revoke'])
 
 
 if __name__ == "__main__":

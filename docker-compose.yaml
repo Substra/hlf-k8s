@@ -253,10 +253,10 @@ services:
     depends_on:
     - fixtures
 
-  test:
-    container_name: test
+  queryUser:
+    container_name: queryUser
     image: substra/fabric-ca-tools
-    command: /bin/bash -c 'sleep 3;python3 /scripts/test.py 2>&1 | tee /substra/data/logs/test.log; sleep 99999'
+    command: /bin/bash -c 'sleep 3;python3 /scripts/queryUser.py 2>&1 | tee /substra/data/logs/test.log; sleep 99999'
     volumes:
       - ./python-scripts:/scripts
       - /substra/data:/substra/data
