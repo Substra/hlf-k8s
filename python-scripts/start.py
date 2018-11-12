@@ -152,7 +152,7 @@ def create_core_peer_config(conf):
             yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
             yaml_data['vm']['docker']['hostConfig']['NetworkMode'] = 'net_substra'
 
-            yaml_data['logging']['level'] = LOGGING_LEVEL[2]  # warning
+            yaml_data['logging']['level'] = LOGGING_LEVEL[4]  # info, needed for substrabac
 
             create_directory(peer['docker_core_dir'])
             filename = '%(dir)s/core.yaml' % {'dir': peer['docker_core_dir']}
@@ -191,7 +191,7 @@ def create_orderer_config(conf):
         yaml_data['General']['GenesisFile'] = conf['misc']['genesis_bloc_file']
         yaml_data['General']['LocalMSPID'] = org['msp_id']
         yaml_data['General']['LocalMSPDir'] = org['local_msp_dir']
-        yaml_data['General']['LogLevel'] = LOGGING_LEVEL[2]  # warning
+        yaml_data['General']['LogLevel'] = LOGGING_LEVEL[4]  # info, needed for substrabac
 
         yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']
 
