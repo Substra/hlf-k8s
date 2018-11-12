@@ -14,6 +14,8 @@ except ImportError:
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+LOGGING_LEVEL = ['critical', 'error', 'warning', 'notice', 'info', 'debug']
+
 
 def create_ca_server_config(orgs):
     # For each org, create a config file from template
@@ -150,7 +152,7 @@ def create_core_peer_config(conf):
             yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
             yaml_data['vm']['docker']['hostConfig']['NetworkMode'] = 'net_substra'
 
-            yaml_data['logging']['level'] = 'debug'
+            yaml_data['logging']['level'] = LOGGING_LEVEL[2]  # warning
 
             create_directory(peer['docker_core_dir'])
             filename = '%(dir)s/core.yaml' % {'dir': peer['docker_core_dir']}
@@ -189,7 +191,7 @@ def create_orderer_config(conf):
         yaml_data['General']['GenesisFile'] = conf['misc']['genesis_bloc_file']
         yaml_data['General']['LocalMSPID'] = org['msp_id']
         yaml_data['General']['LocalMSPDir'] = org['local_msp_dir']
-        yaml_data['General']['LogLevel'] = 'debug'
+        yaml_data['General']['LogLevel'] = LOGGING_LEVEL[2]  # warning
 
         yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']
 
@@ -267,9 +269,9 @@ def generate_docker_compose_file(conf, conf_path):
                'image': 'substra/fabric-ca',
                'working_dir': '/etc/hyperledger/fabric-ca-server',
                'ports': ['%s:%s' % (orderer_conf['ca']['host_port'], orderer_conf['ca']['port'])],
-               'command': '/bin/bash -c "python3 start-root-ca.py 2>&1 | tee /substra/data/logs/%s.log"' %
-                          orderer_conf['ca']['host'],
+               'command': '/bin/bash -c "python3 start-root-ca.py 2>&1"',
                'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server'],
+               'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': ['/substra/data:/substra/data',
                            '/substra/conf/%s/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml' %
                            orderer_conf['name']],
@@ -285,10 +287,10 @@ def generate_docker_compose_file(conf, conf_path):
         svc = {'container_name': orderer_conf['host'],
                'image': 'substra/fabric-ca-orderer',
                'working_dir': '/etc/hyperledger/orderer',
-               'command': '/bin/bash -c "python3 start-orderer.py 2>&1 | tee /substra/data/logs/%s.log"' %
-                          orderer_conf['host'],
+               'command': '/bin/bash -c "python3 start-orderer.py 2>&1"',
                'environment': ['ORG=%s' % orderer_conf['name'],
                                'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/orderer'],
+               'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': ['/substra/data:/substra/data',
                            '%s:%s' % (conf_path, conf_path),
                            './python-scripts/conf.py:/etc/hyperledger/orderer/conf.py',
@@ -308,9 +310,9 @@ def generate_docker_compose_file(conf, conf_path):
                'image': 'substra/fabric-ca',
                'working_dir': '/etc/hyperledger/fabric-ca-server',
                'ports': ['%s:%s' % (org_conf['ca']['host_port'], org_conf['ca']['port'])],
-               'command': '/bin/bash -c "python3 start-root-ca.py 2>&1 | tee /substra/data/logs/%s.log"' %
-                          org_conf['ca']['host'],
+               'command': '/bin/bash -c "python3 start-root-ca.py 2>&1"',
                'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server'],
+               'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': ['/substra/data:/substra/data',
                            '/substra/conf/%s/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml' %
                            org_conf['name']],
@@ -327,14 +329,14 @@ def generate_docker_compose_file(conf, conf_path):
         for index, peer in enumerate(org_conf['peers']):
             svc = {'container_name': peer['host'],
                    'image': 'substra/fabric-ca-peer',
-                   'command': '/bin/bash -c "python3 start-peer.py 2>&1 | tee /substra/data/logs/%s.log"' %
-                              peer['host'],
+                   'command': '/bin/bash -c "python3 start-peer.py 2>&1"',
                    'environment': ['ORG=%s' % org_conf['name'],
                                    'PEER_INDEX=%s' % index,
                                    'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric/'],
                    'working_dir': '/etc/hyperledger/fabric/',
                    'ports': ['%s:%s' % (peer['host_port'], peer['port']),
                              '%s:%s' % (peer['host_event_port'], peer['event_port'])],
+                   'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                    'volumes': ['/substra/data:/substra/data',
                                '%s:%s' % (conf_path, conf_path),
                                './python-scripts/conf.py:/etc/hyperledger/fabric/conf.py',
