@@ -288,6 +288,7 @@ def generate_docker_compose_file(conf, conf_path):
                'image': 'substra/fabric-ca-orderer',
                'working_dir': '/etc/hyperledger/orderer',
                'command': '/bin/bash -c "python3 start-orderer.py 2>&1"',
+               'ports': ['%s:%s' % (orderer_conf['port'], orderer_conf['port'])],
                'environment': ['ORG=%s' % orderer_conf['name'],
                                'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/orderer'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
