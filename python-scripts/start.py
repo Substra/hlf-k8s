@@ -267,12 +267,13 @@ def generate_docker_compose_file(conf, conf_path):
         # RCA
         rca = {'container_name': orderer_conf['ca']['host'],
                'image': 'substra/fabric-ca',
-               'working_dir': '/etc/hyperledger/fabric-ca-server',
+               'working_dir': '/etc/hyperledger/',
                'ports': ['%s:%s' % (orderer_conf['ca']['host_port'], orderer_conf['ca']['port'])],
                'command': '/bin/bash -c "python3 start-root-ca.py 2>&1"',
                'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': ['/substra/data:/substra/data',
+                           '/substra/backup/orgs/%s/rca:/etc/hyperledger/fabric-ca-server/' % orderer_conf['name'],
                            '/substra/conf/%s/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml' %
                            orderer_conf['name']],
                'networks': ['substra']}
@@ -294,6 +295,7 @@ def generate_docker_compose_file(conf, conf_path):
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': ['/substra/data:/substra/data',
                            '%s:%s' % (conf_path, conf_path),
+                           '/substra/backup/orgs/%s/%s:/var/hyperledger/production/orderer' % (orderer_conf['name'], orderer_conf['name']),
                            './python-scripts/conf.py:/etc/hyperledger/orderer/conf.py',
                            './python-scripts/util.py:/etc/hyperledger/orderer/util.py',
                            '/substra/conf/%s/fabric-ca-client-config.yaml:/etc/hyperledger/orderer/fabric-ca-client-config.yaml' %
@@ -309,12 +311,13 @@ def generate_docker_compose_file(conf, conf_path):
         # RCA
         rca = {'container_name': org_conf['ca']['host'],
                'image': 'substra/fabric-ca',
-               'working_dir': '/etc/hyperledger/fabric-ca-server',
+               'working_dir': '/etc/hyperledger/',
                'ports': ['%s:%s' % (org_conf['ca']['host_port'], org_conf['ca']['port'])],
                'command': '/bin/bash -c "python3 start-root-ca.py 2>&1"',
                'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': ['/substra/data:/substra/data',
+                           '/substra/backup/orgs/%s/rca:/etc/hyperledger/fabric-ca-server/' % org_conf['name'],
                            '/substra/conf/%s/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml' %
                            org_conf['name']],
                'networks': ['substra']}
@@ -340,6 +343,7 @@ def generate_docker_compose_file(conf, conf_path):
                    'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                    'volumes': ['/substra/data:/substra/data',
                                '%s:%s' % (conf_path, conf_path),
+                               '/substra/backup/orgs/%s/%s/:/var/hyperledger/production/' % (org_conf['name'], peer['name']),
                                './python-scripts/conf.py:/etc/hyperledger/fabric/conf.py',
                                './python-scripts/util.py:/etc/hyperledger/fabric/util.py',
                                '/var/run:/host/var/run',

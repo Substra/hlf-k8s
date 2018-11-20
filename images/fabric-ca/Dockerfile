@@ -5,7 +5,7 @@
 #
 FROM hyperledger/fabric-ca:latest
 
-COPY ./start-root-ca.py /etc/hyperledger/fabric-ca-server/
+COPY ./start-root-ca.py /etc/hyperledger/
 
 # install python 3
 RUN apt-get update

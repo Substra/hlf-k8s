@@ -28,25 +28,10 @@
 #
 # # Start the root CA
 # fabric-ca-server start
-import os
-from os import chdir
+
 from subprocess import call
 
 if __name__ == '__main__':
-
-    print('Initialize the root CA', flush=True)
-
-    chdir(os.environ['FABRIC_CA_HOME'])
-
-    print('remove generated examples crt files by default for using those from config file with init generation', flush=True)
-
-    # http://fabric-ca.readthedocs.io/en/latest/users-guide.html  # initializing-the-server
-    # If custom values for the CSR are required, you may customize the configuration file, delete the files specified by the ca.certfile and ca-keyfile configuration items, and then run the fabric-ca-server init -b admin:adminpw command again.
-    # by default the docker image copy these files from payload examples and init does not overwrite them
-    call('rm -rf *.pem', shell=True)  # ca-cert.pem, ca-key.pem
-
-    # will create ca-cert.pem, fabric-ca-server.db, msp
-    call('fabric-ca-server init -d -c fabric-ca-server-config.yaml', shell=True)
 
     print('Start the root CA', flush=True)
     call('fabric-ca-server start', shell=True)
