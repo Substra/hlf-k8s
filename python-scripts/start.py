@@ -233,15 +233,6 @@ def generate_docker_compose_file(conf, conf_path):
                                                             ],
                                                 'networks': ['substra'],
                                                 'depends_on': []},
-                                        'cli': {'container_name': 'cli',
-                                                'image': 'substra/fabric-ca-tools',
-                                                'command': '/bin/bash -c "sleep 99999"',
-                                                'environment': ['GOPATH=/opt/gopath'],
-                                                'volumes': ['/substra/data:/substra/data',
-                                                            '/substra/conf:/substra/conf',
-                                                            '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode'
-                                                            ],
-                                                'networks': ['substra']},
                                         },
                       'substra_test': {
                           'fixtures': {'container_name': 'fixtures',
@@ -427,7 +418,7 @@ def start(conf, conf_path, fixtures):
     stop(docker_compose)
 
     print('start docker-compose', flush=True)
-    services = [name for name, _ in docker_compose['substra_services']['rca']] + ['setup'] + ['cli']
+    services = [name for name, _ in docker_compose['substra_services']['rca']] + ['setup']
     call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--remove-orphans'] + services)
     call(['docker', 'ps', '-a'])
 
@@ -471,11 +462,10 @@ def start(conf, conf_path, fixtures):
         call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--no-deps', 'revoke'])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # create directory with correct rights
     call(['rm', '-rf', '/substra/data'])
     call(['rm', '-rf', '/substra/conf'])
-    call(['rm', '-rf', '/substra/backup'])
 
     create_directory('/substra/data/logs')
     create_directory('/substra/conf/')
@@ -485,6 +475,8 @@ if __name__ == "__main__":
                         help="JSON config file to be used")
     parser.add_argument('-f', '--fixtures', action='store_true', default=False,
                         help="Load fixtures")
+    parser.add_argument('--no-backup', action='store_true', default=False,
+                        help="Remove backup binded volume. Launch from scratch")
     args = vars(parser.parse_args())
 
     conf_path = '/substra/conf/conf.json'
@@ -493,6 +485,9 @@ if __name__ == "__main__":
         call(['python3', args['config']])
     else:
         call(['python3', os.path.join(dir_path, 'conf2orgs.py')])
+
+    if args['no_backup']:
+        call(['rm', '-rf', '/substra/backup'])
 
     conf = json.load(open(conf_path, 'r'))
 

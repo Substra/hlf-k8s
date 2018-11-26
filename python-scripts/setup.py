@@ -68,9 +68,6 @@ def enrollCABootstrapAdmin(org):
           '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
           '-u', enrollment_url])
 
-    # org_user_msp_dir = org['users']['bootstrap_admin']['home'] + '/msp'
-    # copytree(org_user_msp_dir + '/signcerts/', org_user_msp_dir + '/admincerts')
-
     # python sdk
     # caClient = ca_service(target=org['ca']['url'],
     #                       ca_certs_path=org['ca']['certfile'],
@@ -145,57 +142,36 @@ def registerIdentities(conf):
     registerPeerIdentities(conf)
 
 
-def getCACerts(conf):
+def registerUsers(conf):
     print('Getting CA certificates ...\n', flush=True)
 
     for org_name in list(conf['orgs'].keys()):
         org = conf['orgs'][org_name]
-        org_msp_dir = org['msp_dir']
         org_admin_msp_dir = org['users']['admin']['home'] + '/msp'
-
-        msg = 'Getting CA certs for organization %(org_name)s and storing in %(org_msp_dir)s'
-        print(msg % {'org_msp_dir': org_msp_dir, 'org_name': org_name}, flush=True)
-
-        # http://hyperledger-fabric-ca.readthedocs.io/en/latest/users-guide.html#enabling-tls
-        # will populate msp dir and create cacert pem file
-        call(['fabric-ca-client',
-              'getcacert', '-d',
-              '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
-              '-u', org['ca']['url']])
-
-        # Remove bootstrap admin msp
-        call(['rm', '-rf', org_msp_dir])
 
         # will create admin and user folder with an msp folder and populate it. Populate admincerts for configtxgen to work
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
+
+        # register admin and create admincerts
         configLocalMSP(org, 'admin')
         # needed for tls communication for create channel from peer for example, copy tlscacerts from cacerts
         completeMSPSetup(org_admin_msp_dir)
 
+        # register user and create admincerts
         configLocalMSP(org, 'user')
 
     for org_name in list(conf['orderers'].keys()):
         org = conf['orderers'][org_name]
-        org_msp_dir = org['msp_dir']
         org_admin_msp_dir = org['users']['admin']['home'] + '/msp'
 
-        msg = 'Getting CA certs for organization %(org_name)s and storing in %(org_msp_dir)s'
-        print(msg % {'org_msp_dir': org_msp_dir, 'org_name': org_name}, flush=True)
-
-        call(['fabric-ca-client',
-              'getcacert', '-d',
-              '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
-              '-u', org['ca']['url'],
-              '-M', org_msp_dir])
-
-        # Remove bootstrap admin msp
-        call(['rm', '-rf', org_msp_dir])
-
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
+        # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
         # will create admincerts for configtxgen to work
+
+        # register admin and create admincerts
         configLocalMSP(org, 'admin')
-        # create tlscacerts directory and remove intermediatecerts
+        # create tlscacerts directory and remove intermediatecerts if exists
         completeMSPSetup(org_admin_msp_dir)
 
 
@@ -240,7 +216,7 @@ if __name__ == '__main__':
     conf = json.load(open(conf_path, 'r'))
 
     registerIdentities(conf)
-    getCACerts(conf)
+    registerUsers(conf)
     generateChannelArtifacts(conf)
     print('Finished building channel artifacts', flush=True)
     call(['touch', conf['misc']['setup_success_file']])

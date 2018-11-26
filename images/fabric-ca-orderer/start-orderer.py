@@ -42,19 +42,13 @@ if __name__ == '__main__':
           '-u', enrollment_url,
           '-M', org['local_msp_dir']])
 
-    # TODO define strategy, use local signcert for admincert or copy from outisde
-
     # copy the admincerts from the admin user for being able to launch orderer
     # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
     # https://lists.hyperledger.org/g/fabric/topic/17549225#1250
 
-    # dst_ca_dir = org_admin_msp_dir + '/admincerts/'
-    # create_directory(dst_ca_dir)
-    # copyfile(org_admin_msp_dir + '/signcerts/cert.pem', dst_ca_dir + '%s-cert.pem' % admin['name'])
-
     dst_ca_dir = './fabric/msp/admincerts/'
     create_directory(dst_ca_dir)
-    copyfile('./fabric/msp/signcerts/cert.pem', './fabric/msp/admincerts/%s-cert.pem' % admin['name'])
+    copyfile('%s/signcerts/cert.pem' % org['local_msp_dir'], '%s/admincerts/%s-cert.pem' % (org['local_msp_dir'], admin['name']))
 
     # Wait for the genesis block to be created
     dowait("genesis block to be created", 60, conf['misc']['setup_logfile'], [conf['misc']['genesis_bloc_file']])
