@@ -19,6 +19,7 @@ conf = {
                 'name': 'rca-owkin',
                 'host': 'rca-owkin',
                 'certfile': '/substra/data/orgs/owkin/ca-cert.pem',
+                'keyfile': '/substra/data/orgs/owkin/ca-key.pem',
                 'port': 7054,
                 'host_port': 7054,
                 'url': 'https://rca-owkin:7054',
@@ -48,8 +49,8 @@ conf = {
             },
             'core': {
                 'docker': {
-                    'peer_home': '/opt/gopath/src/github.com/hyperledger/fabric/peer',
-                    'msp_config_path': '/opt/gopath/src/github.com/hyperledger/fabric/peer/msp',
+                    'peer_home': '/etc/hyperledger/fabric',
+                    'msp_config_path': '/etc/hyperledger/fabric/msp',
                 },
                 'host': {
                     'peer_home': '/substra/data/orgs/owkin',
@@ -115,6 +116,7 @@ conf = {
                 'name': 'rca-chu-nantes',
                 'host': 'rca-chu-nantes',
                 'certfile': '/substra/data/orgs/chu-nantes/ca-cert.pem',
+                'keyfile': '/substra/data/orgs/chu-nantes/ca-key.pem',
                 'port': 7054,
                 'host_port': 8054,
                 'url': 'https://rca-chu-nantes:7054',
@@ -144,8 +146,8 @@ conf = {
             },
             'core': {
                 'docker': {
-                    'peer_home': '/opt/gopath/src/github.com/hyperledger/fabric/peer',
-                    'msp_config_path': '/opt/gopath/src/github.com/hyperledger/fabric/peer/msp',
+                    'peer_home': '/etc/hyperledger/fabric/',
+                    'msp_config_path': '/etc/hyperledger/fabric/msp',
                 },
                 'host': {
                     'peer_home': '/substra/data/orgs/chu-nantes',
@@ -218,6 +220,7 @@ conf = {
                 'name': 'rca-orderer',
                 'host': 'rca-orderer',
                 'certfile': '/substra/data/orgs/orderer/ca-cert.pem',
+                'keyfile': '/substra/data/orgs/orderer/ca-key.pem',
                 'port': 7054,
                 'host_port': 9054,
                 'url': 'https://rca-orderer:7054',
@@ -249,6 +252,7 @@ conf = {
     },
     'misc': {
         'channel_name': 'mychannel',
+        'channel_block': '/substra/data/mychannel.block',
         'chaincode_name': 'mycc',
         'genesis_bloc_file': '/substra/data/genesis.block',
         'channel_tx_file': '/substra/data/channel.tx',

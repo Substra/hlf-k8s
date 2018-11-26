@@ -32,6 +32,5 @@
 from subprocess import call
 
 if __name__ == '__main__':
-
     print('Start the root CA', flush=True)
     call('fabric-ca-server start', shell=True)

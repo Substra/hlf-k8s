@@ -1,13 +1,17 @@
+import docker
 import json
 import os
 import time
 import subprocess
 
-from subprocess import call, check_output, STDOUT, CalledProcessError, Popen
+from subprocess import call, check_output, CalledProcessError
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+client = docker.from_env()
 
+# the signer of the channel creation transaction must have admin rights for one of the consortium orgs
+# https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
 def createChannel(conf, org_name, peer):
     # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
@@ -18,15 +22,14 @@ def createChannel(conf, org_name, peer):
 
     # update config path for using right core.yaml
     os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-    # update mspconfigpath
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
     call([
         'peer',
         'channel',
         'create',
-        '--logging-level=DEBUG',
-        '-c', 'mychannel',
+        '-c', conf['misc']['channel_name'],
+        '--outputBlock', conf['misc']['channel_block'],
         '-f', conf['misc']['channel_tx_file'],
         '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
         '--tls',
@@ -41,42 +44,25 @@ def createChannel(conf, org_name, peer):
     del os.environ['CORE_PEER_MSPCONFIGPATH']
 
 
-# Enroll as a fabric admin and join the channel
-def joinChannel(conf, peer, org_name):
-    # :warning: for joining channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
+def joinChannel(conf, peer):
 
-    org = conf['orgs'][org_name]
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
     channel_name = conf['misc']['channel_name']
-
-    # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-    # update mspconfigpath
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
-
     print('Peer %(peer_host)s is attempting to join channel \'%(channel_name)s\' ...' % {
         'peer_host': peer['host'],
-        'channel_name': channel_name}, flush=True)
+        'channel_name': channel_name
+    }, flush=True)
 
-    call(['peer',
-          'channel', 'join',
-          '--logging-level=DEBUG',
-          '-b', channel_name + '.block',
-          ])
-
-    # clean env variables
-    del os.environ['FABRIC_CFG_PATH']
-    del os.environ['CORE_PEER_MSPCONFIGPATH']
-
+    container = client.containers.get(peer['host'])
+    container.exec_run('bash -c "peer channel join -b %s"' % conf['misc']['channel_block'])
 
 def peersJoinChannel(conf):
     for org_name in conf['orgs'].keys():
         org = conf['orgs'][org_name]
         for peer in org['peers']:
-            joinChannel(conf, peer, org_name)
+            joinChannel(conf, peer)
 
 
+# # the updater of the channel anchor transaction must have admin rights for one of the consortium orgs
 # Update the anchor peers
 def updateAnchorPeers(conf):
     # :warning: for updating anchor peers make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
@@ -126,7 +112,6 @@ def installChainCode(conf, org_name, peer):
 
     # update config path for using right core.yaml
     os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-    # update mspconfigpath
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
     call(['peer',
@@ -145,20 +130,6 @@ def installChainCodeOnPeers(conf):
         org = conf['orgs'][org_name]
         for peer in org['peers']:
             installChainCode(conf, org_name, peer)
-
-
-def makePolicy(conf):
-    policy = 'OR('
-
-    for index, org_name in enumerate(conf['orgs']):
-        if index != 0:
-            policy += ','
-        policy += '\'' + conf['orgs'][org_name]['msp_id'] + '.member\''
-
-    policy += ')'
-    print('policy: %s' % policy, flush=True)
-
-    return policy
 
 
 def waitForInstantiation(conf):
@@ -180,13 +151,14 @@ def waitForInstantiation(conf):
         del os.environ['FABRIC_CFG_PATH']
         del os.environ['CORE_PEER_MSPCONFIGPATH']
 
-    print('Test if chaincode is instantiated on %(PEER_HOST)s ... (timeout 15 seconds)' % {'PEER_HOST': peer['host']}, flush=True)
+    print('Test if chaincode is instantiated on %(PEER_HOST)s ... (timeout 15 seconds)' % {'PEER_HOST': peer['host']},
+          flush=True)
 
     starttime = int(time.time())
     while int(time.time()) - starttime < 30:
         call(['sleep', '1'])
         output = subprocess.run(['peer',
-                                 '--logging-level=DEBUG',
+                                 '--logging-level', 'DEBUG',
                                  'chaincode', 'list',
                                  '-C', conf['misc']['channel_name'],
                                  '--instantiated',
@@ -213,9 +185,20 @@ def waitForInstantiation(conf):
     return False
 
 
-def instanciateChainCode(conf, args, org_name, peer):
-    # :warning: for instanciating chaincode make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
+def makePolicy(conf):
+    policy = 'OR('
 
+    for index, org_name in enumerate(conf['orgs']):
+        if index != 0:
+            policy += ','
+        policy += '\'' + conf['orgs'][org_name]['msp_id'] + '.member\''
+
+    policy += ')'
+    print('policy: %s' % policy, flush=True)
+
+    return policy
+
+def instanciateChainCode(conf, args, org_name, peer):
     policy = makePolicy(conf)
 
     org = conf['orgs'][org_name]
@@ -225,14 +208,13 @@ def instanciateChainCode(conf, args, org_name, peer):
 
     # update config path for using right core.yaml
     os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-    # update mspconfigpath for getting one in /substra/data/
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
 
     print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
     call(['peer',
           'chaincode', 'instantiate',
-          '--logging-level=DEBUG',
+          '--logging-level', 'DEBUG',
           '-C', conf['misc']['channel_name'],
           '-n', conf['misc']['chaincode_name'],
           '-v', '1.0',
@@ -261,13 +243,11 @@ def instanciateChaincode(conf):
 
 def chainCodeQueryWith(conf, arg, org_name, peer):
     org = conf['orgs'][org_name]
-    org_user_home = org['user_home']
+    org_user_home = org['users']['user']['home']
     org_user_msp_dir = org_user_home + '/msp'
 
     # update config path for using right core.yaml
     os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-
-    # update mspconfigpath for getting one in /substra/data/
     os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
 
     def clean_env_variables():
@@ -348,14 +328,14 @@ def run(conf):
     # Install chaincode on peer in each org
     installChainCodeOnPeers(conf)
 
-    # Instantiate chaincode on the 1st peer of the 2nd org
-    instanciateChaincode(conf)
-
-    # Wait chaincode is correctly instantiated and initialized
-    res = res and waitForInstantiation(conf)
-
-    # Query chaincode from the 1st peer of the 1st org
-    res = res and queryChaincodeFromFirstPeerFirstOrg(conf)
+    # # Instantiate chaincode on the 1st peer of the 2nd org
+    # instanciateChaincode(conf)
+    #
+    # # Wait chaincode is correctly instantiated and initialized
+    # res = res and waitForInstantiation(conf)
+    #
+    # # Query chaincode from the 1st peer of the 1st org
+    # res = res and queryChaincodeFromFirstPeerFirstOrg(conf)
 
     if res:
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
@@ -366,7 +346,6 @@ def run(conf):
 
 
 if __name__ == "__main__":
-
     conf_path = '/substra/conf/conf.json'
 
     conf = json.load(open(conf_path, 'r'))

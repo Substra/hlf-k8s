@@ -2,14 +2,15 @@ import json
 # from hfc.fabric_ca.caservice import ca_service
 import os
 from subprocess import call
-from shutil import copytree
+from shutil import copytree, copyfile
 
-from util import waitPort, completeMSPSetup, dowait
+from util import waitPort, completeMSPSetup, dowait, create_directory
 
 
-def configLocalMSP(org, user):
-    org_user_home = org['users'][user]['home']
-    org_user_msp_dir = org['users'][user]['home'] + '/msp'
+def configLocalMSP(org, user_name):
+    user = org['users'][user_name]
+    org_user_home = user['home']
+    org_user_msp_dir = org_user_home + '/msp'
 
     # if local admin msp does not exist, create it by enrolling user
     if not os.path.exists(org_user_msp_dir):
@@ -23,15 +24,15 @@ def configLocalMSP(org, user):
 
         msg = 'Enrolling user \'%(user_name)s\' for organization %(org)s with %(ca_host)s and home directory %(org_user_home)s...'
         print(msg % {
-            'user_name': org['users'][user]['name'],
+            'user_name': user['name'],
             'org': org['name'],
             'ca_host': org['ca']['host'],
             'org_user_home': org_user_home
         }, flush=True)
 
         enrollment_url = 'https://%(name)s:%(pass)s@%(host)s:%(port)s' % {
-            'name': org['users'][user]['name'],
-            'pass': org['users'][user]['pass'],
+            'name': user['name'],
+            'pass': user['pass'],
             'host': org['ca']['host'],
             'port': org['ca']['port']
         }

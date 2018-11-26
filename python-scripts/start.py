@@ -30,6 +30,7 @@ def create_ca_server_config(orgs):
 
         yaml_data['ca']['name'] = org['ca']['name']
         yaml_data['ca']['certfile'] = org['ca']['certfile']
+        yaml_data['ca']['keyfile'] = org['ca']['keyfile']
 
         yaml_data['csr']['cn'] = org['csr']['cn']
         yaml_data['csr']['hosts'] += org['csr']['hosts']
@@ -101,7 +102,7 @@ def create_configtx(conf):
     orgs = [{
         'Name': x,
         'ID': conf['orgs'][x]['msp_id'],
-        #'MSPDir': conf['orgs'][x]['msp_dir'],
+        # 'MSPDir': conf['orgs'][x]['msp_dir'],
         'MSPDir': conf['orgs'][x]['users']['admin']['home'] + '/msp',
         'AnchorPeers': [{
             'Host': peer['host'],
@@ -133,8 +134,10 @@ def create_core_peer_config(conf):
             yaml_data['peer']['localMspId'] = org['msp_id']
             yaml_data['peer']['mspConfigPath'] = org['core']['docker']['msp_config_path']
 
-            yaml_data['peer']['tls']['cert']['file'] = org['core']['docker']['peer_home'] + '/tls/' + org['core']['tls']['cert']
-            yaml_data['peer']['tls']['key']['file'] = org['core']['docker']['peer_home'] + '/tls/' + org['core']['tls']['key']
+            yaml_data['peer']['tls']['cert']['file'] = org['core']['docker']['peer_home'] + '/tls/' + \
+                                                       org['core']['tls']['cert']
+            yaml_data['peer']['tls']['key']['file'] = org['core']['docker']['peer_home'] + '/tls/' + org['core']['tls'][
+                'key']
             yaml_data['peer']['tls']['clientCert']['file'] = peer['tls']['clientCert']
             yaml_data['peer']['tls']['clientKey']['file'] = peer['tls']['clientKey']
             yaml_data['peer']['tls']['enabled'] = 'true'
@@ -150,7 +153,7 @@ def create_core_peer_config(conf):
             yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
             yaml_data['vm']['docker']['hostConfig']['NetworkMode'] = 'net_substra'
 
-            yaml_data['logging']['level'] = LOGGING_LEVEL[4]  # info, needed for substrabac
+            yaml_data['logging']['level'] = LOGGING_LEVEL[5]  # info, needed for substrabac
 
             create_directory(peer['docker_core_dir'])
             filename = '%(dir)s/core.yaml' % {'dir': peer['docker_core_dir']}
@@ -189,7 +192,7 @@ def create_orderer_config(conf):
         yaml_data['General']['GenesisFile'] = conf['misc']['genesis_bloc_file']
         yaml_data['General']['LocalMSPID'] = org['msp_id']
         yaml_data['General']['LocalMSPDir'] = org['local_msp_dir']
-        yaml_data['General']['LogLevel'] = LOGGING_LEVEL[4]  # info, needed for substrabac
+        yaml_data['General']['LogLevel'] = LOGGING_LEVEL[5]  # info, needed for substrabac
 
         yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']
 
@@ -222,16 +225,29 @@ def generate_docker_compose_file(conf, conf_path):
                                                 'image': 'substra/fabric-ca-tools',
                                                 'command': '/bin/bash -c "sleep 3;python3 /scripts/run.py 2>&1 | tee /substra/data/log/run.log"',
                                                 'environment': ['GOPATH=/opt/gopath'],
-                                                'volumes': ['/substra/data:/substra/data',
-                                                            '/substra/conf:/substra/conf', './python-scripts:/scripts',
-                                                            '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode'],
+                                                'volumes': ['/var/run/docker.sock:/var/run/docker.sock',
+                                                            '/substra/data:/substra/data',
+                                                            '/substra/conf:/substra/conf',
+                                                            './python-scripts:/scripts',
+                                                            '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode'
+                                                            ],
                                                 'networks': ['substra'],
                                                 'depends_on': []},
+                                        'cli': {'container_name': 'cli',
+                                                'image': 'substra/fabric-ca-tools',
+                                                'command': '/bin/bash -c "sleep 99999"',
+                                                'environment': ['GOPATH=/opt/gopath'],
+                                                'volumes': ['/substra/data:/substra/data',
+                                                            '/substra/conf:/substra/conf',
+                                                            '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode'
+                                                            ],
+                                                'networks': ['substra']},
                                         },
                       'substra_test': {
                           'fixtures': {'container_name': 'fixtures',
                                        'image': 'substra/fabric-ca-tools',
-                                       'command': '/bin/bash -c "python3 /scripts/%s 2>&1 | tee /substra/data/log/fixtures.log"' % conf['misc']['fixtures_path'],
+                                       'command': '/bin/bash -c "python3 /scripts/%s 2>&1 | tee /substra/data/log/fixtures.log"' %
+                                                  conf['misc']['fixtures_path'],
                                        'environment': ['GOPATH=/opt/gopath'],
                                        'volumes': ['/substra/data:/substra/data',
                                                    '/substra/conf:/substra/conf',
@@ -240,14 +256,14 @@ def generate_docker_compose_file(conf, conf_path):
                                        'networks': ['substra'],
                                        'depends_on': ['run']},
                           'queryUser': {'container_name': 'queryUser',
-                                   'image': 'substra/fabric-ca-tools',
-                                   'command': '/bin/bash -c "python3 /scripts/queryUser.py 2>&1 | tee /substra/data/log/queryUser.log"',
-                                   'environment': ['GOPATH=/opt/gopath'],
-                                   'volumes': ['/substra/data:/substra/data',
-                                               '/substra/conf:/substra/conf',
-                                               './python-scripts:/scripts'],
-                                   'networks': ['substra'],
-                                   'depends_on': ['run']},
+                                        'image': 'substra/fabric-ca-tools',
+                                        'command': '/bin/bash -c "python3 /scripts/queryUser.py 2>&1 | tee /substra/data/log/queryUser.log"',
+                                        'environment': ['GOPATH=/opt/gopath'],
+                                        'volumes': ['/substra/data:/substra/data',
+                                                    '/substra/conf:/substra/conf',
+                                                    './python-scripts:/scripts'],
+                                        'networks': ['substra'],
+                                        'depends_on': ['run']},
                           'revoke': {'container_name': 'revoke',
                                      'image': 'substra/fabric-ca-tools',
                                      'command': '/bin/bash -c "python3 /scripts/revoke.py 2>&1 | tee /substra/data/log/queryUser.log"',
@@ -311,13 +327,14 @@ def generate_docker_compose_file(conf, conf_path):
                'image': 'substra/fabric-ca',
                'working_dir': '/etc/hyperledger/',
                'ports': ['%s:%s' % (org_conf['ca']['host_port'], org_conf['ca']['port'])],
-               'command': '/bin/bash -c "python3 start-root-ca.py 2>&1"',
+               'command': '/bin/bash -c "fabric-ca-server start 2>&1"',
                'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': ['/substra/data:/substra/data',
                            '/substra/backup/orgs/%s/rca:/etc/hyperledger/fabric-ca-server/' % org_conf['name'],
                            '/substra/conf/%s/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml' %
-                           org_conf['name']],
+                           org_conf['name']
+                           ],
                'networks': ['substra']}
 
         docker_compose['substra_tools']['setup']['depends_on'].append(org_conf['ca']['host'])
@@ -334,7 +351,8 @@ def generate_docker_compose_file(conf, conf_path):
                    'command': '/bin/bash -c "python3 start-peer.py 2>&1"',
                    'environment': ['ORG=%s' % org_conf['name'],
                                    'PEER_INDEX=%s' % index,
-                                   'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric/'],
+                                   'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric/',
+                                   ],
                    'working_dir': '/etc/hyperledger/fabric/',
                    'ports': ['%s:%s' % (peer['host_port'], peer['port']),
                              '%s:%s' % (peer['host_event_port'], peer['event_port'])],
@@ -342,13 +360,13 @@ def generate_docker_compose_file(conf, conf_path):
                    'volumes': ['/substra/data:/substra/data',
                                '%s:%s' % (conf_path, conf_path),
                                '/substra/backup/orgs/%s/%s/:/var/hyperledger/production/' % (org_conf['name'], peer['name']),
-                               './python-scripts/conf.py:/etc/hyperledger/fabric/conf.py',
                                './python-scripts/util.py:/etc/hyperledger/fabric/util.py',
-                               '/var/run:/host/var/run',
+                               '/var/run/docker.sock:/host/var/run/docker.sock',
                                '/substra/conf/%s/fabric-ca-client-config.yaml:/etc/hyperledger/fabric/fabric-ca-client-config.yaml' %
                                org_conf['name'],
                                '/substra/conf/%s/%s/core.yaml:/etc/hyperledger/fabric/core.yaml' % (
-                                   org_conf['name'], peer['name'])],
+                               org_conf['name'], peer['name']),
+                               ],
                    'networks': ['substra'],
                    'depends_on': ['setup']}
 
@@ -380,7 +398,8 @@ def generate_docker_compose_file(conf, conf_path):
 def stop(docker_compose=None):
     print('stopping container', flush=True)
     call(['docker', 'rm', '-f', 'rca-orderer', 'rca-owkin', 'rca-chu-nantes', 'setup', 'orderer1-orderer',
-          'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes', 'run', 'fixtures', 'queryUser', 'revoke'])
+          'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes', 'run', 'fixtures', 'queryUser',
+          'revoke'])
     call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
     if docker_compose is not None:
@@ -408,7 +427,7 @@ def start(conf, conf_path, fixtures):
     stop(docker_compose)
 
     print('start docker-compose', flush=True)
-    services = [name for name, _ in docker_compose['substra_services']['rca']] + ['setup']
+    services = [name for name, _ in docker_compose['substra_services']['rca']] + ['setup'] + ['cli']
     call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--remove-orphans'] + services)
     call(['docker', 'ps', '-a'])
 
