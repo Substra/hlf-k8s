@@ -30,7 +30,7 @@ def create_ca_server_config(orgs):
 
         yaml_data['ca']['name'] = org['ca']['name']
         yaml_data['ca']['certfile'] = org['ca']['certfile']
-        yaml_data['ca']['keyfile'] = org['ca']['keyfile']
+        #yaml_data['ca']['keyfile'] = org['ca']['keyfile']
 
         yaml_data['csr']['cn'] = org['csr']['cn']
         yaml_data['csr']['hosts'] += org['csr']['hosts']
@@ -475,6 +475,7 @@ if __name__ == "__main__":
     # create directory with correct rights
     call(['rm', '-rf', '/substra/data'])
     call(['rm', '-rf', '/substra/conf'])
+    call(['rm', '-rf', '/substra/backup'])
 
     create_directory('/substra/data/logs')
     create_directory('/substra/conf/')

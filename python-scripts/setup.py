@@ -2,9 +2,9 @@ import json
 # from hfc.fabric_ca.caservice import ca_service
 import os
 from subprocess import call
-from shutil import copytree, copyfile
+from shutil import copytree
 
-from util import waitPort, completeMSPSetup, dowait, create_directory
+from util import waitPort, completeMSPSetup, dowait
 
 
 def configLocalMSP(org, user_name):

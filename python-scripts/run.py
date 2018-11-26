@@ -323,14 +323,14 @@ def run(conf):
     org_chan = list(conf['orgs'].keys())[0]
     createChannel(conf, org_chan, conf['orgs'][org_chan]['peers'][0])
     peersJoinChannel(conf)
-    updateAnchorPeers(conf)
-
-    # Install chaincode on peer in each org
-    installChainCodeOnPeers(conf)
-
+    # updateAnchorPeers(conf)
+    #
+    # # Install chaincode on peer in each org
+    # installChainCodeOnPeers(conf)
+    #
     # # Instantiate chaincode on the 1st peer of the 2nd org
     # instanciateChaincode(conf)
-    #
+
     # # Wait chaincode is correctly instantiated and initialized
     # res = res and waitForInstantiation(conf)
     #
