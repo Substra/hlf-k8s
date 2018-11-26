@@ -30,7 +30,7 @@ def create_ca_server_config(orgs):
 
         yaml_data['ca']['name'] = org['ca']['name']
         yaml_data['ca']['certfile'] = org['ca']['certfile']
-        #yaml_data['ca']['keyfile'] = org['ca']['keyfile']
+        # yaml_data['ca']['keyfile'] = org['ca']['keyfile']
 
         yaml_data['csr']['cn'] = org['csr']['cn']
         yaml_data['csr']['hosts'] += org['csr']['hosts']
@@ -63,7 +63,7 @@ def create_ca_client_config(orgs):
         yaml_data['url'] = org['ca']['url']
 
         # yaml_data['mspdir'] = org['users']['admin']['home'] + '/msp'  # for revoking user
-        yaml_data['mspdir'] = org['msp_dir']  # for revoking user
+        # yaml_data['mspdir'] = org['msp_dir']  # for revoking user
 
         filename = org['ca-client-config-path']
         with open(filename, 'w+') as f:
@@ -153,7 +153,7 @@ def create_core_peer_config(conf):
             yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
             yaml_data['vm']['docker']['hostConfig']['NetworkMode'] = 'net_substra'
 
-            yaml_data['logging']['level'] = LOGGING_LEVEL[5]  # info, needed for substrabac
+            yaml_data['logging']['level'] = LOGGING_LEVEL[4]  # info, needed for substrabac
 
             create_directory(peer['docker_core_dir'])
             filename = '%(dir)s/core.yaml' % {'dir': peer['docker_core_dir']}
@@ -192,7 +192,7 @@ def create_orderer_config(conf):
         yaml_data['General']['GenesisFile'] = conf['misc']['genesis_bloc_file']
         yaml_data['General']['LocalMSPID'] = org['msp_id']
         yaml_data['General']['LocalMSPDir'] = org['local_msp_dir']
-        yaml_data['General']['LogLevel'] = LOGGING_LEVEL[5]  # info, needed for substrabac
+        yaml_data['General']['LogLevel'] = LOGGING_LEVEL[4]  # info, needed for substrabac
 
         yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']
 
@@ -301,20 +301,20 @@ def generate_docker_compose_file(conf, conf_path):
         # ORDERER
         svc = {'container_name': orderer_conf['host'],
                'image': 'substra/fabric-ca-orderer',
-               'working_dir': '/etc/hyperledger/orderer',
-               'command': '/bin/bash -c "python3 start-orderer.py 2>&1"',
+               'working_dir': '/etc/hyperledger/',
+               'command': 'python3 start-orderer.py 2>&1',
                'ports': ['%s:%s' % (orderer_conf['port'], orderer_conf['port'])],
                'environment': ['ORG=%s' % orderer_conf['name'],
-                               'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/orderer'],
+                               'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
-               'volumes': ['/substra/data:/substra/data',
-                           '%s:%s' % (conf_path, conf_path),
-                           '/substra/backup/orgs/%s/%s:/var/hyperledger/production/orderer' % (orderer_conf['name'], orderer_conf['name']),
-                           './python-scripts/conf.py:/etc/hyperledger/orderer/conf.py',
-                           './python-scripts/util.py:/etc/hyperledger/orderer/util.py',
-                           '/substra/conf/%s/fabric-ca-client-config.yaml:/etc/hyperledger/orderer/fabric-ca-client-config.yaml' %
-                           orderer_conf['name'],
-                           '/substra/conf/%s/orderer.yaml:/etc/hyperledger/fabric/orderer.yaml' % orderer_conf['name']],
+               'volumes': [
+                   '/substra/data:/substra/data',
+                   '%s:%s' % (conf_path, conf_path),
+                   '/substra/backup/orgs/%s/%s:/var/hyperledger/production/orderer' % (orderer_conf['name'], orderer_conf['name']),
+                   './python-scripts/util.py:/etc/hyperledger/util.py',
+                   '/substra/conf/%s/fabric-ca-client-config.yaml:/etc/hyperledger/fabric/fabric-ca-client-config.yaml' %
+                   orderer_conf['name'],
+                   '/substra/conf/%s/orderer.yaml:/etc/hyperledger/fabric/orderer.yaml' % orderer_conf['name']],
                'networks': ['substra'],
                'depends_on': ['setup']}
 
@@ -348,19 +348,19 @@ def generate_docker_compose_file(conf, conf_path):
         for index, peer in enumerate(org_conf['peers']):
             svc = {'container_name': peer['host'],
                    'image': 'substra/fabric-ca-peer',
-                   'command': '/bin/bash -c "python3 start-peer.py 2>&1"',
+                   'command': 'python3 start-peer.py 2>&1',
                    'environment': ['ORG=%s' % org_conf['name'],
                                    'PEER_INDEX=%s' % index,
                                    'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric/',
                                    ],
-                   'working_dir': '/etc/hyperledger/fabric/',
+                   'working_dir': '/etc/hyperledger/',
                    'ports': ['%s:%s' % (peer['host_port'], peer['port']),
                              '%s:%s' % (peer['host_event_port'], peer['event_port'])],
                    'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                    'volumes': ['/substra/data:/substra/data',
                                '%s:%s' % (conf_path, conf_path),
                                '/substra/backup/orgs/%s/%s/:/var/hyperledger/production/' % (org_conf['name'], peer['name']),
-                               './python-scripts/util.py:/etc/hyperledger/fabric/util.py',
+                               './python-scripts/util.py:/etc/hyperledger/util.py',
                                '/var/run/docker.sock:/host/var/run/docker.sock',
                                '/substra/conf/%s/fabric-ca-client-config.yaml:/etc/hyperledger/fabric/fabric-ca-client-config.yaml' %
                                org_conf['name'],

@@ -205,8 +205,8 @@ conf = {
             'msp_id': 'ordererMSP',
             'admin_home': '/substra/data/orgs/orderer/admin',
             'broadcast_dir': '/substra/data/logs/broadcast',
-            'home': '/etc/hyperledger/orderer',
-            'local_msp_dir': '/etc/hyperledger/orderer/msp',
+            'home': '/etc/hyperledger/fabric',
+            'local_msp_dir': '/etc/hyperledger/fabric/msp',
             'ca-server-config-path': '/substra/conf/orderer/fabric-ca-server-config.yaml',
             'ca-client-config-path': '/substra/conf/orderer/fabric-ca-client-config.yaml',
             'config-path': '/substra/conf/orderer/orderer.yaml',
@@ -240,7 +240,7 @@ conf = {
                 'orderer': {
                     'name': 'orderer',
                     'pass': 'ordererpw',
-                    'home': '/substra/data/orgs/orderer'
+                    'home': '/substra/data/orgs/orderer/orderer'
                 }
             },
             'csr': {

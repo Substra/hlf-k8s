@@ -4,41 +4,17 @@ import time
 import subprocess
 
 from conf2orgs import conf
-from subprocess import call, check_output, STDOUT, CalledProcessError, Popen
+from subprocess import call, check_output, CalledProcessError
 
 
-def installChainCode(org_name, peer):
-    # :warning: for installing chaincode make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
+def set_env_variables(fabric_cfg_path, msp_dir):
+    os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
+    os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
 
-    org = conf['orgs'][org_name]
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
 
-    chaincode_name = conf['misc']['chaincode_name']
-
-    print('Installing chaincode on %(peer_host)s ...' % {'peer_host': peer['host']}, flush=True)
-
-    # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-    # update mspconfigpath for getting one in /data
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
-
-    call(['peer',
-          'chaincode', 'install',
-          '-n', chaincode_name,
-          '-v', '1.0',
-          '-p', 'github.com/hyperledger/chaincode/'])
-
-    # clean env variables
+def clean_env_variables():
     del os.environ['FABRIC_CFG_PATH']
     del os.environ['CORE_PEER_MSPCONFIGPATH']
-
-
-def installChainCodeOnSecondPeerSecondOrg():
-    org_name = 'chu-nantes'
-    org = conf['orgs'][org_name]
-    peer = org['peers'][1]
-    installChainCode(org_name, peer)
 
 
 def chainCodeQueryWith(arg, org_name, peer):
@@ -46,14 +22,8 @@ def chainCodeQueryWith(arg, org_name, peer):
     org_user_home = org['users']['user']['home']
     org_user_msp_dir = org_user_home + '/msp'
 
-    # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-    # update mspconfigpath for getting one in /data
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
-
-    def clean_env_variables():
-        del os.environ['FABRIC_CFG_PATH']
-        del os.environ['CORE_PEER_MSPCONFIGPATH']
+    # update config path for using right core.yaml and right msp dir
+    set_env_variables(peer['docker_core_dir'], org_user_msp_dir)
 
     channel_name = conf['misc']['channel_name']
     chaincode_name = conf['misc']['chaincode_name']
@@ -91,31 +61,6 @@ def chainCodeQueryWith(arg, org_name, peer):
             # clean env variables
             clean_env_variables()
             return value
-
-
-def queryChaincodeFromFirstPeerFirstOrg():
-    org_name = 'owkin'
-    org = conf['orgs'][org_name]
-    peer = org['peers'][0]
-
-    print('Try to query chaincode from first peer first org before invoke', flush=True)
-
-    starttime = int(time.time())
-    while int(time.time()) - starttime < 15:
-        call(['sleep', '1'])
-        data = chainCodeQueryWith('{"Args":["queryChallenges"]}',
-                                  org_name,
-                                  peer)
-        # data should be null
-        print(data, flush=True)
-        if data is None:
-            print('Correctly initialized', flush=True)
-            return True
-
-        print('.', end='', flush=True)
-
-    print('\n/!\ Failed to query chaincode with initialized values', flush=True)
-    return False
 
 
 def queryChaincodeFromFirstPeerFirstOrgAfterInvoke():
@@ -173,10 +118,8 @@ def invokeChainCode(args, org, peer):
     channel_name = conf['misc']['channel_name']
     chaincode_name = conf['misc']['chaincode_name']
 
-    # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-    # update mspconfigpath for getting one in /data
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
+    # update config path for using right core.yaml and right msp dir
+    set_env_variables(peer['docker_core_dir'], org_user_msp_dir)
 
     print('Sending invoke transaction (with waitForEvent) to %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']},
           flush=True)
@@ -202,8 +145,7 @@ def invokeChainCode(args, org, peer):
     print(data, flush=True)
 
     # clean env variables
-    del os.environ['FABRIC_CFG_PATH']
-    del os.environ['CORE_PEER_MSPCONFIGPATH']
+    clean_env_variables()
 
     try:
         # Format it to get generated key
@@ -351,9 +293,6 @@ def run():
 
     # Query chaincode from the 1st peer of the 1st org after Invoke
     res = res and queryChaincodeFromFirstPeerFirstOrgAfterInvoke()
-
-    # Install chaincode on 2nd peer of 2nd org
-    installChainCodeOnSecondPeerSecondOrg()
 
     # Query chaincode on 2nd peer of 2nd org
     res = res and queryChaincodeFromSecondPeerSecondOrg()

@@ -5,7 +5,7 @@
 #
 FROM hyperledger/fabric-ca-peer:latest
 
-COPY ./start-peer.py /etc/hyperledger/fabric/
+COPY ./start-peer.py /etc/hyperledger/
 
 # install python 3
 RUN apt-get update

@@ -12,10 +12,19 @@ org_user_msp_dir = org_user_home + '/msp'
 peer = org['peers'][0]
 args = '{"Args":["queryChallenges"]}'
 
-# update config path for using right core.yaml
-os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-# update mspconfigpath for getting one in /data
-os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
+
+def set_env_variables(fabric_cfg_path, msp_dir):
+    os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
+    os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
+
+
+def clean_env_variables():
+    del os.environ['FABRIC_CFG_PATH']
+    del os.environ['CORE_PEER_MSPCONFIGPATH']
+
+
+# update config path for using right core.yaml and right msp dir
+set_env_variables(peer['docker_core_dir'], org_user_msp_dir)
 
 channel_name = conf['misc']['channel_name']
 chaincode_name = conf['misc']['chaincode_name']

@@ -2,12 +2,21 @@ import base64
 import copy
 import os
 import time
-import subprocess
 
 import requests
 
 from conf2orgs import conf
 from subprocess import call, check_output, STDOUT, CalledProcessError, Popen
+
+
+def set_env_variables(fabric_cfg_path, msp_dir):
+    os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
+    os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
+
+
+def clean_env_variables():
+    del os.environ['FABRIC_CFG_PATH']
+    del os.environ['CORE_PEER_MSPCONFIGPATH']
 
 
 def revokeFabricUserAndGenerateCRL(org_name, username):
@@ -41,10 +50,8 @@ def fetchConfigBlock(org_name, peer):
 
     print('Fetching the configuration block of the channel \'%s\'' % channel_name, flush=True)
 
-    # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-    # update mspconfigpath for getting the one in /data
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
+    # update config path for using right core.yaml and right msp dir
+    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
 
     call(['peer', 'channel', 'fetch', 'config', config_block_file,
           '-c', channel_name,
@@ -57,8 +64,7 @@ def fetchConfigBlock(org_name, peer):
           ])
 
     # clean env variables
-    del os.environ['FABRIC_CFG_PATH']
-    del os.environ['CORE_PEER_MSPCONFIGPATH']
+    clean_env_variables()
 
 
 def createConfigUpdatePayloadWithCRL(org_name):
@@ -166,11 +172,8 @@ def updateConfigBlock(org_name, peer):
     orderer = conf['orderers']['orderer']
     config_update_envelope_file = conf['misc']['config_update_envelope_file']
 
-    # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-    # update mspconfigpath for getting the one in /data
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = org_admin_msp_dir
-
+    # update config path for using right core.yaml and right msp dir
+    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
     print('Updating the configuration block of the channel \'%s\'' % channel_name, flush=True)
     call(['peer', 'channel', 'update',
           '-f', config_update_envelope_file,
@@ -184,8 +187,7 @@ def updateConfigBlock(org_name, peer):
           ])
 
     # clean env variables
-    del os.environ['FABRIC_CFG_PATH']
-    del os.environ['CORE_PEER_MSPCONFIGPATH']
+    clean_env_variables()
 
 
 def queryAsRevokedUser(arg, org_name, peer, username):
@@ -193,14 +195,8 @@ def queryAsRevokedUser(arg, org_name, peer, username):
     org_user_home = org['user_home']
     org_user_msp_dir = org_user_home + '/msp'
 
-    # update config path for using right core.yaml
-    os.environ['FABRIC_CFG_PATH'] = peer['docker_core_dir']
-    # update mspconfigpath for getting one in /data
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = org_user_msp_dir
-
-    def clean_env_variables():
-        del os.environ['FABRIC_CFG_PATH']
-        del os.environ['CORE_PEER_MSPCONFIGPATH']
+    # update config path for using right core.yaml and right msp dir
+    set_env_variables(peer['docker_core_dir'], org_user_msp_dir)
 
     channel_name = conf['misc']['channel_name']
     chaincode_name = conf['misc']['chaincode_name']
