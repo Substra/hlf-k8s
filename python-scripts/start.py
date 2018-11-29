@@ -160,17 +160,6 @@ def create_core_peer_config(conf):
             with open(filename, 'w+') as f:
                 f.write(dump(yaml_data, default_flow_style=False))
 
-            ###############################
-            # create if for host binaries #
-            ###############################
-            yaml_data['peer']['mspConfigPath'] = org['core']['host']['msp_config_path']
-            yaml_data['peer']['address'] = '%(host)s:%(port)s' % {'host': peer['host'], 'port': peer['host_port']}
-
-            create_directory(peer['host_core_dir'])
-            filename = '%(dir)s/core.yaml' % {'dir': peer['host_core_dir']}
-            with open(filename, 'w+') as f:
-                f.write(dump(yaml_data, default_flow_style=False))
-
 
 def create_orderer_config(conf):
     for org_name in conf['orderers'].keys():
