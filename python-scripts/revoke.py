@@ -19,15 +19,14 @@ def clean_env_variables():
     del os.environ['CORE_PEER_MSPCONFIGPATH']
 
 
-def revokeFabricUserAndGenerateCRL(org_name, username):
-    org = conf['orgs'][org_name]
+def revokeFabricUserAndGenerateCRL(org, username):
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     print(
         'Revoking the user \'%(username)s\' of the organization \'%(org_name)s\' with Fabric CA Client home directory set to %(org_admin_home)s and generating CRL ...' % {
             'username': username,
-            'org_name': org_name,
+            'org_name': org['name'],
             'org_admin_home': org_admin_home
         }, flush=True)
 
@@ -39,13 +38,11 @@ def revokeFabricUserAndGenerateCRL(org_name, username):
           '--gencrl'])
 
 
-def fetchConfigBlock(org_name, peer):
-    org = conf['orgs'][org_name]
-
+def fetchConfigBlock(org, peer):
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
     channel_name = conf['misc']['channel_name']
-    orderer = conf['orderers']['orderer']
+    orderer = conf['orderers'][0]
     config_block_file = conf['misc']['config_block_file']
 
     print('Fetching the configuration block of the channel \'%s\'' % channel_name, flush=True)
@@ -67,15 +64,14 @@ def fetchConfigBlock(org_name, peer):
     clean_env_variables()
 
 
-def createConfigUpdatePayloadWithCRL(org_name):
-    org = conf['orgs'][org_name]
+def createConfigUpdatePayloadWithCRL(org):
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     channel_name = conf['misc']['channel_name']
     config_block_file = conf['misc']['config_block_file']
 
-    print('Creating config update payload with the generated CRL for the organization \'%s\'' % org_name, flush=True)
+    print('Creating config update payload with the generated CRL for the organization \'%s\'' % org['name'], flush=True)
 
     # Start the configtxlator
     # call('configtxlator start &', shell=True)
@@ -96,7 +92,7 @@ def createConfigUpdatePayloadWithCRL(org_name):
     updated_config = copy.deepcopy(config)
     with open(org_admin_msp_dir + '/crls/crl.pem', 'rb') as f:
         crl = base64.b64encode(f.read()).decode('utf8')
-        updated_config['channel_group']['groups']['Application']['groups'][org_name]['values']['MSP']['value']['config']['revocation_list'] = [crl]
+        updated_config['channel_group']['groups']['Application']['groups'][org['name']]['values']['MSP']['value']['config']['revocation_list'] = [crl]
 
     # Create the config diff protobuf
     r = requests.post(CTLURL + '/protolator/encode/common.Config', json=config, stream=True)
@@ -163,13 +159,12 @@ def createConfigUpdatePayloadWithCRL(org_name):
     proc.kill()
 
 
-def updateConfigBlock(org_name, peer):
-    org = conf['orgs'][org_name]
+def updateConfigBlock(org, peer):
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     channel_name = conf['misc']['channel_name']
-    orderer = conf['orderers']['orderer']
+    orderer = conf['orderers'][0]
     config_update_envelope_file = conf['misc']['config_update_envelope_file']
 
     # update config path for using right core.yaml and right msp dir
@@ -190,8 +185,7 @@ def updateConfigBlock(org_name, peer):
     clean_env_variables()
 
 
-def queryAsRevokedUser(arg, org_name, peer, username):
-    org = conf['orgs'][org_name]
+def queryAsRevokedUser(arg, org, peer, username):
     org_user_home = org['user_home']
     org_user_msp_dir = org_user_home + '/msp'
 
@@ -247,20 +241,20 @@ def queryAsRevokedUser(arg, org_name, peer, username):
 def revokeFirstOrgUser():
     # Revoke the user and generate CRL using admin's credentials
     org_name = 'owkin'
-    org = conf['orgs'][org_name]
+    org = [x for x in conf['orgs'] if x['name'] == org_name][0]
     username = org['users']['user']['name']
     peer = org['peers'][0]
 
-    revokeFabricUserAndGenerateCRL('owkin', username)
+    revokeFabricUserAndGenerateCRL(org, username)
 
     # Fetch config block
-    fetchConfigBlock(org_name, peer)
+    fetchConfigBlock(org, peer)
 
     # Create config update envelope with CRL and update the config block of the channel
-    createConfigUpdatePayloadWithCRL('owkin')
-    updateConfigBlock(org_name, peer)
+    createConfigUpdatePayloadWithCRL(org)
+    updateConfigBlock(org, peer)
 
-    return queryAsRevokedUser('{"Args":["queryChallenges"]}', org_name, peer, username)
+    return queryAsRevokedUser('{"Args":["queryChallenges"]}', org, peer, username)
 
 
 def run():

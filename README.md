@@ -28,25 +28,26 @@ It will pull from the hyperledger registry the right docker images and then will
 Create at the root of your system a `substra` folder with your user rights:
 ```bash
 $> sudo mkdir /substra
-$> sudo chown guillaume:guillaume/substra
+$> sudo chown guillaume:guillaume /substra
 ```
 Replace `guillaume:guillaume` by your `user:group`.
 
 ```
-$> python3 start.py --config conf1org.py
+$> python3 start.py --config conf1org.py --no-backup
 ```
 
 :warning:
-Launching `start.py` without the config option, will make a call of `python3 conf2orgs.py` before.
+Launching `start.py` without the config option, will make a call of `python3 conf2orgs.py` internally.
 
-For loading fixtures, test and revoke containers, pass the `--fixtures` or `-f` option.  
-If you do not want to call the `revoke` container, please comment it in the `start.py` file.
+- For launching a network from scratch,  without ising backup files, use `--no-backup` option (recommended in development mode).  
+- For loading fixtures, test and revoke containers, pass the `--fixtures` or `-f` option.  
+- If you do not want to call the `revoke` container, please comment it in the `start.py` file.
 
-It will generate a docker-compose file (docker-compose-dynamic.yaml), build the network and run init config.
+Roughly speaking, it will generate a docker-compose file (docker-compose-dynamic.yaml), build the network and run init config.
 
 The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.  
-The `fixtures` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on both orgs : owkin and chu-nantes. It is commented by default. Uncomment it in `docker-compose.yaml` for testing and debugging.   
-The `revoke` docker instance allow you to revoke an user, Recommendation is to leave this uncommented.  
+The `fixtures` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on orgs.  
+The `revoke` docker instance allow you to revoke an user.  
 
 You now will be able to play with the network ! :tada:
 

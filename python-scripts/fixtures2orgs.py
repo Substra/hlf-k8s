@@ -17,8 +17,7 @@ def clean_env_variables():
     del os.environ['CORE_PEER_MSPCONFIGPATH']
 
 
-def chainCodeQueryWith(arg, org_name, peer):
-    org = conf['orgs'][org_name]
+def chainCodeQueryWith(arg, org, peer):
     org_user_home = org['users']['user']['home']
     org_user_msp_dir = org_user_home + '/msp'
 
@@ -65,7 +64,7 @@ def chainCodeQueryWith(arg, org_name, peer):
 
 def queryChaincodeFromFirstPeerFirstOrgAfterInvoke():
     org_name = 'owkin'
-    org = conf['orgs'][org_name]
+    org = [x for x in conf['orgs'] if x['name'] == org_name][0]
     peer = org['peers'][0]
 
     print('Try to query chaincode from first peer first org after invoke', flush=True)
@@ -74,7 +73,7 @@ def queryChaincodeFromFirstPeerFirstOrgAfterInvoke():
     while int(time.time()) - starttime < 15:
         call(['sleep', '1'])
         data = chainCodeQueryWith('{"Args":["queryChallenges"]}',
-                                  org_name,
+                                  org,
                                   peer)
         # data should not be null
         print(data, flush=True)
@@ -90,7 +89,7 @@ def queryChaincodeFromFirstPeerFirstOrgAfterInvoke():
 
 def queryChaincodeFromSecondPeerSecondOrg():
     org_name = 'chu-nantes'
-    org = conf['orgs'][org_name]
+    org = [x for x in conf['orgs'] if x['name'] == org_name][0]
     peer = org['peers'][1]
 
     print('Try to query chaincode from second peer second org', flush=True)
@@ -99,7 +98,7 @@ def queryChaincodeFromSecondPeerSecondOrg():
     while int(time.time()) - starttime < 15:
         call(['sleep', '1'])
         data = chainCodeQueryWith('{"Args":["queryChallenges"]}',
-                                  org_name,
+                                  org,
                                   peer)
         if isinstance(data, list) and len(data) == 2:
             print('Correctly added and got', flush=True)
@@ -114,7 +113,7 @@ def queryChaincodeFromSecondPeerSecondOrg():
 def invokeChainCode(args, org, peer):
     org_user_home = org['users']['user']['home']
     org_user_msp_dir = org_user_home + '/msp'
-    orderer = conf['orderers']['orderer']
+    orderer = conf['orderers'][0]
     channel_name = conf['misc']['channel_name']
     chaincode_name = conf['misc']['chaincode_name']
 
@@ -158,7 +157,7 @@ def invokeChainCode(args, org, peer):
 
 def invokeChaincodeFirstPeers():
     org_name = 'chu-nantes'
-    org = conf['orgs'][org_name]
+    org = [x for x in conf['orgs'] if x['name'] == org_name][0]
     peer = org['peers'][0]
 
     # should fail
@@ -179,7 +178,7 @@ def invokeChaincodeFirstPeers():
     #######
 
     org_name = 'owkin'
-    org = conf['orgs'][org_name]
+    org = [x for x in conf['orgs'] if x['name'] == org_name][0]
     peer = org['peers'][0]
 
     #######
@@ -215,7 +214,7 @@ def invokeChaincodeFirstPeers():
     #######
 
     org_name = 'chu-nantes'
-    org = conf['orgs'][org_name]
+    org = [x for x in conf['orgs'] if x['name'] == org_name][0]
     peer = org['peers'][0]
 
     #######
@@ -270,7 +269,7 @@ def invokeChaincodeFirstPeers():
     #######
 
     org_name = 'owkin'
-    org = conf['orgs'][org_name]
+    org = [x for x in conf['orgs'] if x['name'] == org_name][0]
     peer = org['peers'][0]
 
     #######

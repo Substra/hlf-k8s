@@ -1,8 +1,8 @@
 import json
 
 conf = {
-    'orgs': {
-        'owkin': {
+    'orgs': [
+        {
             'name': 'owkin',
             'msp_dir': '/substra/data/orgs/owkin/msp',
             'msp_id': 'owkinMSP',
@@ -98,7 +98,7 @@ conf = {
                 }
             ]
         },
-        'chu-nantes': {
+        {
             'name': 'chu-nantes',
             'msp_dir': '/substra/data/orgs/chu-nantes/msp',
             'msp_id': 'chu-nantesMSP',
@@ -194,10 +194,10 @@ conf = {
                     }
                 }
             ]
-        },
-    },
-    'orderers': {
-        'orderer': {
+        }
+    ],
+    'orderers': [
+        {
             'host': 'orderer1-orderer',
             'port': 7050,
             'name': 'orderer',
@@ -249,7 +249,7 @@ conf = {
                 'hosts': ['rca-orderer']
             },
         }
-    },
+    ],
     'misc': {
         'channel_name': 'mychannel',
         'channel_block': '/substra/data/mychannel.block',

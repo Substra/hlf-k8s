@@ -99,13 +99,6 @@ def genTLSCert(host_name, cert_file, key_file, enrollment_url):
     call(['rm', '-rf', '/tmp/tls'])
 
 
-# Copy the org's admin cert into some target MSP directory
-def copyAdminCert(file_to_copy, dstDir, org_name, setup_log_file):
-    create_directory(dstDir)
-    dowait('%s administator to enroll' % org_name, 60, setup_log_file, [file_to_copy])
-    copy2(file_to_copy, dstDir)
-
-
 # Remove chaincode docker images
 def remove_chaincode_docker_images():
     chaincodeImages = check_output('docker images | grep "^dev-peer" | awk \'{print $3}\'', shell=True)

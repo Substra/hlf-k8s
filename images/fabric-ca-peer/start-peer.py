@@ -34,7 +34,7 @@ conf = json.load(open(conf_path, 'r'))
 
 if __name__ == '__main__':
     org_name = os.environ['ORG']
-    org = conf['orgs'][org_name]
+    org = [x for x in conf['orgs'] if x['name'] == org_name][0]
     admin = org['users']['admin']
     org_admin_msp_dir = admin['home'] + '/msp'
     peer = org['peers'][int(os.environ['PEER_INDEX'])]

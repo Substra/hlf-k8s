@@ -22,11 +22,10 @@ def clean_env_variables():
 
 # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
 # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
-def createChannel(conf, org_name, peer):
-    org = conf['orgs'][org_name]
+def createChannel(conf, org, peer):
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers']['orderer']
+    orderer = conf['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
@@ -50,9 +49,7 @@ def createChannel(conf, org_name, peer):
     clean_env_variables()
 
 
-def joinChannel(conf, peer, org_name):
-
-    org = conf['orgs'][org_name]
+def joinChannel(conf, peer, org):
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
@@ -69,10 +66,9 @@ def joinChannel(conf, peer, org_name):
 
 
 def peersJoinChannel(conf):
-    for org_name in conf['orgs'].keys():
-        org = conf['orgs'][org_name]
+    for org in conf['orgs']:
         for peer in org['peers']:
-            joinChannel(conf, peer, org_name)
+            joinChannel(conf, peer, org)
 
 
 # # the updater of the channel anchor transaction must have admin rights for one of the consortium orgs
@@ -80,11 +76,10 @@ def peersJoinChannel(conf):
 def updateAnchorPeers(conf):
     # :warning: for updating anchor peers make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
-    for org_name in conf['orgs'].keys():
-        org = conf['orgs'][org_name]
+    for org in conf['orgs']:
         org_admin_home = org['users']['admin']['home']
         org_admin_msp_dir = org_admin_home + '/msp'
-        orderer = conf['orderers']['orderer']
+        orderer = conf['orderers'][0]
 
         peer = org['peers'][0]
         print('Updating anchor peers for %(peer_host)s ...' % {'peer_host': org['peers'][0]['host']}, flush=True)
@@ -109,10 +104,7 @@ def updateAnchorPeers(conf):
         clean_env_variables()
 
 
-def installChainCode(conf, org_name, peer):
-    # :warning: for installing chaincode make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
-
-    org = conf['orgs'][org_name]
+def installChainCode(conf, org, peer):
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
@@ -134,21 +126,18 @@ def installChainCode(conf, org_name, peer):
 
 
 def installChainCodeOnPeers(conf):
-    for org_name in conf['orgs'].keys():
-        org = conf['orgs'][org_name]
+    for org in conf['orgs']:
         for peer in org['peers']:
-            installChainCode(conf, org_name, peer)
+            installChainCode(conf, org, peer)
 
 
 def waitForInstantiation(conf):
-    org_name = list(conf['orgs'].keys())[0]
-    org = conf['orgs'][org_name]
+    org = conf['orgs'][0]
     peer = org['peers'][0]
 
-    org = conf['orgs'][org_name]
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers']['orderer']
+    orderer = conf['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
@@ -190,10 +179,10 @@ def waitForInstantiation(conf):
 def makePolicy(conf):
     policy = 'OR('
 
-    for index, org_name in enumerate(conf['orgs']):
+    for index, org in enumerate(conf['orgs']):
         if index != 0:
             policy += ','
-        policy += '\'' + conf['orgs'][org_name]['msp_id'] + '.member\''
+        policy += '\'' + org['msp_id'] + '.member\''
 
     policy += ')'
     print('policy: %s' % policy, flush=True)
@@ -201,13 +190,12 @@ def makePolicy(conf):
     return policy
 
 
-def instanciateChainCode(conf, args, org_name, peer):
+def instanciateChainCode(conf, args, org, peer):
     policy = makePolicy(conf)
 
-    org = conf['orgs'][org_name]
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers']['orderer']
+    orderer = conf['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
@@ -236,14 +224,12 @@ def instanciateChainCode(conf, args, org_name, peer):
 
 
 def instanciateChaincode(conf):
-    org_name = list(conf['orgs'].keys())[0]
-    org = conf['orgs'][org_name]
+    org = conf['orgs'][0]
     peer = org['peers'][0]
-    instanciateChainCode(conf, '{"Args":["init"]}', org_name, peer)
+    instanciateChainCode(conf, '{"Args":["init"]}', org, peer)
 
 
-def chainCodeQueryWith(conf, arg, org_name, peer):
-    org = conf['orgs'][org_name]
+def chainCodeQueryWith(conf, arg, org, peer):
     org_user_home = org['users']['user']['home']
     org_user_msp_dir = org_user_home + '/msp'
 
@@ -289,8 +275,7 @@ def chainCodeQueryWith(conf, arg, org_name, peer):
 
 
 def queryChaincodeFromFirstPeerFirstOrg(conf):
-    org_name = list(conf['orgs'].keys())[0]
-    org = conf['orgs'][org_name]
+    org = conf['orgs'][0]
     peer = org['peers'][0]
 
     print('Try to query chaincode from first peer first org before invoke', flush=True)
@@ -300,7 +285,7 @@ def queryChaincodeFromFirstPeerFirstOrg(conf):
         call(['sleep', '1'])
         data = chainCodeQueryWith(conf,
                                   '{"Args":["queryChallenges"]}',
-                                  org_name,
+                                  org,
                                   peer)
         # data should be null
         print(data, flush=True)
@@ -316,8 +301,8 @@ def queryChaincodeFromFirstPeerFirstOrg(conf):
 
 def run(conf):
     res = True
-    org_chan = list(conf['orgs'].keys())[0]
-    createChannel(conf, org_chan, conf['orgs'][org_chan]['peers'][0])
+    org = conf['orgs'][0]
+    createChannel(conf, org, org['peers'][0])
     peersJoinChannel(conf)
     updateAnchorPeers(conf)
 

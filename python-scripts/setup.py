@@ -76,11 +76,10 @@ def enrollCABootstrapAdmin(org):
 
 
 def registerOrdererIdentities(conf):
-    for orderer_name in list(conf['orderers'].keys()):
-        orderer = conf['orderers'][orderer_name]
+    for orderer in conf['orderers']:
         enrollCABootstrapAdmin(orderer)
 
-        print('Registering %(orderer_name)s with %(ca_name)s' % {'orderer_name': orderer_name,
+        print('Registering %(orderer_name)s with %(ca_name)s' % {'orderer_name': orderer['name'],
                                                                  'ca_name': orderer['ca']['name']},
               flush=True)
 
@@ -103,8 +102,7 @@ def registerOrdererIdentities(conf):
 
 
 def registerPeerIdentities(conf):
-    for org_name in list(conf['orgs'].keys()):
-        org = conf['orgs'][org_name]
+    for org in conf['orgs']:
         enrollCABootstrapAdmin(org)
         for peer in org['peers']:
             print('Registering %(peer_name)s with %(ca_name)s\n' % {'peer_name': peer['name'],
@@ -145,8 +143,7 @@ def registerIdentities(conf):
 def registerUsers(conf):
     print('Getting CA certificates ...\n', flush=True)
 
-    for org_name in list(conf['orgs'].keys()):
-        org = conf['orgs'][org_name]
+    for org in conf['orgs']:
         org_admin_msp_dir = org['users']['admin']['home'] + '/msp'
 
         # will create admin and user folder with an msp folder and populate it. Populate admincerts for configtxgen to work
@@ -161,8 +158,7 @@ def registerUsers(conf):
         # register user and create admincerts
         configLocalMSP(org, 'user')
 
-    for org_name in list(conf['orderers'].keys()):
-        org = conf['orderers'][org_name]
+    for org in conf['orderers']:
         org_admin_msp_dir = org['users']['admin']['home'] + '/msp'
 
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
@@ -196,10 +192,9 @@ def generateChannelArtifacts(conf):
           '-outputCreateChannelTx', conf['misc']['channel_tx_file'],
           '-channelID', conf['misc']['channel_name']])
 
-    for org_name in list(conf['orgs'].keys()):
-        org = conf['orgs'][org_name]
+    for org in conf['orgs']:
         print('Generating anchor peer update transaction for %(org_name)s at %(anchor_tx_file)s' % {
-            'org_name': org_name,
+            'org_name': org['name'],
             'anchor_tx_file': org['anchor_tx_file']
         }, flush=True)
 
@@ -207,7 +202,7 @@ def generateChannelArtifacts(conf):
               '-profile', 'OrgsChannel',
               '-outputAnchorPeersUpdate', org['anchor_tx_file'],
               '-channelID', conf['misc']['channel_name'],
-              '-asOrg', org_name])
+              '-asOrg', org['name']])
 
 
 if __name__ == '__main__':

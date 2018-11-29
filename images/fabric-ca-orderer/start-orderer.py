@@ -11,7 +11,7 @@ conf = json.load(open(conf_path, 'r'))
 if __name__ == '__main__':
 
     org_name = os.environ['ORG']
-    org = conf['orderers'][org_name]
+    org = [x for x in conf['orderers'] if x['name'] == org_name][0]
     admin = org['users']['admin']
     org_admin_msp_dir = admin['home'] + '/msp'
 
@@ -46,9 +46,9 @@ if __name__ == '__main__':
     # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
     # https://lists.hyperledger.org/g/fabric/topic/17549225#1250
 
-    dst_ca_dir = './fabric/msp/admincerts/'
+    dst_ca_dir = '%s/admincerts/' % org['local_msp_dir']
     create_directory(dst_ca_dir)
-    copyfile('%s/signcerts/cert.pem' % org['local_msp_dir'], '%s/admincerts/%s-cert.pem' % (org['local_msp_dir'], admin['name']))
+    copyfile('%s/signcerts/cert.pem' % org['local_msp_dir'], '%s/%s-cert.pem' % (dst_ca_dir, admin['name']))
 
     # Wait for the genesis block to be created
     dowait("genesis block to be created", 60, conf['misc']['setup_logfile'], [conf['misc']['genesis_bloc_file']])
