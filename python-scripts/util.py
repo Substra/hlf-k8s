@@ -70,6 +70,7 @@ def removeIntermediateCerts(intermediatecerts_dir):
 
 
 def completeMSPSetup(org_msp_dir):
+
     src = org_msp_dir + '/cacerts/'
     dst = org_msp_dir + '/tlscacerts'
 
@@ -96,13 +97,6 @@ def genTLSCert(host_name, cert_file, key_file, enrollment_url):
     copy2('/tmp/tls/signcerts/cert.pem', cert_file)
     copy_last_file_ext('*_sk', '/tmp/tls/keystore/', key_file)
     call(['rm', '-rf', '/tmp/tls'])
-
-
-# Copy the org's admin cert into some target MSP directory
-def copyAdminCert(file_to_copy, dstDir, org_name, setup_log_file):
-    create_directory(dstDir)
-    dowait('%s administator to enroll' % org_name, 60, setup_log_file, [file_to_copy])
-    copy2(file_to_copy, dstDir)
 
 
 # Remove chaincode docker images

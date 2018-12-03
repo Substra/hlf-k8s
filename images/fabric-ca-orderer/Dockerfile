@@ -5,7 +5,7 @@
 #
 FROM hyperledger/fabric-ca-orderer:latest
 
-COPY ./start-orderer.py /etc/hyperledger/orderer/
+COPY ./start-orderer.py /etc/hyperledger/
 
 # install python 3
 RUN apt-get update

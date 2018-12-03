@@ -1,8 +1,8 @@
 import json
 
 conf = {
-    'orgs': {
-        'owkin': {
+    'orgs': [
+        {
             'name': 'owkin',
             'msp_dir': '/substra/data/orgs/owkin/msp',
             'msp_id': 'owkinMSP',
@@ -19,6 +19,7 @@ conf = {
                 'name': 'rca-owkin',
                 'host': 'rca-owkin',
                 'certfile': '/substra/data/orgs/owkin/ca-cert.pem',
+                'keyfile': '/substra/data/orgs/owkin/ca-key.pem',
                 'port': 7054,
                 'host_port': 7054,
                 'url': 'https://rca-owkin:7054',
@@ -48,8 +49,8 @@ conf = {
             },
             'core': {
                 'docker': {
-                    'peer_home': '/opt/gopath/src/github.com/hyperledger/fabric/peer',
-                    'msp_config_path': '/opt/gopath/src/github.com/hyperledger/fabric/peer/msp',
+                    'peer_home': '/etc/hyperledger/fabric',
+                    'msp_config_path': '/etc/hyperledger/fabric/msp',
                 },
                 'host': {
                     'peer_home': '/substra/data/orgs/owkin',
@@ -97,9 +98,9 @@ conf = {
                 }
             ]
         },
-    },
-    'orderers': {
-        'orderer': {
+    ],
+    'orderers': [
+        {
             'host': 'orderer1-orderer',
             'port': 7050,
             'name': 'orderer',
@@ -107,8 +108,8 @@ conf = {
             'msp_id': 'ordererMSP',
             'admin_home': '/substra/data/orgs/orderer/admin',
             'broadcast_dir': '/substra/data/logs/broadcast',
-            'home': '/etc/hyperledger/orderer',
-            'local_msp_dir': '/etc/hyperledger/orderer/msp',
+            'home': '/etc/hyperledger/fabric',
+            'local_msp_dir': '/etc/hyperledger/fabric/msp',
             'ca-server-config-path': '/substra/conf/orderer/fabric-ca-server-config.yaml',
             'ca-client-config-path': '/substra/conf/orderer/fabric-ca-client-config.yaml',
             'config-path': '/substra/conf/orderer/orderer.yaml',
@@ -122,6 +123,7 @@ conf = {
                 'name': 'rca-orderer',
                 'host': 'rca-orderer',
                 'certfile': '/substra/data/orgs/orderer/ca-cert.pem',
+                'keyfile': '/substra/data/orgs/orderer/ca-key.pem',
                 'port': 7054,
                 'host_port': 9054,
                 'url': 'https://rca-orderer:7054',
@@ -141,7 +143,7 @@ conf = {
                 'orderer': {
                     'name': 'orderer',
                     'pass': 'ordererpw',
-                    'home': '/substra/data/orgs/orderer'
+                    'home': '/substra/data/orgs/orderer/orderer'
                 }
             },
             'csr': {
@@ -150,9 +152,10 @@ conf = {
                 'hosts': ['rca-orderer']
             },
         }
-    },
+    ],
     'misc': {
         'channel_name': 'mychannel',
+        'channel_block': '/substra/data/mychannel.block',
         'chaincode_name': 'mycc',
         'genesis_bloc_file': '/substra/data/genesis.block',
         'channel_tx_file': '/substra/data/channel.tx',
