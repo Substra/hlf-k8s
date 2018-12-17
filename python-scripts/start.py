@@ -395,7 +395,11 @@ def start(conf, conf_path, fixtures):
     stop(docker_compose)
 
     print('start docker-compose', flush=True)
-    services = [name for name, _ in docker_compose['substra_services']['rca']] + ['setup']
+    services = [name for name, _ in docker_compose['substra_services']['rca']]
+
+    if not os.path.exists(conf['misc']['setup_success_file']):
+        services += ['setup']
+
     call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--remove-orphans'] + services)
     call(['docker', 'ps', '-a'])
 
@@ -415,7 +419,8 @@ def start(conf, conf_path, fixtures):
            30, None,
            peers_orgs_files)
 
-    call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--no-deps', 'run'])
+    if not os.path.exists(conf['misc']['run_success_file']):
+        call(['docker-compose', '-f', docker_compose['path'], 'up', '-d', '--no-deps', 'run'])
 
     # Wait for the run container to start and complete
     dowait('the docker \'run\' container to run and complete',
@@ -439,12 +444,6 @@ def start(conf, conf_path, fixtures):
 
 
 if __name__ == '__main__':
-    # create directory with correct rights
-    call(['rm', '-rf', '/substra/data'])
-    call(['rm', '-rf', '/substra/conf'])
-
-    create_directory('/substra/data/logs')
-    create_directory('/substra/conf/')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', nargs='?', type=str, action='store', default='',
@@ -457,13 +456,22 @@ if __name__ == '__main__':
 
     conf_path = '/substra/conf/conf.json'
 
-    if args['config']:
-        call(['python3', args['config']])
-    else:
-        call(['python3', os.path.join(dir_path, 'conf2orgs.py')])
-
     if args['no_backup']:
+        # create directory with correct rights
+        call(['rm', '-rf', '/substra/data'])
+        call(['rm', '-rf', '/substra/conf'])
+
+        create_directory('/substra/data/logs')
+        create_directory('/substra/conf/')
         call(['rm', '-rf', '/substra/backup'])
+
+    if not os.path.exists(conf_path):
+        if args['config']:
+            call(['python3', args['config']])
+        else:
+            call(['python3', os.path.join(dir_path, 'conf2orgs.py')])
+    else:
+        print('Use existing configuration in /substra/conf/conf.json', flush=True)
 
     conf = json.load(open(conf_path, 'r'))
 
