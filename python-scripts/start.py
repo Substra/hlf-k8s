@@ -249,6 +249,7 @@ def generate_docker_compose_file(conf, conf_path):
         # RCA
         rca = {'container_name': orderer['ca']['host'],
                'image': 'substra/fabric-ca',
+               'restart': 'unless-stopped',
                'working_dir': '/etc/hyperledger/',
                'ports': ['%s:%s' % (orderer['ca']['host_port'], orderer['ca']['port'])],
                'command': '/bin/bash -c "python3 start-root-ca.py 2>&1"',
@@ -269,6 +270,7 @@ def generate_docker_compose_file(conf, conf_path):
         # ORDERER
         svc = {'container_name': orderer['host'],
                'image': 'substra/fabric-ca-orderer',
+               'restart': 'unless-stopped',
                'working_dir': '/etc/hyperledger/',
                'command': 'python3 start-orderer.py 2>&1',
                'ports': ['%s:%s' % (orderer['port'], orderer['port'])],
@@ -293,6 +295,7 @@ def generate_docker_compose_file(conf, conf_path):
         # RCA
         rca = {'container_name': org['ca']['host'],
                'image': 'substra/fabric-ca',
+               'restart': 'unless-stopped',
                'working_dir': '/etc/hyperledger/',
                'ports': ['%s:%s' % (org['ca']['host_port'], org['ca']['port'])],
                'command': '/bin/bash -c "fabric-ca-server start 2>&1"',
@@ -316,6 +319,7 @@ def generate_docker_compose_file(conf, conf_path):
         for index, peer in enumerate(org['peers']):
             svc = {'container_name': peer['host'],
                    'image': 'substra/fabric-ca-peer',
+                   'restart': 'unless-stopped',
                    'command': 'python3 start-peer.py 2>&1',
                    'environment': ['ORG=%s' % org['name'],
                                    'PEER_INDEX=%s' % index,
