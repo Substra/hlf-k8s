@@ -460,14 +460,14 @@ if __name__ == '__main__':
 
     conf_path = '/substra/conf/conf.json'
 
-    create_directory('/substra/data/logs')
-    create_directory('/substra/conf/')
-
     if args['no_backup']:
         # create directory with correct rights
         call(['rm', '-rf', '/substra/data'])
         call(['rm', '-rf', '/substra/conf'])
         call(['rm', '-rf', '/substra/backup'])
+
+    create_directory('/substra/data/logs')
+    create_directory('/substra/conf/')
 
     if not os.path.exists(conf_path):
         if args['config']:
