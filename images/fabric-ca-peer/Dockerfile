@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-FROM hyperledger/fabric-ca-peer:latest
+FROM hyperledger/fabric-peer:latest
 
 COPY ./start-peer.py /etc/hyperledger/
 

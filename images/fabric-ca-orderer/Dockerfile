@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-FROM hyperledger/fabric-ca-orderer:latest
+FROM hyperledger/fabric-orderer:latest
 
 COPY ./start-orderer.py /etc/hyperledger/
 
