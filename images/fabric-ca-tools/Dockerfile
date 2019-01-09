@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-FROM hyperledger/fabric-tools:latest
+FROM hyperledger/fabric-ca-tools:latest
 
 RUN apt-get update
 RUN apt-get install -y libssl-dev python3-dev python3-setuptools python3-pip libffi-dev

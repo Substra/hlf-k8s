@@ -1,0 +1,3 @@
+[submodule "fabric-ca"]
+	path = fabric-ca
+	url = git://github.com/hyperledger/fabric-ca.git
