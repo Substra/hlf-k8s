@@ -24,16 +24,6 @@ dockerCaPull() {
       docker tag hyperledger/fabric-ca:$CA_TAG hyperledger/fabric-ca
 }
 
-dockerFabricPull() {
-  local FABRIC_TAG=$1
-  for IMAGES in peer orderer ccenv tools; do
-      echo "==> FABRIC IMAGE: $IMAGES"
-      echo
-      docker pull hyperledger/fabric-$IMAGES:$FABRIC_TAG
-      docker tag hyperledger/fabric-$IMAGES:$FABRIC_TAG hyperledger/fabric-$IMAGES
-  done
-}
-
 createCustomDockerImages() {
     for dir in $BASEDIR/images/*/; do
         dir=`basename $dir`
@@ -43,10 +33,7 @@ createCustomDockerImages() {
 
 # starting with 1.2.0, multi-arch images will be default
 : ${CA_TAG:="$CA_VERSION"}
-: ${FABRIC_TAG:="$VERSION"}
 
-echo "===> Pulling fabric Images"
-dockerFabricPull ${FABRIC_TAG}
 echo "===> Pulling fabric ca Image"
 dockerCaPull ${CA_TAG}
 
