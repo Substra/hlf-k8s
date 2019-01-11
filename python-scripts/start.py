@@ -268,7 +268,7 @@ def generate_docker_compose_file(conf, conf_path):
                'working_dir': '/etc/hyperledger/',
                'command': 'python3 start-orderer.py 2>&1',
                'ports': [f"{orderer['port']}:{orderer['port']}"],
-               'environment': ["ORG={orderer['name']}",
+               'environment': [f"ORG={orderer['name']}",
                                'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': [
