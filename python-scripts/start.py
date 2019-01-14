@@ -189,7 +189,7 @@ def generate_docker_compose_file(conf, conf_path):
                                            'svc': []},
                       'substra_tools': {'setup': {'container_name': 'setup',
                                                   'image': 'substra/fabric-ca-tools',
-                                                  'command': '/bin/bash -c "python3 /scripts/setup.py 2>&1 | tee /substra/data/log/setup.log"',
+                                                  'command': '/bin/bash -c "set -o pipefail; python3 /scripts/setup.py 2>&1 | tee /substra/data/logs/setup.log"',
                                                   'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server',
                                                                   'FABRIC_CFG_PATH=/substra/data'],
                                                   'volumes': ['/substra/data:/substra/data',
@@ -200,7 +200,7 @@ def generate_docker_compose_file(conf, conf_path):
 
                                         'run': {'container_name': 'run',
                                                 'image': 'substra/fabric-ca-tools',
-                                                'command': '/bin/bash -c "sleep 3;python3 /scripts/run.py 2>&1 | tee /substra/data/log/run.log"',
+                                                'command': '/bin/bash -c "set -o pipefail; sleep 3; python3 /scripts/run.py 2>&1 | tee /substra/data/logs/run.log"',
                                                 'environment': ['GOPATH=/opt/gopath'],
                                                 'volumes': ['/var/run/docker.sock:/var/run/docker.sock',
                                                             '/substra/data:/substra/data',
@@ -214,7 +214,7 @@ def generate_docker_compose_file(conf, conf_path):
                       'substra_test': {
                           'fixtures': {'container_name': 'fixtures',
                                        'image': 'substra/fabric-ca-tools',
-                                       'command': '/bin/bash -c "python3 /scripts/%s 2>&1 | tee /substra/data/log/fixtures.log"' %
+                                       'command': '/bin/bash -c "set -o pipefail; python3 /scripts/%s 2>&1 | tee /substra/data/logs/fixtures.log"' %
                                                   conf['misc']['fixtures_path'],
                                        'environment': ['GOPATH=/opt/gopath'],
                                        'volumes': ['/substra/data:/substra/data',
@@ -225,7 +225,7 @@ def generate_docker_compose_file(conf, conf_path):
                                        'depends_on': ['run']},
                           'queryUser': {'container_name': 'queryUser',
                                         'image': 'substra/fabric-ca-tools',
-                                        'command': '/bin/bash -c "python3 /scripts/queryUser.py 2>&1 | tee /substra/data/log/queryUser.log"',
+                                        'command': '/bin/bash -c "set -o pipefail; python3 /scripts/queryUser.py 2>&1 | tee /substra/data/logs/queryUser.log"',
                                         'environment': ['GOPATH=/opt/gopath'],
                                         'volumes': ['/substra/data:/substra/data',
                                                     '/substra/conf:/substra/conf',
@@ -234,7 +234,7 @@ def generate_docker_compose_file(conf, conf_path):
                                         'depends_on': ['run']},
                           'revoke': {'container_name': 'revoke',
                                      'image': 'substra/fabric-ca-tools',
-                                     'command': '/bin/bash -c "python3 /scripts/revoke.py 2>&1 | tee /substra/data/log/revoke.log"',
+                                     'command': '/bin/bash -c "set -o pipefail; python3 /scripts/revoke.py 2>&1 | tee /substra/data/logs/revoke.log"',
                                      'environment': ['GOPATH=/opt/gopath'],
                                      'volumes': ['/substra/data:/substra/data',
                                                  '/substra/conf:/substra/conf',
