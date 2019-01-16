@@ -145,36 +145,36 @@ def invokeChaincodeFirstPeers():
     dataset_owkin = invokeChainCode(args, org, peer)
 
     # register train data on dataset owkin (will take dataset creator as worker)
-    args = '{"Args":["registerData","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9","%s","100","false"]}' % dataset_owkin
+    args = '{"Args":["registerData","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9","%s","false"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
 
     # create dataset, test data and challenge on owkin
 
     # create second dataset with owkin org
     args = '{"Args":["registerDataset","Simplified ISIC 2018","b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0","http://owkin.substrabac:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/opener/","Images","258bef187a166b3fef5cb86e68c8f7e154c283a148cd5bc344fec7e698821ad3","http://owkin.substrabac:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/description/","","all"]}'
-    dataset_owkin = invokeChainCode(args, org, peer)
+    dataset_owkin2 = invokeChainCode(args, org, peer)
 
     # register test data on dataset on owkin center (will take dataset creator as worker)
-    args = '{"Args":["registerData","e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1, 4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010", "%s","100","true"]}' % dataset_owkin
+    args = '{"Args":["registerData","e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1, 4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010", "%s","true"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
 
     # register train data on dataset_owkin
-    args = '{"Args":["registerData","93e4b1e040b08cfa8a68b13f9dddb95a6672e8a377378545b2b1254691cfc060, eed4c6ea09babe7ca6428377fff6e54102ef5cdb0cae593732ddbe3f224217cb", "%s","100","true"]}' % dataset_owkin
+    args = '{"Args":["registerData","93e4b1e040b08cfa8a68b13f9dddb95a6672e8a377378545b2b1254691cfc060, eed4c6ea09babe7ca6428377fff6e54102ef5cdb0cae593732ddbe3f224217cb", "%s","true"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
 
     # register test data on dataset_owkin
-    args = '{"Args":["registerData","2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1", "%s","100","true"]}' % dataset_owkin
+    args = '{"Args":["registerData","2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1", "%s","true"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
 
     args = '{"Args":["queryDatasets"]}'
+    chainCodeQueryWith(args, org, peer)
+
+    # create challenge
+    args = '{"Args":["registerChallenge", "Simplified skin lesion classification", "6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c", "http://owkin.substrabac:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/description/", "macro-average recall", "0bc732c26bafdc41321c2bffd35b6835aa35f7371a4eb02994642c2c3a688f60", "http://owkin.substrabac:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/metrics/", "%s:2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1", "all"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
 
     # create challenge
-    args = '{"Args":["registerChallenge", "Simplified skin lesion classification", "6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c", "http://owkin.substrabac:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/description/", "macro-average recall", "0bc732c26bafdc41321c2bffd35b6835aa35f7371a4eb02994642c2c3a688f60", "http://owkin.substrabac:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/metrics/", "2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1", "all"]}'
-    invokeChainCode(args, org, peer)
-
-    # create challenge
-    args = '{"Args":["registerChallenge", "Skin Lesion Classification Challenge", "d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f", "http://owkin.substrabac:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/description/", "macro-average recall", "750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756", "http://owkin.substrabac:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/metrics/", "e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1", "all"]}'
+    args = '{"Args":["registerChallenge", "Skin Lesion Classification Challenge", "d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f", "http://owkin.substrabac:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/description/", "macro-average recall", "750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756", "http://owkin.substrabac:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/metrics/", "%s:e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1", "all"]}' % dataset_owkin2
     invokeChainCode(args, org, peer)
 
     # create algo
@@ -195,31 +195,33 @@ def invokeChaincodeFirstPeers():
 
     # query data of the dataset in owkin
     args = '{"Args":["queryDatasetData","%s"]}' % dataset_owkin
-    invokeChainCode(args, org, peer)
+    chainCodeQueryWith(args, org, peer)
 
     args = '{"Args":["queryTraintuples"]}'
-    invokeChainCode(args, org, peer)
+    chainCodeQueryWith(args, org, peer)
 
-    args = '{"Args":["createTraintuple","6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f","","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9"]}'
+    args = '{"Args":["createTraintuple","6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f","","%s","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9", "", ""]}' % dataset_owkin
     traintuple = invokeChainCode(args, org, peer)
 
     # recreation of traintuple should fail
     invokeChainCode(args, org, peer)
 
-    args = '{"Args":["logStartTrainTest","' + traintuple + '", "training"]}'
+    args = '{"Args":["logStartTrain","' + traintuple + '"]}'
     invokeChainCode(args, org, peer)
 
     args = '{"Args":["queryTraintuples"]}'
-    invokeChainCode(args, org, peer)
+    chainCodeQueryWith(args, org, peer)
 
     args = '{"Args":["logSuccessTrain","' + traintuple + '","10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568, http://owkin.substrabac:8001/model/10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568/file/","0.91","no error, ah ah ah"]}'
     invokeChainCode(args, org, peer)
 
-    # back to owkin who own test data on this traintuple related dataset
-    args = '{"Args":["logStartTrainTest","' + traintuple + '","testing"]}'
+    args = '{"Args":["createTesttuple","%s"]}' % traintuple
+    testtuple = invokeChainCode(args, org, peer)
+
+    args = '{"Args":["logStartTest","' + testtuple + '"]}'
     invokeChainCode(args, org, peer)
 
-    args = '{"Args":["logSuccessTest","' + traintuple + '","0.99","still no error, suprah ah ah"]}'
+    args = '{"Args":["logSuccessTest","' + testtuple + '","0.99","still no error, suprah ah ah"]}'
     invokeChainCode(args, org, peer)
 
 
