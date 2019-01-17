@@ -268,12 +268,11 @@ def generate_docker_compose_file(conf, conf_path):
                'working_dir': '/etc/hyperledger/',
                'command': 'python3 start-orderer.py 2>&1',
                'ports': [f"{orderer['port']}:{orderer['port']}"],
-               'environment': [f"ORG={orderer['name']}",
-                               'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric'],
+               'environment': ['FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': [
                    f'{SUBSTRA_PATH}/data:{SUBSTRA_PATH}/data',
-                   f'{conf_path}:{conf_path}',
+                   f"{SUBSTRA_PATH}/conf/{orderer['name']}/conf.json:{conf_path}",
                    f"{SUBSTRA_PATH}/backup/orgs/{orderer['name']}/{orderer['name']}:/var/hyperledger/production/orderer",
                    './python-scripts/util.py:/etc/hyperledger/util.py',
                    f"{SUBSTRA_PATH}/conf/{orderer['name']}/fabric-ca-client-config.yaml:/etc/hyperledger/fabric/fabric-ca-client-config.yaml",
@@ -306,16 +305,13 @@ def generate_docker_compose_file(conf, conf_path):
         docker_compose['substra_services']['rca'].append((org['ca']['host'], rca))
 
         # Peer
-
         for index, peer in enumerate(org['peers']):
             svc = {'container_name': peer['host'],
                    'image': 'substra/fabric-ca-peer',
                    'restart': 'unless-stopped',
                    'command': 'python3 start-peer.py 2>&1',
-                   'environment': [f"ORG={org['name']}",
-                                   # https://medium.com/@Alibaba_Cloud/hyperledger-fabric-deployment-on-alibaba-cloud-environment-sigsegv-problem-analysis-and-solutions-9a708313f1a4
+                   'environment': [# https://medium.com/@Alibaba_Cloud/hyperledger-fabric-deployment-on-alibaba-cloud-environment-sigsegv-problem-analysis-and-solutions-9a708313f1a4
                                    'GODEBUG=netdns=go+1',
-                                   f'PEER_INDEX={index}',
                                    'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric/',
                                    ],
                    'working_dir': '/etc/hyperledger/',
@@ -323,7 +319,7 @@ def generate_docker_compose_file(conf, conf_path):
                              f"{peer['host_event_port']}:{peer['event_port']}"],
                    'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                    'volumes': [f'{SUBSTRA_PATH}/data:{SUBSTRA_PATH}/data',
-                               f'{conf_path}:{conf_path}',
+                               f"{SUBSTRA_PATH}/conf/{org['name']}/{peer['name']}/conf.json:{conf_path}",
                                f"{SUBSTRA_PATH}/backup/orgs/{org['name']}/{peer['name']}/:/var/hyperledger/production/",
                                './python-scripts/util.py:/etc/hyperledger/util.py',
                                '/var/run/docker.sock:/host/var/run/docker.sock',
@@ -378,11 +374,47 @@ def stop(docker_compose=None):
     remove_chaincode_docker_images()
 
 
+def create_fabric_ca_peer_config(conf):
+    for org in conf['orgs']:
+        peers = org['peers']
+        for peer in peers:
+            filename = f"{SUBSTRA_PATH}/conf/{org['name']}/{peer['name']}/conf.json"
+
+            # select what need peer conf
+            peer_conf = {}
+            for k, v in org.items():
+                if k in ('users', 'peers', 'ca', 'core'):
+                    if k == 'peers':
+                        peer_conf['peer'] = [x for x in v if x['name'] == peer['name']][0]
+                    elif k == 'users':
+                        peer_conf[k] = {k: v for k, v in v.items() if k == 'admin'}
+                    else:
+                        peer_conf[k] = v
+            json.dump(peer_conf, open(filename, 'w+'))
+
+
+def create_fabric_ca_orderer_config(conf):
+    for orderer in conf['orderers']:
+        filename = f"{SUBSTRA_PATH}/conf/{orderer['name']}/conf.json"
+        orderer_conf = {}
+        for k, v in orderer.items():
+            if k in ('users', 'ca', 'tls', 'home', 'local_msp_dir', 'host', 'broadcast_dir'):
+                if k == 'users':
+                    orderer_conf[k] = {k: v for k, v in v.items() if k == 'admin'}
+                else:
+                    orderer_conf[k] = v
+
+        orderer_conf.update({'misc': conf['misc']})
+        json.dump(orderer_conf, open(filename, 'w+'))
+
+
 def start(conf, conf_path, fixtures):
     create_ca(conf)
     create_configtx(conf)
     create_core_peer_config(conf)
     create_orderer_config(conf)
+    create_fabric_ca_peer_config(conf)
+    create_fabric_ca_orderer_config(conf)
 
     print('Generate docker-compose file\n')
     docker_compose = generate_docker_compose_file(conf, conf_path)
