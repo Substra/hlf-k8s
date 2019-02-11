@@ -55,19 +55,23 @@ if __name__ == '__main__':
         'port': org['ca']['port']
     }
 
-    # Generate server TLS cert and key pair
+    create_directory(peer['tls']['dir'])
+
+    # Generate server TLS cert and key pair in container
     tlsdir = org['core']['docker']['peer_home'] + '/tls'
     create_directory(tlsdir)
     genTLSCert(peer['host'],
-               tlsdir + '/' + org['core']['tls']['cert'],
-               tlsdir + '/' + org['core']['tls']['key'],
+               peer['tls']['serverCert'],
+               peer['tls']['serverKey'],
+               peer['tls']['serverCa'],
                enrollment_url)
 
     # Generate client TLS cert and key pair for the peer CLI (will be used by external tools)
-    create_directory(peer['tls']['dir'])
+    # in a binded volume
     genTLSCert(peer['name'],
                peer['tls']['clientCert'],
                peer['tls']['clientKey'],
+               peer['tls']['clientCa'],
                enrollment_url)
 
     # Enroll the peer to get an enrollment certificate and set up the core's local MSP directory for starting peer
