@@ -86,7 +86,7 @@ def completeMSPSetup(org_msp_dir):
         # copytree(org_msp_dir + '/intermediatecerts/', org_msp_dir + '/tlsintermediatecerts/')
 
 
-def genTLSCert(host_name, cert_file, key_file, enrollment_url):
+def genTLSCert(host_name, cert_file, key_file, ca_file, enrollment_url):
     call(['fabric-ca-client',
           'enroll', '-d',
           '--enrollment.profile', 'tls',
@@ -96,6 +96,7 @@ def genTLSCert(host_name, cert_file, key_file, enrollment_url):
 
     copy2('/tmp/tls/signcerts/cert.pem', cert_file)
     copy_last_file_ext('*_sk', '/tmp/tls/keystore/', key_file)
+    copy_last_file_ext('*.pem', '/tmp/tls/tlscacerts/', ca_file)
     call(['rm', '-rf', '/tmp/tls'])
 
 

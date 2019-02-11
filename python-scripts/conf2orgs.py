@@ -55,10 +55,6 @@ conf = {
                 'host': {
                     'peer_home': '/substra/data/orgs/owkin',
                     'msp_config_path': '/substra/data/orgs/owkin/user/msp',
-                },
-                'tls': {
-                    'key': 'server.key',
-                    'cert': 'server.crt',
                 }
             },
             'peers': [
@@ -76,7 +72,14 @@ conf = {
                     'tls': {
                         'dir': '/substra/data/orgs/owkin/tls/peer1/',
                         'clientCert': '/substra/data/orgs/owkin/tls/peer1/cli-client.crt',
-                        'clientKey': '/substra/data/orgs/owkin/tls/peer1/cli-client.key'
+                        'clientKey': '/substra/data/orgs/owkin/tls/peer1/cli-client.key',
+                        'clientCa': '/substra/data/orgs/owkin/tls/peer1/cli-client.pem',
+                        'serverCert': '/etc/hyperledger/fabric/tls/server.crt',
+                        'serverKey': '/etc/hyperledger/fabric/tls/server.key',
+                        #  paradoxically, this will not be a tls certificate,
+                        #  but will be put by fabric-ca inside tlscacerts directory
+                        # it will be equal to org['ca']['certfile']
+                        'serverCa': '/substra/data/orgs/owkin/tls/peer1/server.pem',
                     }
                 },
                 {
@@ -93,7 +96,14 @@ conf = {
                     'tls': {
                         'dir': '/substra/data/orgs/owkin/tls/peer2/',
                         'clientCert': '/substra/data/orgs/owkin/tls/peer2/cli-client.crt',
-                        'clientKey': '/substra/data/orgs/owkin/tls/peer2/cli-client.key'
+                        'clientKey': '/substra/data/orgs/owkin/tls/peer2/cli-client.key',
+                        'clientCa': '/substra/data/orgs/owkin/tls/peer2/cli-client.pem',
+                        'serverCert': '/etc/hyperledger/fabric/tls/server.crt',
+                        'serverKey': '/etc/hyperledger/fabric/tls/server.key',
+                        #  paradoxically, this will not be a tls certificate,
+                        #  but will be put by fabric-ca inside tlscacerts directory
+                        # it will be equal to org['ca']['certfile']
+                        'serverCa': '/substra/data/orgs/owkin/tls/peer2/server.pem',
                     }
                 }
             ]
@@ -173,7 +183,14 @@ conf = {
                     'tls': {
                         'dir': '/substra/data/orgs/chu-nantes/tls/peer1/',
                         'clientCert': '/substra/data/orgs/chu-nantes/tls/peer1/cli-client.crt',
-                        'clientKey': '/substra/data/orgs/chu-nantes/tls/peer1/cli-client.key'
+                        'clientKey': '/substra/data/orgs/chu-nantes/tls/peer1/cli-client.key',
+                        'clientCa': '/substra/data/orgs/chu-nantes/tls/peer1/cli-client.pem',
+                        'serverCert': '/etc/hyperledger/fabric/tls/server.crt',
+                        'serverKey': '/etc/hyperledger/fabric/tls/server.key',
+                        #  paradoxically, this will not be a tls certificate,
+                        #  but will be put by fabric-ca inside tlscacerts directory
+                        # it will be equal to org['ca']['certfile']
+                        'serverCa': '/substra/data/orgs/chu-nantes/tls/peer1/server.pem',
                     }
                 },
                 {
@@ -190,7 +207,14 @@ conf = {
                     'tls': {
                         'dir': '/substra/data/orgs/chu-nantes/tls/peer2/',
                         'clientCert': '/substra/data/orgs/chu-nantes/tls/peer2/cli-client.crt',
-                        'clientKey': '/substra/data/orgs/chu-nantes/tls/peer2/cli-client.key'
+                        'clientKey': '/substra/data/orgs/chu-nantes/tls/peer2/cli-client.key',
+                        'clientCa': '/substra/data/orgs/chu-nantes/tls/peer2/cli-client.pem',
+                        'serverCert': '/etc/hyperledger/fabric/tls/server.crt',
+                        'serverKey': '/etc/hyperledger/fabric/tls/server.key',
+                        #  paradoxically, this will not be a tls certificate,
+                        #  but will be put by fabric-ca inside tlscacerts directory
+                        # it will be equal to org['ca']['certfile']
+                        'serverCa': '/substra/data/orgs/chu-nantes/tls/peer2/server.pem',
                     }
                 }
             ]
@@ -211,10 +235,16 @@ conf = {
             'ca-client-config-path': '/substra/conf/orderer/fabric-ca-client-config.yaml',
             'config-path': '/substra/conf/orderer/orderer.yaml',
             'tls': {
-                # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in the docker image, do not forget to remove these examples files in your docker CMD overriding if naming the same way
+                # careful, `ca-cert.pem` is the default cert name file and a
+                # example file with this name is already present in the docker
+                # image, do not forget to remove these examples files in your
+                # docker CMD overriding if naming the same way
                 'certfile': '/substra/data/orgs/orderer/tls-ca-cert.pem',
                 'key': 'server.key',
                 'cert': 'server.crt',
+                # will be the same as certfile normally, used for explicitely
+                # decoupling cert INSIDE container
+                'ca': 'ca.pem',
             },
             'ca': {
                 'name': 'rca-orderer',

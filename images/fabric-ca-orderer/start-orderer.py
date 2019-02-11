@@ -34,6 +34,7 @@ if __name__ == '__main__':
     genTLSCert(org['host'],
                tlsdir + '/' + org['tls']['cert'],
                tlsdir + '/' + org['tls']['key'],
+               tlsdir + '/' + org['tls']['ca'],
                enrollment_url)
 
     # Enroll again to get the orderer's enrollment certificate for getting signcert and being able to launch orderer
