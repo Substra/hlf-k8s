@@ -126,11 +126,12 @@ def create_core_peer_config(conf):
             yaml_data['peer']['tls']['clientCert']['file'] = peer['tls']['clientCert']
             yaml_data['peer']['tls']['clientKey']['file'] = peer['tls']['clientKey']
             yaml_data['peer']['tls']['enabled'] = 'true'
-            yaml_data['peer']['tls']['rootcert']['file'] = peer['tls']['serverCa']
+            # the same as peer['tls']['serverCa'] but this one is inside the container
+            yaml_data['peer']['tls']['rootcert']['file'] = org['ca']['certfile']
             # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
             # from the py sdk if peer clientCert/clientKey is not set correctly
             yaml_data['peer']['tls']['clientAuthRequired'] = 'true'
-            yaml_data['peer']['tls']['clientRootCAs'] = [peer['tls']['serverCa']]
+            yaml_data['peer']['tls']['clientRootCAs'] = [org['ca']['certfile']]
 
             yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
             yaml_data['peer']['gossip']['orgLeader'] = 'false'
@@ -408,6 +409,36 @@ def create_fabric_ca_orderer_config(conf):
         json.dump(orderer_conf, open(filename, 'w+'))
 
 
+def create_substrabac_config(conf):
+    for org in conf['orgs']:
+        dir_path = f"{SUBSTRA_PATH}/conf/{org['name']}/substrabac"
+        create_directory(dir_path)
+
+        filename = f"{SUBSTRA_PATH}/conf/{org['name']}/substrabac/conf.json"
+        # select what need substrabac conf
+        peer = org['peers'][0]
+        res = {
+            'name': org['name'],
+            'signcert': org['users']['user']['home'] + '/msp/signcerts/cert.pem',
+            'core_peer_mspconfigpath': org['users']['user']['home'] + '/msp',
+            'channel_name': conf['misc']['channel_name'],
+            'chaincode_name': conf['misc']['chaincode_name'],
+            'peer': {
+                'host': peer['host'],
+                'port': peer['host_port'],
+                'docker_core_dir': peer['docker_core_dir'],
+                'clientKey': peer['tls']['clientKey'],
+                'clientCert': peer['tls']['clientCert'],
+            },
+            'orderer': {
+                'host': orderer['host'],
+                'port': orderer['port'],
+                'ca': orderer['ca']['certfile'],
+            }
+        }
+        json.dump(res, open(filename, 'w+'))
+
+
 def start(conf, conf_path, fixtures):
     create_ca(conf)
     create_configtx(conf)
@@ -415,6 +446,7 @@ def start(conf, conf_path, fixtures):
     create_orderer_config(conf)
     create_fabric_ca_peer_config(conf)
     create_fabric_ca_orderer_config(conf)
+    create_substrabac_config(conf)
 
     print('Generate docker-compose file\n')
     docker_compose = generate_docker_compose_file(conf, conf_path)
