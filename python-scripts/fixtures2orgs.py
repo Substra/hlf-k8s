@@ -169,7 +169,11 @@ def invokeChaincodeFirstPeers():
     dataset_chunantes = invokeChainCode(args, org, peer)
 
     # register train data on dataset chu nantes (will take dataset creator as worker)
-    args = '{"Args":["registerData","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9","%s","100","false"]}' % dataset_chunantes
+    args = '{"Args":["registerData","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9","%s","false"]}' % dataset_chunantes
+    invokeChainCode(args, org, peer)
+
+    # register test data on dataset_chunantes
+    args = '{"Args":["registerData","61b113ac7142bdd1cc8a824cd29940ce0e22e2381b25e0efe34f64cad5a5ff9b, 0e597cec32d7f5b147c78002b134062923782ccac0e9cbfdd06a0298e7949172", "%s","true"]}' % dataset_chunantes
     invokeChainCode(args, org, peer)
 
     # create dataset, test data and challenge on owkin
@@ -185,27 +189,27 @@ def invokeChaincodeFirstPeers():
     # /!\ #
     #######
 
-    # create second dataset with chu-nantes org
+    # create second dataset with owkin center
     args = '{"Args":["registerDataset","Simplified ISIC 2018","b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0","http://owkin.substrabac:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/opener/","Images","258bef187a166b3fef5cb86e68c8f7e154c283a148cd5bc344fec7e698821ad3","http://owkin.substrabac:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/description/","","all"]}'
     dataset_owkin = invokeChainCode(args, org, peer)
 
     # register test data on dataset on owkin center (will take dataset creator as worker)
-    args = '{"Args":["registerData","e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1, 4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010", "%s","100","true"]}' % dataset_owkin
+    args = '{"Args":["registerData","e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1, 4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010", "%s","true"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
 
     # register train data on dataset_owkin
-    args = '{"Args":["registerData","93e4b1e040b08cfa8a68b13f9dddb95a6672e8a377378545b2b1254691cfc060, eed4c6ea09babe7ca6428377fff6e54102ef5cdb0cae593732ddbe3f224217cb", "%s","100","true"]}' % dataset_owkin
+    args = '{"Args":["registerData","93e4b1e040b08cfa8a68b13f9dddb95a6672e8a377378545b2b1254691cfc060, eed4c6ea09babe7ca6428377fff6e54102ef5cdb0cae593732ddbe3f224217cb", "%s","true"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
 
     # register test data on dataset_owkin
-    args = '{"Args":["registerData","2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1", "%s","100","true"]}' % dataset_owkin
+    args = '{"Args":["registerData","2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1", "%s","true"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
 
     args = '{"Args":["queryDatasets"]}'
-    invokeChainCode(args, org, peer)
+    chainCodeQueryWith(args, org, peer)
 
     # create challenge
-    args = '{"Args":["registerChallenge", "Simplified skin lesion classification", "6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c", "http://owkin.substrabac:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/description/", "macro-average recall", "0bc732c26bafdc41321c2bffd35b6835aa35f7371a4eb02994642c2c3a688f60", "http://owkin.substrabac:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/metrics/", "2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1", "all"]}'
+    args = '{"Args":["registerChallenge", "Simplified skin lesion classification", "6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c", "http://owkin.substrabac:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/description/", "macro-average recall", "0bc732c26bafdc41321c2bffd35b6835aa35f7371a4eb02994642c2c3a688f60", "http://owkin.substrabac:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/metrics/", "%s:2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1", "all"]}' % dataset_owkin
     invokeChainCode(args, org, peer)
 
     # go back to chu-nantes
@@ -222,11 +226,11 @@ def invokeChaincodeFirstPeers():
     #######
 
     # create challenge
-    args = '{"Args":["registerChallenge", "Skin Lesion Classification Challenge", "d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f", "http://chunantes.substrabac:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/description/", "macro-average recall", "750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756", "http://chunantes.substrabac:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/metrics/", "e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1", "all"]}'
+    args = '{"Args":["registerChallenge", "Skin Lesion Classification Challenge", "d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f", "http://chunantes.substrabac:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/description/", "macro-average recall", "750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756", "http://chunantes.substrabac:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/metrics/", "%s:61b113ac7142bdd1cc8a824cd29940ce0e22e2381b25e0efe34f64cad5a5ff9b", "all"]}' % dataset_chunantes
     invokeChainCode(args, org, peer)
 
     # create algo
-    args = '{"Args":["registerAlgo","Logistic regression","6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f","http://chunantes.substrabac:8001/algo/6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f/file/","124a0425b746d7072282d167b53cb6aab3a31bf1946dae89135c15b0126ebec3","http://chunantes.substrabac:8001/algo/6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f/description/","d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f","all"]}'
+    args = '{"Args":["registerAlgo","Logistic regression","9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a","http://chunantes.substrabac:8001/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/file/","124a0425b746d7072282d167b53cb6aab3a31bf1946dae89135c15b0126ebec3","http://chunantes.substrabac:8001/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/description/","d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f","all"]}'
     invokeChainCode(args, org, peer)
 
     # create second algo on challenge Simplified skin lesion classification
@@ -243,27 +247,27 @@ def invokeChaincodeFirstPeers():
 
     # query data of the dataset in chu nantes
     args = '{"Args":["queryDatasetData","%s"]}' % dataset_chunantes
-    invokeChainCode(args, org, peer)
+    chainCodeQueryWith(args, org, peer)
 
     args = '{"Args":["queryTraintuples"]}'
-    invokeChainCode(args, org, peer)
+    chainCodeQueryWith(args, org, peer)
 
-    args = '{"Args":["createTraintuple","6dcbfcf29146acd19c6a2997b2e81d0cd4e88072eea9c90bbac33f0e8573993f","","62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9"]}'
+    args = '{"Args":["createTraintuple","9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a","", "%s", "62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9", "", ""]}' % dataset_chunantes
     traintuple = invokeChainCode(args, org, peer)
 
     # recreation of traintuple should fail
     invokeChainCode(args, org, peer)
 
-    args = '{"Args":["logStartTrainTest","' + traintuple + '", "training"]}'
+    args = '{"Args":["logStartTrain","%s"]}' % traintuple
     invokeChainCode(args, org, peer)
 
     args = '{"Args":["queryTraintuples"]}'
-    invokeChainCode(args, org, peer)
+    chainCodeQueryWith(args, org, peer)
 
     args = '{"Args":["logSuccessTrain","' + traintuple + '","10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568, http://chunantes.substrabac:8001/model/10060f1d9e450d98bb5892190860eee8dd48594f00e0e1c9374a27c5acdba568/file/","0.91","no error, ah ah ah"]}'
     invokeChainCode(args, org, peer)
 
-    # go back to owkin for test data
+    # go back to owkin for creating testtuple
     #######
     # /!\ #
     #######
@@ -276,11 +280,26 @@ def invokeChaincodeFirstPeers():
     # /!\ #
     #######
 
-    # back to owkin who own test data on this traintuple related dataset
-    args = '{"Args":["logStartTrainTest","' + traintuple + '","testing"]}'
+    args = '{"Args":["createTesttuple","%s"]}' % traintuple
+    testtuple = invokeChainCode(args, org, peer)
+
+    #######
+    # /!\ #
+    #######
+
+    org_name = 'chu-nantes'
+    org = [x for x in conf['orgs'] if x['name'] == org_name][0]
+    peer = org['peers'][0]
+
+    #######
+    # /!\ #
+    #######
+
+    # back to chu-nantes who own test data on this testtuple related dataset
+    args = '{"Args":["logStartTest","%s"]}' % testtuple
     invokeChainCode(args, org, peer)
 
-    args = '{"Args":["logSuccessTest","' + traintuple + '","0.99","still no error, suprah ah ah"]}'
+    args = '{"Args":["logSuccessTest","' + testtuple + '","0.99","still no error, suprah ah ah"]}'
     invokeChainCode(args, org, peer)
 
 

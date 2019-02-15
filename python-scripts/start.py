@@ -124,16 +124,14 @@ def create_core_peer_config(conf):
             yaml_data['peer']['localMspId'] = org['msp_id']
             yaml_data['peer']['mspConfigPath'] = org['core']['docker']['msp_config_path']
 
-            yaml_data['peer']['tls']['cert']['file'] = org['core']['docker']['peer_home'] + '/tls/' + \
-                                                       org['core']['tls']['cert']
-            yaml_data['peer']['tls']['key']['file'] = org['core']['docker']['peer_home'] + '/tls/' + org['core']['tls'][
-                'key']
+            yaml_data['peer']['tls']['cert']['file'] = peer['tls']['serverCert']
+            yaml_data['peer']['tls']['key']['file'] = peer['tls']['serverKey']
             yaml_data['peer']['tls']['clientCert']['file'] = peer['tls']['clientCert']
             yaml_data['peer']['tls']['clientKey']['file'] = peer['tls']['clientKey']
             yaml_data['peer']['tls']['enabled'] = 'true'
-            yaml_data['peer']['tls']['rootcert']['file'] = org['ca']['certfile']
-            yaml_data['peer']['tls']['clientAuthRequired'] = 'true'
-            yaml_data['peer']['tls']['clientRootCAs'] = [org['ca']['certfile']]
+            yaml_data['peer']['tls']['rootcert']['file'] = peer['tls']['serverCa']
+            yaml_data['peer']['tls']['clientAuthRequired'] = 'false'  # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying from the py sdk
+            yaml_data['peer']['tls']['clientRootCAs'] = [peer['tls']['serverCa']]
 
             yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
             yaml_data['peer']['gossip']['orgLeader'] = 'false'
@@ -160,7 +158,7 @@ def create_orderer_config(conf):
         yaml_data['General']['TLS']['Certificate'] = orderer['home'] + '/tls/' + orderer['tls']['cert']
         yaml_data['General']['TLS']['PrivateKey'] = orderer['home'] + '/tls/' + orderer['tls']['key']
         yaml_data['General']['TLS']['Enabled'] = 'true'
-        yaml_data['General']['TLS']['ClientAuthRequired'] = 'true'
+        yaml_data['General']['TLS']['ClientAuthRequired'] = 'false' # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying from the py sdk
         yaml_data['General']['TLS']['RootCAs'] = [orderer['tls']['certfile']]
         yaml_data['General']['TLS']['ClientRootCAs'] = [orderer['tls']['certfile']]
 
@@ -189,7 +187,7 @@ def generate_docker_compose_file(conf, conf_path):
                                            'svc': []},
                       'substra_tools': {'setup': {'container_name': 'setup',
                                                   'image': 'substra/fabric-ca-tools',
-                                                  'command': '/bin/bash -c "python3 /scripts/setup.py 2>&1 | tee /substra/data/log/setup.log"',
+                                                  'command': '/bin/bash -c "set -o pipefail; python3 /scripts/setup.py 2>&1 | tee /substra/data/logs/setup.log"',
                                                   'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server',
                                                                   'FABRIC_CFG_PATH=/substra/data'],
                                                   'volumes': ['/substra/data:/substra/data',
@@ -200,7 +198,7 @@ def generate_docker_compose_file(conf, conf_path):
 
                                         'run': {'container_name': 'run',
                                                 'image': 'substra/fabric-ca-tools',
-                                                'command': '/bin/bash -c "sleep 3;python3 /scripts/run.py 2>&1 | tee /substra/data/log/run.log"',
+                                                'command': '/bin/bash -c "set -o pipefail; sleep 3; python3 /scripts/run.py 2>&1 | tee /substra/data/logs/run.log"',
                                                 'environment': ['GOPATH=/opt/gopath'],
                                                 'volumes': ['/var/run/docker.sock:/var/run/docker.sock',
                                                             '/substra/data:/substra/data',
@@ -214,7 +212,7 @@ def generate_docker_compose_file(conf, conf_path):
                       'substra_test': {
                           'fixtures': {'container_name': 'fixtures',
                                        'image': 'substra/fabric-ca-tools',
-                                       'command': '/bin/bash -c "python3 /scripts/%s 2>&1 | tee /substra/data/log/fixtures.log"' %
+                                       'command': '/bin/bash -c "set -o pipefail; python3 /scripts/%s 2>&1 | tee /substra/data/logs/fixtures.log"' %
                                                   conf['misc']['fixtures_path'],
                                        'environment': ['GOPATH=/opt/gopath'],
                                        'volumes': ['/substra/data:/substra/data',
@@ -225,7 +223,7 @@ def generate_docker_compose_file(conf, conf_path):
                                        'depends_on': ['run']},
                           'queryUser': {'container_name': 'queryUser',
                                         'image': 'substra/fabric-ca-tools',
-                                        'command': '/bin/bash -c "python3 /scripts/queryUser.py 2>&1 | tee /substra/data/log/queryUser.log"',
+                                        'command': '/bin/bash -c "set -o pipefail; python3 /scripts/queryUser.py 2>&1 | tee /substra/data/logs/queryUser.log"',
                                         'environment': ['GOPATH=/opt/gopath'],
                                         'volumes': ['/substra/data:/substra/data',
                                                     '/substra/conf:/substra/conf',
@@ -234,7 +232,7 @@ def generate_docker_compose_file(conf, conf_path):
                                         'depends_on': ['run']},
                           'revoke': {'container_name': 'revoke',
                                      'image': 'substra/fabric-ca-tools',
-                                     'command': '/bin/bash -c "python3 /scripts/revoke.py 2>&1 | tee /substra/data/log/revoke.log"',
+                                     'command': '/bin/bash -c "set -o pipefail; python3 /scripts/revoke.py 2>&1 | tee /substra/data/logs/revoke.log"',
                                      'environment': ['GOPATH=/opt/gopath'],
                                      'volumes': ['/substra/data:/substra/data',
                                                  '/substra/conf:/substra/conf',
@@ -322,6 +320,8 @@ def generate_docker_compose_file(conf, conf_path):
                    'restart': 'unless-stopped',
                    'command': 'python3 start-peer.py 2>&1',
                    'environment': ['ORG=%s' % org['name'],
+                                   # https://medium.com/@Alibaba_Cloud/hyperledger-fabric-deployment-on-alibaba-cloud-environment-sigsegv-problem-analysis-and-solutions-9a708313f1a4
+                                   'GODEBUG=netdns=go+1',
                                    'PEER_INDEX=%s' % index,
                                    'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric/',
                                    ],
