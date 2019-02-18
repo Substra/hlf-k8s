@@ -521,7 +521,7 @@ if __name__ == '__main__':
         call(['rm', '-rf', f'{SUBSTRA_PATH}/conf'])
         call(['rm', '-rf', f'{SUBSTRA_PATH}/backup'])
 
-    create_directory(f'{SUBSTRA_PATH}/data/logs')
+    create_directory(f'{SUBSTRA_PATH}/data/log')
     create_directory(f'{SUBSTRA_PATH}/conf/')
 
     if not os.path.exists(conf_path):
