@@ -5,7 +5,7 @@ orderer = {
     'msp_dir': '/substra/data/orgs/orderer/msp',
     'msp_id': 'ordererMSP',
     'admin_home': '/substra/data/orgs/orderer/admin',
-    'broadcast_dir': '/substra/data/logs/broadcast',
+    'broadcast_dir': '/substra/data/log/broadcast',
     'home': '/etc/hyperledger/fabric',
     'local_msp_dir': '/etc/hyperledger/fabric/msp',
     'ca-server-config-path': '/substra/conf/orderer/fabric-ca-server-config.yaml',
@@ -31,7 +31,7 @@ orderer = {
         'port': 7054,
         'host_port': 9054,
         'url': 'https://rca-orderer:7054',
-        'logfile': '/substra/data/logs/rca-orderer.log',
+        'logfile': '/substra/data/log/rca-orderer.log',
     },
     'users': {
         'bootstrap_admin': {

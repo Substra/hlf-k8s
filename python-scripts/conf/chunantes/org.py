@@ -26,7 +26,7 @@ chunantes = {
         'port': 7054,
         'host_port': 8054,
         'url': 'https://rca-chu-nantes:7054',
-        'logfile': '/substra/data/logs/rca-chu-nantes.log'
+        'logfile': '/substra/data/log/rca-chu-nantes.log'
     },
     'users': {
         'bootstrap_admin': bootstrap_admin,

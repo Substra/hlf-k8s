@@ -8,19 +8,19 @@ misc = {
     'config_block_file': '/tmp/config_block.pb',
     'config_update_envelope_file': '/tmp/config_update_as_envelope.pb',
 
-    'setup_logfile': '/substra/data/logs/setup.log',
-    'setup_success_file': '/substra/data/logs/setup.successful',
+    'setup_logfile': '/substra/data/log/setup.log',
+    'setup_success_file': '/substra/data/log/setup.successful',
 
-    'run_logfile': '/substra/data/logs/run.log',
-    'run_sumfile': '/substra/data/logs/run.sum',
-    'run_success_file': '/substra/data/logs/run.successful',
-    'run_fail_file': '/substra/data/logs/run.fail',
+    'run_logfile': '/substra/data/log/run.log',
+    'run_sumfile': '/substra/data/log/run.sum',
+    'run_success_file': '/substra/data/log/run.successful',
+    'run_fail_file': '/substra/data/log/run.fail',
 
-    'fixtures_logfile': '/substra/data/logs/fixtures.log',
-    'fixtures_success_file': '/substra/data/logs/fixtures.successful',
-    'fixtures_fail_file': '/substra/data/logs/fixtures.fail',
+    'fixtures_logfile': '/substra/data/log/fixtures.log',
+    'fixtures_success_file': '/substra/data/log/fixtures.successful',
+    'fixtures_fail_file': '/substra/data/log/fixtures.fail',
 
-    'revoke_logfile': '/substra/data/logs/revoke.log',
-    'revoke_success_file': '/substra/data/logs/revoke.successful',
-    'revoke_fail_file': '/substra/data/logs/revoke.fail',
+    'revoke_logfile': '/substra/data/log/revoke.log',
+    'revoke_success_file': '/substra/data/log/revoke.successful',
+    'revoke_fail_file': '/substra/data/log/revoke.fail',
 }

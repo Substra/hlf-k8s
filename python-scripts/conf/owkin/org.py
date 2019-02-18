@@ -25,7 +25,7 @@ owkin = {
         'port': 7054,
         'host_port': 7054,
         'url': 'https://rca-owkin:7054',
-        'logfile': '/substra/data/logs/rca-owkin.log'
+        'logfile': '/substra/data/log/rca-owkin.log'
     },
     'users': {
         'bootstrap_admin': bootstrap_admin,
