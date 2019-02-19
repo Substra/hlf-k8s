@@ -431,6 +431,7 @@ def create_substrabac_config(conf):
                 'name': peer['name'],
                 'host': peer['host'],
                 'port': peer['host_port'],
+                'docker_port': peer['port'],
                 'docker_core_dir': peer['docker_core_dir'],
                 'clientKey': peer['tls']['clientKey'],
                 'clientCert': peer['tls']['clientCert'],
