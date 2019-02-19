@@ -17,6 +17,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 LOGGING_LEVEL = ['critical', 'error', 'warning', 'notice', 'info', 'debug']
 SUBSTRA_PATH = '/substra'
 
+
 def create_ca_server_config(orgs):
     # For each org, create a config file from template
     for org in orgs:
@@ -360,7 +361,9 @@ def stop(docker_compose=None):
     call(['docker', 'rm', '-f', 'rca-orderer', 'rca-owkin', 'rca-chu-nantes', 'setup', 'orderer1-orderer',
           'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes', 'run', 'fixtures', 'queryUser',
           'revoke'])
-    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
+
+    if os.path.exists(os.path.join(dir_path, '../docker-compose.yaml')):
+        call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
     if docker_compose is not None:
         services = [name for name, _ in docker_compose['substra_services']['svc']]
@@ -369,7 +372,8 @@ def stop(docker_compose=None):
         call(['docker', 'rm', '-f'] + services)
         call(['docker-compose', '-f', docker_compose['path'], 'down', '--remove-orphans'])
     else:
-        call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
+        if os.path.exists(os.path.join(dir_path, '../docker-compose.yaml')):
+            call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
     remove_chaincode_docker_containers()
     remove_chaincode_docker_images()
@@ -424,6 +428,7 @@ def create_substrabac_config(conf):
             'channel_name': conf['misc']['channel_name'],
             'chaincode_name': conf['misc']['chaincode_name'],
             'peer': {
+                'name': peer['name'],
                 'host': peer['host'],
                 'port': peer['host_port'],
                 'docker_core_dir': peer['docker_core_dir'],
@@ -431,6 +436,7 @@ def create_substrabac_config(conf):
                 'clientCert': peer['tls']['clientCert'],
             },
             'orderer': {
+                'name': orderer['name'],
                 'host': orderer['host'],
                 'port': orderer['port'],
                 'ca': orderer['ca']['certfile'],
