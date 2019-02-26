@@ -527,9 +527,11 @@ if __name__ == '__main__':
         call(['rm', '-rf', f'{SUBSTRA_PATH}/data'])
         call(['rm', '-rf', f'{SUBSTRA_PATH}/conf'])
         call(['rm', '-rf', f'{SUBSTRA_PATH}/backup'])
+        call(['rm', '-rf', f'{SUBSTRA_PATH}/dryrun'])
 
     create_directory(f'{SUBSTRA_PATH}/data/log')
     create_directory(f'{SUBSTRA_PATH}/conf/')
+    create_directory(f'{SUBSTRA_PATH}/dryrun/')
 
     if not os.path.exists(conf_path):
         if args['config']:
@@ -551,6 +553,9 @@ if __name__ == '__main__':
         print('   -', org['name'], flush=True)
 
     print('', flush=True)
+
+    for org in conf['orgs']:
+        create_directory(f"{SUBSTRA_PATH}/dryrun/{org['name']}")
 
     for org in conf['orgs'] + conf['orderers']:
         create_directory(f"{SUBSTRA_PATH}/data/orgs/{org['name']}")
