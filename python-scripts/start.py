@@ -130,7 +130,9 @@ def create_core_peer_config(conf):
             yaml_data['peer']['tls']['clientKey']['file'] = peer['tls']['clientKey']
             yaml_data['peer']['tls']['enabled'] = 'true'
             yaml_data['peer']['tls']['rootcert']['file'] = peer['tls']['serverCa']
-            yaml_data['peer']['tls']['clientAuthRequired'] = 'false'  # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying from the py sdk
+            # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
+            # from the py sdk if peer clientCert/clientKey is not set correctly
+            yaml_data['peer']['tls']['clientAuthRequired'] = 'true'
             yaml_data['peer']['tls']['clientRootCAs'] = [peer['tls']['serverCa']]
 
             yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
