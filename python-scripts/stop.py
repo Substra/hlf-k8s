@@ -15,7 +15,8 @@ def stop():
     if os.path.exists(os.path.join(dir_path, '../docker-compose-dynamic.yaml')):
         docker_compose_path = '../docker-compose-dynamic.yaml'
 
-    call(['docker-compose', '-f', os.path.join(dir_path, docker_compose_path), 'down', '--remove-orphans'])
+    if os.path.exists(docker_compose_path):
+        call(['docker-compose', '-f', os.path.join(dir_path, docker_compose_path), 'down', '--remove-orphans'])
 
 
 if __name__ == "__main__":

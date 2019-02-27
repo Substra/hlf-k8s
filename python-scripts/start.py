@@ -15,6 +15,7 @@ except ImportError:
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 LOGGING_LEVEL = ['critical', 'error', 'warning', 'notice', 'info', 'debug']
+SUBSTRA_PATH = '/substra'
 
 
 def create_ca_server_config(orgs):
@@ -80,21 +81,18 @@ def create_configtx(conf):
 
     # override template here
 
-    yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = ['%(host)s:%(port)s' % {
-        'host': x['host'],
-        'port': x['port']
-    } for x in conf['orderers']]
+    yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = [f"{x['host']}:{x['port']}" for x in conf['orderers']]
 
     orderers = [{
         'Name': x['name'],
         'ID': x['msp_id'],
-        'MSPDir': x['users']['admin']['home'] + '/msp',
+        'MSPDir': f"{x['users']['admin']['home']}/msp",
     } for x in conf['orderers']]
 
     orgs = [{
         'Name': x['name'],
         'ID': x['msp_id'],
-        'MSPDir': x['users']['admin']['home'] + '/msp',
+        'MSPDir': f"{x['users']['admin']['home']}/msp",
         'AnchorPeers': [{
             'Host': peer['host'],
             'Port': peer['port']
@@ -120,7 +118,7 @@ def create_core_peer_config(conf):
             # override template here
 
             yaml_data['peer']['id'] = peer['host']
-            yaml_data['peer']['address'] = '%(host)s:%(port)s' % {'host': peer['host'], 'port': peer['port']}
+            yaml_data['peer']['address'] = f"{peer['host']}:{peer['port']}"
             yaml_data['peer']['localMspId'] = org['msp_id']
             yaml_data['peer']['mspConfigPath'] = org['core']['docker']['msp_config_path']
 
@@ -129,15 +127,16 @@ def create_core_peer_config(conf):
             yaml_data['peer']['tls']['clientCert']['file'] = peer['tls']['clientCert']
             yaml_data['peer']['tls']['clientKey']['file'] = peer['tls']['clientKey']
             yaml_data['peer']['tls']['enabled'] = 'true'
-            yaml_data['peer']['tls']['rootcert']['file'] = peer['tls']['serverCa']
+            # the same as peer['tls']['serverCa'] but this one is inside the container
+            yaml_data['peer']['tls']['rootcert']['file'] = org['ca']['certfile']
             # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
             # from the py sdk if peer clientCert/clientKey is not set correctly
             yaml_data['peer']['tls']['clientAuthRequired'] = 'true'
-            yaml_data['peer']['tls']['clientRootCAs'] = [peer['tls']['serverCa']]
+            yaml_data['peer']['tls']['clientRootCAs'] = [org['ca']['certfile']]
 
             yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
             yaml_data['peer']['gossip']['orgLeader'] = 'false'
-            yaml_data['peer']['gossip']['externalEndpoint'] = peer['host'] + ':' + str(peer['port'])
+            yaml_data['peer']['gossip']['externalEndpoint'] = f"{peer['host']}:{peer['port']}",
             yaml_data['peer']['gossip']['skipHandshake'] = 'true'
 
             yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
@@ -146,7 +145,7 @@ def create_core_peer_config(conf):
             yaml_data['logging']['level'] = LOGGING_LEVEL[4]  # info, needed for substrabac
 
             create_directory(peer['docker_core_dir'])
-            filename = '%(dir)s/core.yaml' % {'dir': peer['docker_core_dir']}
+            filename = f"{peer['docker_core_dir']}/core.yaml"
             with open(filename, 'w+') as f:
                 f.write(dump(yaml_data, default_flow_style=False))
 
@@ -157,8 +156,8 @@ def create_orderer_config(conf):
         yaml_data = load(stream, Loader=Loader)
 
         # override template here
-        yaml_data['General']['TLS']['Certificate'] = orderer['home'] + '/tls/' + orderer['tls']['cert']
-        yaml_data['General']['TLS']['PrivateKey'] = orderer['home'] + '/tls/' + orderer['tls']['key']
+        yaml_data['General']['TLS']['Certificate'] = f"{orderer['home']}/tls/{orderer['tls']['cert']}"
+        yaml_data['General']['TLS']['PrivateKey'] = f"{orderer['home']}/tls/{orderer['tls']['key']}"
         yaml_data['General']['TLS']['Enabled'] = 'true'
         yaml_data['General']['TLS']['ClientAuthRequired'] = 'false' # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying from the py sdk
         yaml_data['General']['TLS']['RootCAs'] = [orderer['tls']['certfile']]
@@ -189,22 +188,22 @@ def generate_docker_compose_file(conf, conf_path):
                                            'svc': []},
                       'substra_tools': {'setup': {'container_name': 'setup',
                                                   'image': 'substra/fabric-ca-tools',
-                                                  'command': '/bin/bash -c "set -o pipefail; python3 /scripts/setup.py 2>&1 | tee /substra/data/logs/setup.log"',
+                                                  'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {SUBSTRA_PATH}/data/log/setup.log"',
                                                   'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server',
-                                                                  'FABRIC_CFG_PATH=/substra/data'],
-                                                  'volumes': ['/substra/data:/substra/data',
+                                                                  f'FABRIC_CFG_PATH={SUBSTRA_PATH}/data'],
+                                                  'volumes': [f'{SUBSTRA_PATH}/data:{SUBSTRA_PATH}/data',
                                                               './python-scripts:/scripts',
-                                                              '%s:%s' % (conf_path, conf_path)],
+                                                              f'{conf_path}:{conf_path}'],
                                                   'networks': ['substra'],
                                                   'depends_on': []},
 
                                         'run': {'container_name': 'run',
                                                 'image': 'substra/fabric-ca-tools',
-                                                'command': '/bin/bash -c "set -o pipefail; sleep 3; python3 /scripts/run.py 2>&1 | tee /substra/data/logs/run.log"',
+                                                'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 | tee {SUBSTRA_PATH}/data/log/run.log"',
                                                 'environment': ['GOPATH=/opt/gopath'],
                                                 'volumes': ['/var/run/docker.sock:/var/run/docker.sock',
-                                                            '/substra/data:/substra/data',
-                                                            '/substra/conf:/substra/conf',
+                                                            f'{SUBSTRA_PATH}/data:{SUBSTRA_PATH}/data',
+                                                            f'{SUBSTRA_PATH}/conf:{SUBSTRA_PATH}/conf',
                                                             './python-scripts:/scripts',
                                                             '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode'
                                                             ],
@@ -214,30 +213,29 @@ def generate_docker_compose_file(conf, conf_path):
                       'substra_test': {
                           'fixtures': {'container_name': 'fixtures',
                                        'image': 'substra/fabric-ca-tools',
-                                       'command': '/bin/bash -c "set -o pipefail; python3 /scripts/%s 2>&1 | tee /substra/data/logs/fixtures.log"' %
-                                                  conf['misc']['fixtures_path'],
+                                       'command': f"/bin/bash -c \"set -o pipefail; python3 /scripts/{conf['misc']['fixtures_path']} 2>&1 | tee {SUBSTRA_PATH}/data/log/fixtures.log\"",
                                        'environment': ['GOPATH=/opt/gopath'],
-                                       'volumes': ['/substra/data:/substra/data',
-                                                   '/substra/conf:/substra/conf',
+                                       'volumes': [f'{SUBSTRA_PATH}/data:{SUBSTRA_PATH}/data',
+                                                   f'{SUBSTRA_PATH}/conf:{SUBSTRA_PATH}/conf',
                                                    './python-scripts:/scripts',
                                                    '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode'],
                                        'networks': ['substra'],
                                        'depends_on': ['run']},
                           'queryUser': {'container_name': 'queryUser',
                                         'image': 'substra/fabric-ca-tools',
-                                        'command': '/bin/bash -c "set -o pipefail; python3 /scripts/queryUser.py 2>&1 | tee /substra/data/logs/queryUser.log"',
+                                        'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/queryUser.py 2>&1 | tee {SUBSTRA_PATH}/data/log/queryUser.log"',
                                         'environment': ['GOPATH=/opt/gopath'],
-                                        'volumes': ['/substra/data:/substra/data',
-                                                    '/substra/conf:/substra/conf',
+                                        'volumes': [f'{SUBSTRA_PATH}data:{SUBSTRA_PATH}/data',
+                                                    f'{SUBSTRA_PATH}/conf:{SUBSTRA_PATH}/conf',
                                                     './python-scripts:/scripts'],
                                         'networks': ['substra'],
                                         'depends_on': ['run']},
                           'revoke': {'container_name': 'revoke',
                                      'image': 'substra/fabric-ca-tools',
-                                     'command': '/bin/bash -c "set -o pipefail; python3 /scripts/revoke.py 2>&1 | tee /substra/data/logs/revoke.log"',
+                                     'command': f'/bin/bash -c "set -o pipefail; python3 /scripts/revoke.py 2>&1 | tee {SUBSTRA_PATH}/data/log/revoke.log"',
                                      'environment': ['GOPATH=/opt/gopath'],
-                                     'volumes': ['/substra/data:/substra/data',
-                                                 '/substra/conf:/substra/conf',
+                                     'volumes': [f'{SUBSTRA_PATH}/data:{SUBSTRA_PATH}/data',
+                                                 f'{SUBSTRA_PATH}/conf:{SUBSTRA_PATH}/conf',
                                                  './python-scripts:/scripts',
                                                  '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode'],
                                      'networks': ['substra'],
@@ -251,20 +249,18 @@ def generate_docker_compose_file(conf, conf_path):
                'image': 'substra/fabric-ca',
                'restart': 'unless-stopped',
                'working_dir': '/etc/hyperledger/',
-               'ports': ['%s:%s' % (orderer['ca']['host_port'], orderer['ca']['port'])],
+               'ports': [f"{orderer['ca']['host_port']}:{orderer['ca']['port']}"],
                'command': '/bin/bash -c "python3 start-root-ca.py 2>&1"',
                'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
-               'volumes': ['/substra/data:/substra/data',
-                           '/substra/backup/orgs/%s/rca:/etc/hyperledger/fabric-ca-server/' % orderer['name'],
-                           '/substra/conf/%s/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml' %
-                           orderer['name']],
+               'volumes': [f'{SUBSTRA_PATH}/data:{SUBSTRA_PATH}/data',
+                           f"{SUBSTRA_PATH}/backup/orgs/{orderer['name']}/rca:/etc/hyperledger/fabric-ca-server/",
+                           f"{SUBSTRA_PATH}/conf/{orderer['name']}/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml"],
                'networks': ['substra']}
 
         docker_compose['substra_tools']['setup']['depends_on'].append(orderer['ca']['host'])
         docker_compose['substra_tools']['setup']['volumes'].append(
-            '/substra/conf/%s/fabric-ca-client-config.yaml:/root/cas/%s/fabric-ca-client-config.yaml' % (
-                orderer['name'], orderer['ca']['host']))
+            f"{SUBSTRA_PATH}/conf/{orderer['name']}/fabric-ca-client-config.yaml:/root/cas/{orderer['ca']['host']}/fabric-ca-client-config.yaml")
         docker_compose['substra_services']['rca'].append((orderer['ca']['host'], rca))
 
         # ORDERER
@@ -273,18 +269,16 @@ def generate_docker_compose_file(conf, conf_path):
                'restart': 'unless-stopped',
                'working_dir': '/etc/hyperledger/',
                'command': 'python3 start-orderer.py 2>&1',
-               'ports': ['%s:%s' % (orderer['port'], orderer['port'])],
-               'environment': ['ORG=%s' % orderer['name'],
-                               'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric'],
+               'ports': [f"{orderer['port']}:{orderer['port']}"],
+               'environment': ['FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': [
-                   '/substra/data:/substra/data',
-                   '%s:%s' % (conf_path, conf_path),
-                   '/substra/backup/orgs/%s/%s:/var/hyperledger/production/orderer' % (orderer['name'], orderer['name']),
+                   f'{SUBSTRA_PATH}/data:{SUBSTRA_PATH}/data',
+                   f"{SUBSTRA_PATH}/conf/{orderer['name']}/conf.json:{conf_path}",
+                   f"{SUBSTRA_PATH}/backup/orgs/{orderer['name']}/{orderer['name']}:/var/hyperledger/production/orderer",
                    './python-scripts/util.py:/etc/hyperledger/util.py',
-                   '/substra/conf/%s/fabric-ca-client-config.yaml:/etc/hyperledger/fabric/fabric-ca-client-config.yaml' %
-                   orderer['name'],
-                   '/substra/conf/%s/orderer.yaml:/etc/hyperledger/fabric/orderer.yaml' % orderer['name']],
+                   f"{SUBSTRA_PATH}/conf/{orderer['name']}/fabric-ca-client-config.yaml:/etc/hyperledger/fabric/fabric-ca-client-config.yaml",
+                   f"{SUBSTRA_PATH}/conf/{orderer['name']}/orderer.yaml:/etc/hyperledger/fabric/orderer.yaml"],
                'networks': ['substra'],
                'depends_on': ['setup']}
 
@@ -297,49 +291,42 @@ def generate_docker_compose_file(conf, conf_path):
                'image': 'substra/fabric-ca',
                'restart': 'unless-stopped',
                'working_dir': '/etc/hyperledger/',
-               'ports': ['%s:%s' % (org['ca']['host_port'], org['ca']['port'])],
+               'ports': [f"{org['ca']['host_port']}:{org['ca']['port']}"],
                'command': '/bin/bash -c "fabric-ca-server start 2>&1"',
                'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
-               'volumes': ['/substra/data:/substra/data',
-                           '/substra/backup/orgs/%s/rca:/etc/hyperledger/fabric-ca-server/' % org['name'],
-                           '/substra/conf/%s/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml' %
-                           org['name']
+               'volumes': [f'{SUBSTRA_PATH}/data:{SUBSTRA_PATH}/data',
+                           f"{SUBSTRA_PATH}/backup/orgs/{org['name']}/rca:/etc/hyperledger/fabric-ca-server/",
+                           f"{SUBSTRA_PATH}/conf/{org['name']}/fabric-ca-server-config.yaml:/etc/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml"
                            ],
                'networks': ['substra']}
 
         docker_compose['substra_tools']['setup']['depends_on'].append(org['ca']['host'])
         docker_compose['substra_tools']['setup']['volumes'].append(
-            '/substra/conf/%s/fabric-ca-client-config.yaml:/root/cas/%s/fabric-ca-client-config.yaml' % (
-                org['name'], org['ca']['host']))
+            f"{SUBSTRA_PATH}/conf/{org['name']}/fabric-ca-client-config.yaml:/root/cas/{org['ca']['host']}/fabric-ca-client-config.yaml")
         docker_compose['substra_services']['rca'].append((org['ca']['host'], rca))
 
         # Peer
-
         for index, peer in enumerate(org['peers']):
             svc = {'container_name': peer['host'],
                    'image': 'substra/fabric-ca-peer',
                    'restart': 'unless-stopped',
                    'command': 'python3 start-peer.py 2>&1',
-                   'environment': ['ORG=%s' % org['name'],
-                                   # https://medium.com/@Alibaba_Cloud/hyperledger-fabric-deployment-on-alibaba-cloud-environment-sigsegv-problem-analysis-and-solutions-9a708313f1a4
+                   'environment': [# https://medium.com/@Alibaba_Cloud/hyperledger-fabric-deployment-on-alibaba-cloud-environment-sigsegv-problem-analysis-and-solutions-9a708313f1a4
                                    'GODEBUG=netdns=go+1',
-                                   'PEER_INDEX=%s' % index,
                                    'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric/',
                                    ],
                    'working_dir': '/etc/hyperledger/',
-                   'ports': ['%s:%s' % (peer['host_port'], peer['port']),
-                             '%s:%s' % (peer['host_event_port'], peer['event_port'])],
+                   'ports': [f"{peer['host_port']}:{peer['port']}",
+                             f"{peer['host_event_port']}:{peer['event_port']}"],
                    'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
-                   'volumes': ['/substra/data:/substra/data',
-                               '%s:%s' % (conf_path, conf_path),
-                               '/substra/backup/orgs/%s/%s/:/var/hyperledger/production/' % (org['name'], peer['name']),
+                   'volumes': [f'{SUBSTRA_PATH}/data:{SUBSTRA_PATH}/data',
+                               f"{SUBSTRA_PATH}/conf/{org['name']}/{peer['name']}/conf.json:{conf_path}",
+                               f"{SUBSTRA_PATH}/backup/orgs/{org['name']}/{peer['name']}/:/var/hyperledger/production/",
                                './python-scripts/util.py:/etc/hyperledger/util.py',
                                '/var/run/docker.sock:/host/var/run/docker.sock',
-                               '/substra/conf/%s/fabric-ca-client-config.yaml:/etc/hyperledger/fabric/fabric-ca-client-config.yaml' %
-                               org['name'],
-                               '/substra/conf/%s/%s/core.yaml:/etc/hyperledger/fabric/core.yaml' % (
-                               org['name'], peer['name']),
+                               f"{SUBSTRA_PATH}/conf/{org['name']}/fabric-ca-client-config.yaml:/etc/hyperledger/fabric/fabric-ca-client-config.yaml",
+                               f"{SUBSTRA_PATH}/conf/{org['name']}/{peer['name']}/core.yaml:/etc/hyperledger/fabric/core.yaml",
                                ],
                    'networks': ['substra'],
                    'depends_on': ['setup']}
@@ -374,7 +361,9 @@ def stop(docker_compose=None):
     call(['docker', 'rm', '-f', 'rca-orderer', 'rca-owkin', 'rca-chu-nantes', 'setup', 'orderer1-orderer',
           'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes', 'peer2-chu-nantes', 'run', 'fixtures', 'queryUser',
           'revoke'])
-    call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
+
+    if os.path.exists(os.path.join(dir_path, '../docker-compose.yaml')):
+        call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
     if docker_compose is not None:
         services = [name for name, _ in docker_compose['substra_services']['svc']]
@@ -383,10 +372,78 @@ def stop(docker_compose=None):
         call(['docker', 'rm', '-f'] + services)
         call(['docker-compose', '-f', docker_compose['path'], 'down', '--remove-orphans'])
     else:
-        call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
+        if os.path.exists(os.path.join(dir_path, '../docker-compose.yaml')):
+            call(['docker-compose', '-f', os.path.join(dir_path, '../docker-compose.yaml'), 'down', '--remove-orphans'])
 
     remove_chaincode_docker_containers()
     remove_chaincode_docker_images()
+
+
+def create_fabric_ca_peer_config(conf):
+    for org in conf['orgs']:
+        peers = org['peers']
+        for peer in peers:
+            filename = f"{SUBSTRA_PATH}/conf/{org['name']}/{peer['name']}/conf.json"
+
+            # select what need peer conf
+            peer_conf = {}
+            for k, v in org.items():
+                if k in ('users', 'peers', 'ca', 'core'):
+                    if k == 'peers':
+                        peer_conf['peer'] = [x for x in v if x['name'] == peer['name']][0]
+                    elif k == 'users':
+                        peer_conf[k] = {k: v for k, v in v.items() if k == 'admin'}
+                    else:
+                        peer_conf[k] = v
+            json.dump(peer_conf, open(filename, 'w+'))
+
+
+def create_fabric_ca_orderer_config(conf):
+    for orderer in conf['orderers']:
+        filename = f"{SUBSTRA_PATH}/conf/{orderer['name']}/conf.json"
+        orderer_conf = {}
+        for k, v in orderer.items():
+            if k in ('users', 'ca', 'tls', 'home', 'local_msp_dir', 'host', 'broadcast_dir'):
+                if k == 'users':
+                    orderer_conf[k] = {k: v for k, v in v.items() if k == 'admin'}
+                else:
+                    orderer_conf[k] = v
+
+        orderer_conf.update({'misc': conf['misc']})
+        json.dump(orderer_conf, open(filename, 'w+'))
+
+
+def create_substrabac_config(conf):
+    for org in conf['orgs']:
+        dir_path = f"{SUBSTRA_PATH}/conf/{org['name']}/substrabac"
+        create_directory(dir_path)
+
+        filename = f"{SUBSTRA_PATH}/conf/{org['name']}/substrabac/conf.json"
+        # select what need substrabac conf
+        peer = org['peers'][0]
+        res = {
+            'name': org['name'],
+            'signcert': org['users']['user']['home'] + '/msp/signcerts/cert.pem',
+            'core_peer_mspconfigpath': org['users']['user']['home'] + '/msp',
+            'channel_name': conf['misc']['channel_name'],
+            'chaincode_name': conf['misc']['chaincode_name'],
+            'peer': {
+                'name': peer['name'],
+                'host': peer['host'],
+                'port': peer['host_port'],
+                'docker_port': peer['port'],
+                'docker_core_dir': peer['docker_core_dir'],
+                'clientKey': peer['tls']['clientKey'],
+                'clientCert': peer['tls']['clientCert'],
+            },
+            'orderer': {
+                'name': orderer['name'],
+                'host': orderer['host'],
+                'port': orderer['port'],
+                'ca': orderer['ca']['certfile'],
+            }
+        }
+        json.dump(res, open(filename, 'w+'))
 
 
 def start(conf, conf_path, fixtures):
@@ -394,6 +451,9 @@ def start(conf, conf_path, fixtures):
     create_configtx(conf)
     create_core_peer_config(conf)
     create_orderer_config(conf)
+    create_fabric_ca_peer_config(conf)
+    create_fabric_ca_orderer_config(conf)
+    create_substrabac_config(conf)
 
     print('Generate docker-compose file\n')
     docker_compose = generate_docker_compose_file(conf, conf_path)
@@ -460,24 +520,26 @@ if __name__ == '__main__':
                         help="Remove backup binded volume. Launch from scratch")
     args = vars(parser.parse_args())
 
-    conf_path = '/substra/conf/conf.json'
+    conf_path = f'{SUBSTRA_PATH}/conf/conf.json'
 
     if args['no_backup']:
         # create directory with correct rights
-        call(['rm', '-rf', '/substra/data'])
-        call(['rm', '-rf', '/substra/conf'])
-        call(['rm', '-rf', '/substra/backup'])
+        call(['rm', '-rf', f'{SUBSTRA_PATH}/data'])
+        call(['rm', '-rf', f'{SUBSTRA_PATH}/conf'])
+        call(['rm', '-rf', f'{SUBSTRA_PATH}/backup'])
+        call(['rm', '-rf', f'{SUBSTRA_PATH}/dryrun'])
 
-    create_directory('/substra/data/logs')
-    create_directory('/substra/conf/')
+    create_directory(f'{SUBSTRA_PATH}/data/log')
+    create_directory(f'{SUBSTRA_PATH}/conf/')
+    create_directory(f'{SUBSTRA_PATH}/dryrun/')
 
     if not os.path.exists(conf_path):
         if args['config']:
             call(['python3', args['config']])
         else:
-            call(['python3', os.path.join(dir_path, 'conf2orgs.py')])
+            call(['python3', os.path.join(dir_path, 'conf/2orgs.py')])
     else:
-        print('Use existing configuration in /substra/conf/conf.json', flush=True)
+        print(f'Use existing configuration in {SUBSTRA_PATH}/conf/conf.json', flush=True)
 
     conf = json.load(open(conf_path, 'r'))
 
@@ -492,8 +554,11 @@ if __name__ == '__main__':
 
     print('', flush=True)
 
+    for org in conf['orgs']:
+        create_directory(f"{SUBSTRA_PATH}/dryrun/{org['name']}")
+
     for org in conf['orgs'] + conf['orderers']:
-        create_directory('/substra/data/orgs/%s' % org['name'])
-        create_directory('/substra/conf/%s' % org['name'])
+        create_directory(f"{SUBSTRA_PATH}/data/orgs/{org['name']}")
+        create_directory(f"{SUBSTRA_PATH}/conf/{org['name']}")
 
     start(conf, conf_path, args['fixtures'])

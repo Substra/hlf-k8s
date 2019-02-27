@@ -23,7 +23,6 @@
 # blocks. The orderer also has the MSPs for all members of each channel / consortium as well.
 
 import json
-import os
 from shutil import copyfile
 from subprocess import call
 from util import genTLSCert, create_directory
@@ -32,12 +31,11 @@ conf_path = '/substra/conf/conf.json'
 
 conf = json.load(open(conf_path, 'r'))
 
+
 if __name__ == '__main__':
-    org_name = os.environ['ORG']
-    org = [x for x in conf['orgs'] if x['name'] == org_name][0]
-    admin = org['users']['admin']
+    admin = conf['users']['admin']
     org_admin_msp_dir = admin['home'] + '/msp'
-    peer = org['peers'][int(os.environ['PEER_INDEX'])]
+    peer = conf['peer']
 
     # remove ugly sample files defined here https://github.com/hyperledger/fabric/tree/master/sampleconfig
     # except core.yaml from binded volume
@@ -51,14 +49,14 @@ if __name__ == '__main__':
     enrollment_url = 'https://%(name)s:%(pass)s@%(host)s:%(port)s' % {
         'name': peer['name'],
         'pass': peer['pass'],
-        'host': org['ca']['host'],
-        'port': org['ca']['port']
+        'host': conf['ca']['host'],
+        'port': conf['ca']['port']
     }
 
     create_directory(peer['tls']['dir'])
 
     # Generate server TLS cert and key pair in container
-    tlsdir = org['core']['docker']['peer_home'] + '/tls'
+    tlsdir = conf['core']['docker']['peer_home'] + '/tls'
     create_directory(tlsdir)
     genTLSCert(peer['host'],
                peer['tls']['serverCert'],
@@ -78,21 +76,21 @@ if __name__ == '__main__':
     call(['fabric-ca-client',
           'enroll', '-d',
           '-u', enrollment_url,
-          '-M', org['core']['docker']['msp_config_path']])
+          '-M', conf['core']['docker']['msp_config_path']])
 
     # copy the admincerts from the admin user for being able to install chaincode
     # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
     # https://lists.hyperledger.org/g/fabric/topic/17549225#1250
     # https://github.com/hyperledger/fabric-sdk-go/blob/master/internal/github.com/hyperledger/fabric/msp/mspimpl.go#L460
     # https://jira.hyperledger.org/browse/FAB-3840
-    dst_ca_dir = org['core']['docker']['msp_config_path'] + '/admincerts/'
+    dst_ca_dir = conf['core']['docker']['msp_config_path'] + '/admincerts/'
     create_directory(dst_ca_dir)
     copyfile(org_admin_msp_dir + '/signcerts/cert.pem', dst_ca_dir + '%s-cert.pem' % admin['name'])
 
     # Start the peer
     print('Starting peer \'%(CORE_PEER_ID)s\' with MSP at \'%(CORE_PEER_MSPCONFIGPATH)s\'' % {
         'CORE_PEER_ID': peer['host'],
-        'CORE_PEER_MSPCONFIGPATH': org['core']['docker']['msp_config_path']
+        'CORE_PEER_MSPCONFIGPATH': conf['core']['docker']['msp_config_path']
     }, flush=True)
     call('env | grep CORE', shell=True)
     call(['peer', 'node', 'start'])
