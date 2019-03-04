@@ -2,5 +2,3 @@
 *.pyc
 docker-compose.yml
 docker-compose-dynamic.yaml
-data
-conf
