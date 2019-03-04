@@ -159,7 +159,9 @@ def create_orderer_config(conf):
         yaml_data['General']['TLS']['Certificate'] = f"{orderer['home']}/tls/{orderer['tls']['cert']}"
         yaml_data['General']['TLS']['PrivateKey'] = f"{orderer['home']}/tls/{orderer['tls']['key']}"
         yaml_data['General']['TLS']['Enabled'] = 'true'
-        yaml_data['General']['TLS']['ClientAuthRequired'] = 'false' # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying from the py sdk
+        # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
+        # from the py sdk if peer clientCert/clientKey is not set correctly
+        yaml_data['General']['TLS']['ClientAuthRequired'] = 'true'
         yaml_data['General']['TLS']['RootCAs'] = [orderer['tls']['certfile']]
         yaml_data['General']['TLS']['ClientRootCAs'] = [orderer['tls']['certfile']]
 
