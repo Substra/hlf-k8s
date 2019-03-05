@@ -16,22 +16,7 @@ This project is developed under the Apache License, Version 2.0 (Apache-2.0), lo
 
 ## Launch
 
-### get docker images
-
-From version 1.3, `fabric-ca-*` images are no more available in the hyperledger dockerhub.
-You now need to build them yourself. And to do that you need to have go installed.
-
-```bash
-$> cd /tmp && wget https://dl.google.com/go/go1.11.4.linux-amd64.tar.gz && tar -C /usr/local -xzf go1.11.4.linux-amd64.tar.gz && echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc && source ~/.bashrc && cd -
-$> go version
-
-```
-
-`fabric-ca` has been added as a submodule of this project. For building these images, run:
-
-```bash
-$> cd fabric-ca && git submodule init && git submodule update && sudo make docker-all && cd -
-```
+### Bootstrap
 
 Run the `bootstrap.sh` script.  
 :warning: If you are on linux and want to play with the substrabac projects, please read its documentation first. 

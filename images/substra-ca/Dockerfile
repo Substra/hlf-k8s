@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-FROM hyperledger/fabric-ca:latest
+FROM hyperledger/fabric-ca:1.3.0
 
 COPY ./start-root-ca.py /etc/hyperledger/
 
