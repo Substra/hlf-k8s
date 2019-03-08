@@ -136,7 +136,7 @@ def create_core_peer_config(conf):
 
             yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
             yaml_data['peer']['gossip']['orgLeader'] = 'false'
-            yaml_data['peer']['gossip']['externalEndpoint'] = f"{peer['host']}:{peer['port']}",
+            yaml_data['peer']['gossip']['externalEndpoint'] = f"{peer['host']}:{peer['port']}"
             yaml_data['peer']['gossip']['skipHandshake'] = 'true'
 
             yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
