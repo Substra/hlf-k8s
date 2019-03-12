@@ -27,11 +27,13 @@ if __name__ == '__main__':
     }
 
     # Generate server TLS cert and key pair
-    tlsdir = conf['home'] + '/tls'
+    tlsdir = conf['core']['host'] + '/tls'
     create_directory(tlsdir)
+    tlsdockerdir = conf['core']['docker'] + '/tls'
+    create_directory(tlsdockerdir)
     genTLSCert(conf['host'],
-               tlsdir + '/' + conf['tls']['cert'],
-               tlsdir + '/' + conf['tls']['key'],
+               conf['tls']['cert'],
+               conf['tls']['key'],
                tlsdir + '/' + conf['tls']['ca'],
                enrollment_url)
 

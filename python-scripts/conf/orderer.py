@@ -11,14 +11,18 @@ orderer = {
     'ca-server-config-path': '/substra/conf/orderer/fabric-ca-server-config.yaml',
     'ca-client-config-path': '/substra/conf/orderer/fabric-ca-client-config.yaml',
     'config-path': '/substra/conf/orderer/orderer.yaml',
+    'core': {
+        'docker': '/etc/hyperledger/fabric/',
+        'host': '/substra/data/orgs/orderer',
+    },
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a
         # example file with this name is already present in the docker
         # image, do not forget to remove these examples files in your
         # docker CMD overriding if naming the same way
         'certfile': '/substra/data/orgs/orderer/tls-ca-cert.pem',
-        'key': 'server.key',
-        'cert': 'server.crt',
+        'key': '/substra/data/orgs/orderer/tls/server.key',
+        'cert': '/substra/data/orgs/orderer/tls/server.crt',
         # will be the same as certfile normally, used for explicitely
         # decoupling cert INSIDE container
         'ca': 'ca.pem',

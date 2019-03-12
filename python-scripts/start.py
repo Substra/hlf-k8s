@@ -156,14 +156,14 @@ def create_orderer_config(conf):
         yaml_data = load(stream, Loader=Loader)
 
         # override template here
-        yaml_data['General']['TLS']['Certificate'] = f"{orderer['home']}/tls/{orderer['tls']['cert']}"
-        yaml_data['General']['TLS']['PrivateKey'] = f"{orderer['home']}/tls/{orderer['tls']['key']}"
+        yaml_data['General']['TLS']['Certificate'] = orderer['tls']['cert']
+        yaml_data['General']['TLS']['PrivateKey'] = orderer['tls']['key']
         yaml_data['General']['TLS']['Enabled'] = 'true'
         # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
         # from the py sdk if peer clientCert/clientKey is not set correctly
         yaml_data['General']['TLS']['ClientAuthRequired'] = 'true'
-        yaml_data['General']['TLS']['RootCAs'] = [orderer['tls']['certfile']]
-        yaml_data['General']['TLS']['ClientRootCAs'] = [orderer['tls']['certfile']]
+        yaml_data['General']['TLS']['RootCAs'] = [orderer['ca']['certfile']]
+        yaml_data['General']['TLS']['ClientRootCAs'] = [orderer['ca']['certfile']]
 
         yaml_data['General']['ListenAddress'] = '0.0.0.0'
         yaml_data['General']['GenesisMethod'] = 'file'
@@ -405,7 +405,7 @@ def create_fabric_ca_orderer_config(conf):
         filename = f"{SUBSTRA_PATH}/conf/{orderer['name']}/conf.json"
         orderer_conf = {}
         for k, v in orderer.items():
-            if k in ('users', 'ca', 'tls', 'home', 'local_msp_dir', 'host', 'broadcast_dir'):
+            if k in ('users', 'ca', 'tls', 'home', 'local_msp_dir', 'host', 'core', 'broadcast_dir'):
                 if k == 'users':
                     orderer_conf[k] = {k: v for k, v in v.items() if k == 'admin'}
                 else:
