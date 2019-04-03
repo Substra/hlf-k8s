@@ -284,7 +284,7 @@ def queryChaincodeFromFirstPeerFirstOrg(conf):
     while int(time.time()) - starttime < 15:
         call(['sleep', '1'])
         data = chainCodeQueryWith(conf,
-                                  '{"Args":["queryChallenges"]}',
+                                  '{"Args":["queryObjectives"]}',
                                   org,
                                   peer)
         # data should be null
