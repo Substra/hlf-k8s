@@ -413,6 +413,7 @@ def create_fabric_ca_orderer_config(conf):
 
 
 def create_substrabac_config(conf):
+    orderer = conf['orderers'][0]
     for org in conf['orgs']:
         dir_path = f"{SUBSTRA_PATH}/conf/{org['name']}/substrabac"
         create_directory(dir_path)

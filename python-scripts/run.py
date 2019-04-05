@@ -109,6 +109,7 @@ def installChainCode(conf, org, peer):
     org_admin_msp_dir = org_admin_home + '/msp'
 
     chaincode_name = conf['misc']['chaincode_name']
+    chaincode_version = conf['misc']['chaincode_version']
 
     print('Installing chaincode on %(peer_host)s ...' % {'peer_host': peer['host']}, flush=True)
 
@@ -118,7 +119,7 @@ def installChainCode(conf, org, peer):
     call(['peer',
           'chaincode', 'install',
           '-n', chaincode_name,
-          '-v', '1.0',
+          '-v', chaincode_version,
           '-p', 'github.com/hyperledger/chaincode/'])
 
     # clean env variables
@@ -207,7 +208,7 @@ def instanciateChainCode(conf, args, org, peer):
           '--logging-level', 'DEBUG',
           '-C', conf['misc']['channel_name'],
           '-n', conf['misc']['chaincode_name'],
-          '-v', '1.0',
+          '-v', conf['misc']['chaincode_version'],
           '-c', args,
           '-P', policy,
           '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},

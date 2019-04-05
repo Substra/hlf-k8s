@@ -2,6 +2,7 @@ misc = {
     'channel_name': 'mychannel',
     'channel_block': '/substra/data/mychannel.block',
     'chaincode_name': 'mycc',
+    'chaincode_version': '1.0',
     'genesis_bloc_file': '/substra/data/genesis.block',
     'channel_tx_file': '/substra/data/channel.tx',
     'configtx-config-path': '/substra/data/configtx.yaml',
