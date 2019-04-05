@@ -31,25 +31,6 @@ def registerUsers(conf):
         configLocalMSP(org, 'user')
 
 
-def generateChannelArtifacts(conf):
-    for org in conf['orgs']:
-        print('Generating anchor peer update transaction for %(org_name)s at %(anchor_tx_file)s' % {
-            'org_name': org['name'],
-            'anchor_tx_file': org['anchor_tx_file']
-        }, flush=True)
-
-        call(['configtxgen',
-              '-profile', 'OrgsChannel',
-              '-outputAnchorPeersUpdate', org['anchor_tx_file'],
-              '-channelID', conf['misc']['channel_name'],
-              '-asOrg', org['name']])
-
-
-def generateChannelUpdate():
-
-    call(['sh', '/scripts/add-org.sh'])
-
-
 if __name__ == '__main__':
 
     conf_path = '/substra/conf/conf-add.json'
@@ -58,8 +39,6 @@ if __name__ == '__main__':
     conf['orderers'] = []  # Hack for setup
     registerIdentities(conf)
     registerUsers(conf)
-    generateChannelArtifacts(conf)
-    generateChannelUpdate()
 
-    print('Finished building channel artifacts', flush=True)
+    print('Finished setup registering.', flush=True)
     call(['touch', conf['misc']['setup_success_file']])
