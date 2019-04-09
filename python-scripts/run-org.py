@@ -2,6 +2,7 @@ from run import createChannel, peersJoinChannel, updateAnchorPeers, installChain
 
 from run_add import generateChannelUpdate, upgradeChainCode
 import glob
+import os
 import json
 from subprocess import call
 
@@ -67,14 +68,14 @@ if __name__ == "__main__":
 
     conf = json.load(open(conf_path, 'r'))
 
-    print([file_path
-           for file_path in glob.glob('/substra/conf/conf-*.json')
-           if 'init' not in file_path and 'org' not in file_path])
+    org_name = conf['orgs'][0]['name']
 
+    files = glob.glob('/substra/conf/conf-*.json')
+    files.sort(key=os.path.getmtime)
     confs = [json.load(open(file_path, 'r'))
-             for file_path in glob.glob('/substra/conf/conf-*.json')
-             if 'init' not in file_path and 'org' not in file_path]
-    if len(confs) == 1:
+             for file_path in files
+             if 'init' not in file_path and 'org' not in file_path and org_name not in file_path]
+    if not confs:
         run(conf)
     else:
         conf_global = confs[0]
