@@ -20,9 +20,11 @@ def clean_env_variables():
     del os.environ['FABRIC_CFG_PATH']
     del os.environ['CORE_PEER_MSPCONFIGPATH']
 
+
 # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
 # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
 def createChannel(conf, org, peer):
+
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
     orderer = conf['orderers'][0]

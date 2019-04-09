@@ -171,7 +171,7 @@ def create_orderer_config(conf):
 
         yaml_data['Debug']['BroadcastTraceDir'] = orderer['broadcast_dir']
 
-        filename = org['config-path']
+        filename = orderer['config-path']
         with open(filename, 'w+') as f:
             f.write(dump(yaml_data, default_flow_style=False))
 

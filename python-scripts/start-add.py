@@ -74,7 +74,7 @@ def generate_docker_compose_file(conf, conf_path):
 
                                         'run-add': {'container_name': 'run-add',
                                                     'image': 'substra/substra-ca-tools',
-                                                    'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run-add.py 2>&1 ; sleep 9999 | tee {SUBSTRA_PATH}/data/log/run.log"',
+                                                    'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run_add.py 2>&1 ; sleep 9999 | tee {SUBSTRA_PATH}/data/log/run.log"',
                                                     'environment': ['GOPATH=/opt/gopath',
                                                                     f'FABRIC_CFG_PATH={SUBSTRA_PATH}/data'],
                                                     'volumes': ['/var/run/docker.sock:/var/run/docker.sock',

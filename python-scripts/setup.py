@@ -47,6 +47,7 @@ def configLocalMSP(org, user_name):
         # will copy cert.pem from <user>/msp/signcerts to <user>/msp/admincerts
         copytree(org_user_msp_dir + '/signcerts/', org_user_msp_dir + '/admincerts')
 
+
 # create ca-cert.pem file
 def enrollCABootstrapAdmin(org):
     waitPort('%(CA_NAME)s to start' % {'CA_NAME': org['ca']['name']},
