@@ -49,7 +49,7 @@ def getChannelBlock(conf, org, peer):
     clean_env_variables()
 
 
-def getChannelConfigBlock(conf, org, peer):
+def getChannelConfigBlock(conf, org, peer, block_name):
     # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     org_admin_home = org['users']['admin']['home']
@@ -64,7 +64,7 @@ def getChannelConfigBlock(conf, org, peer):
         'channel',
         'fetch',
         'config',
-        'mychannelconfig.block',
+        block_name,
         '--logging-level=DEBUG',
         '-c', conf['misc']['channel_name'],
         '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
@@ -129,14 +129,15 @@ def createConfig(org):
     return org_config
 
 
-def createUpdateProposal(org, org_config, conf):
+def createUpdateProposal(org, org_config, conf, input_block, channel_name):
     call(['configtxlator',
           'proto_decode',
-          '--input', 'mychannelconfig.block',
+          '--input', input_block,
           '--type', 'common.Block',
           '--output', 'mychannelconfig.json'])
 
     my_channel_config = json.load(open('mychannelconfig.json', 'r'))
+
     # Keep useful part
     my_channel_config = my_channel_config['data']['data'][0]['payload']['data']['config']
     json.dump(my_channel_config, open('mychannelconfig.json', 'w'))
@@ -173,7 +174,7 @@ def createUpdateProposal(org, org_config, conf):
 
     # Prepare proposal
     update = json.load(open('compute_update.json', 'r'))
-    proposal = {'payload': {'header': {'channel_header': {'channel_id': 'mychannel',
+    proposal = {'payload': {'header': {'channel_header': {'channel_id': conf['misc']['channel_name'],
                                                           'type': 2}},
                             'data': {'config_update': update}}}
 
@@ -185,10 +186,10 @@ def createUpdateProposal(org, org_config, conf):
           '--output', 'proposal.pb'])
 
 
-def signAndPushUpdateProposal(conf):
+def signAndPushUpdateProposal(conf, org_type='orgs'):
     orderer = conf['orderers'][0]
 
-    for org in conf['orgs']:
+    for org in conf[org_type]:
 
         org_admin_home = org['users']['admin']['home']
         org_admin_msp_dir = org_admin_home + '/msp'
@@ -247,9 +248,10 @@ def generateChannelUpdate(conf, conf_global):
         org_config = createConfig(org)
         getChannelConfigBlock(conf_global,
                               conf_global['orgs'][0],
-                              conf_global['orgs'][0]['peers'][0])
+                              conf_global['orgs'][0]['peers'][0],
+                              'mychannelconfig.block')
 
-        createUpdateProposal(org, org_config, conf)
+        createUpdateProposal(org, org_config, conf, 'mychannelconfig.block')
         signAndPushUpdateProposal(conf_global)
 
 

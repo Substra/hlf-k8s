@@ -141,10 +141,10 @@ def start(conf, conf_path):
                                                                         'configtx-init.yaml')
 
     # We should do an update of orderer configtx instead of providing one org for consortium
-    # create_configtx(conf_init,
-    #                 config_filepath)
-    create_configtx({**conf_init, **{'orgs': conf['orgs'][0:1]}},
+    create_configtx(conf_init,
                     config_filepath)
+    # create_configtx({**conf_init, **{'orgs': conf['orgs'][0:1]}},
+    #                 config_filepath)
 
     print('\tCreating config for each orderer', flush=True)
     create_orderer_config(conf_init)
@@ -155,7 +155,6 @@ def start(conf, conf_path):
     launch(dc_init, conf_init)
 
     # Prepare each org
-    orgs_inplace = []
     for org in conf['orgs']:
 
         conf_org = {'misc': dict(conf['misc']),
@@ -198,6 +197,8 @@ def start(conf, conf_path):
         dc_org = generate_docker_compose_org(org, SUBSTRA_PATH, SUBSTRA_NETWORK)
         stop(dc_org['path'])
         launch(dc_org, conf_org)
+
+        break
 
 
 def remove_all():

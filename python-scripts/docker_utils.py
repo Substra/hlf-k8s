@@ -26,7 +26,7 @@ def generate_docker_compose_org(org, substra_path, network):
 
                                         'run': {'container_name': f'run-{org["name"]}',
                                                 'image': 'substra/substra-ca-tools',
-                                                'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run-org.py 2>&1 | tee {substra_path}/data/log/run-{org["name"]}.log"',
+                                                'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run-org.py 2>&1 ; sleep 9999 | tee {substra_path}/data/log/run-{org["name"]}.log"',
                                                 'environment': ['GOPATH=/opt/gopath',
                                                                 f'FABRIC_CFG_PATH={substra_path}/data'],
                                                 'volumes': ['/var/run/docker.sock:/var/run/docker.sock',

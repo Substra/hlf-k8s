@@ -175,6 +175,42 @@ def create_orderer_config(conf):
         with open(filename, 'w+') as f:
             f.write(dump(yaml_data, default_flow_style=False))
 
+        stream = open(os.path.join(dir_path, '../templates/core.yaml'), 'r')
+        yaml_data = load(stream, Loader=Loader)
+
+        # override template here
+
+        yaml_data['peer']['id'] = orderer['host']
+        yaml_data['peer']['address'] = f"{orderer['host']}:{orderer['port']}"
+        yaml_data['peer']['localMspId'] = orderer['msp_id']
+        yaml_data['peer']['mspConfigPath'] = orderer['admin_home'] + '/msp'
+
+        yaml_data['peer']['tls']['cert']['file'] = orderer['tls']['cert']
+        yaml_data['peer']['tls']['key']['file'] = orderer['tls']['key']
+        # yaml_data['peer']['tls']['clientCert']['file'] = peer['tls']['clientCert']
+        # yaml_data['peer']['tls']['clientKey']['file'] = peer['tls']['clientKey']
+        yaml_data['peer']['tls']['enabled'] = 'true'
+        # the same as peer['tls']['serverCa'] but this one is inside the container
+        yaml_data['peer']['tls']['rootcert']['file'] = orderer['ca']['certfile']
+        # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
+        # from the py sdk if peer clientCert/clientKey is not set correctly
+        yaml_data['peer']['tls']['clientAuthRequired'] = 'false'
+        yaml_data['peer']['tls']['clientRootCAs'] = [orderer['ca']['certfile']]
+
+        yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
+        yaml_data['peer']['gossip']['orgLeader'] = 'false'
+        yaml_data['peer']['gossip']['externalEndpoint'] = f"{orderer['host']}:{orderer['port']}"
+        yaml_data['peer']['gossip']['skipHandshake'] = 'true'
+
+        yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
+        yaml_data['vm']['docker']['hostConfig']['NetworkMode'] = 'net_substra'
+
+        yaml_data['logging']['level'] = LOGGING_LEVEL[4]  # info, needed for substrabac
+
+        filename = f"/substra/conf/{orderer['name']}/core.yaml"
+        with open(filename, 'w+') as f:
+            f.write(dump(yaml_data, default_flow_style=False))
+
 
 def generate_docker_compose_file(conf, conf_path):
     try:

@@ -3,7 +3,7 @@ import os
 # from hfc.fabric_ca.caservice import ca_service
 from subprocess import call
 
-from setup import registerPeerIdentities, registerUsers, generateChannelArtifacts
+from setup import registerPeerIdentities, registerUsers
 
 
 if __name__ == '__main__':
@@ -15,11 +15,5 @@ if __name__ == '__main__':
     registerPeerIdentities(conf)
     registerUsers(conf)
 
-    conf_path = '/substra/conf/conf-org.json'
-    conf = json.load(open(conf_path, 'r'))
-
-    if not os.path.exists(conf['misc']['channel_tx_file']):
-        generateChannelArtifacts(conf)
-
-    print('Finished building channel artifacts', flush=True)
+    print('Finished setup', flush=True)
     call(['touch', conf['misc']['setup_success_file']])
