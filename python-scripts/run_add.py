@@ -161,7 +161,7 @@ def createUpdateProposal(org, org_config, conf, input_block, channel_name):
 
     call(['configtxlator',
           'compute_update',
-          '--channel_id', conf['misc']['channel_name'],
+          '--channel_id', channel_name,
           '--original', 'mychannelconfig.pb',
           '--updated', 'mychannelconfigupdate.pb',
           '--output', 'compute_update.pb'])
@@ -174,7 +174,7 @@ def createUpdateProposal(org, org_config, conf, input_block, channel_name):
 
     # Prepare proposal
     update = json.load(open('compute_update.json', 'r'))
-    proposal = {'payload': {'header': {'channel_header': {'channel_id': conf['misc']['channel_name'],
+    proposal = {'payload': {'header': {'channel_header': {'channel_id': channel_name,
                                                           'type': 2}},
                             'data': {'config_update': update}}}
 
@@ -251,7 +251,7 @@ def generateChannelUpdate(conf, conf_global):
                               conf_global['orgs'][0]['peers'][0],
                               'mychannelconfig.block')
 
-        createUpdateProposal(org, org_config, conf, 'mychannelconfig.block')
+        createUpdateProposal(org, org_config, conf, 'mychannelconfig.block', conf['misc']['channel_name'])
         signAndPushUpdateProposal(conf_global)
 
 

@@ -183,6 +183,7 @@ def generateChannelArtifacts(conf):
     # configtxgen -profile OrgsOrdererGenesis -outputBlock /substra/data/genesis.block
     call(['configtxgen',
           '-profile', 'OrgsOrdererGenesis',
+          '-channelID', 'substrasystemchannel',
           '-outputBlock', conf['misc']['genesis_bloc_file']])
 
     print('Generating channel configuration transaction at %(channel_tx_file)s' % {

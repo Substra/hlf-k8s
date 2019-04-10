@@ -187,14 +187,14 @@ def create_orderer_config(conf):
 
         yaml_data['peer']['tls']['cert']['file'] = orderer['tls']['cert']
         yaml_data['peer']['tls']['key']['file'] = orderer['tls']['key']
-        # yaml_data['peer']['tls']['clientCert']['file'] = peer['tls']['clientCert']
-        # yaml_data['peer']['tls']['clientKey']['file'] = peer['tls']['clientKey']
+        yaml_data['peer']['tls']['clientCert']['file'] = orderer['tls']['clientCert']
+        yaml_data['peer']['tls']['clientKey']['file'] = orderer['tls']['clientKey']
         yaml_data['peer']['tls']['enabled'] = 'true'
         # the same as peer['tls']['serverCa'] but this one is inside the container
         yaml_data['peer']['tls']['rootcert']['file'] = orderer['ca']['certfile']
         # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
         # from the py sdk if peer clientCert/clientKey is not set correctly
-        yaml_data['peer']['tls']['clientAuthRequired'] = 'false'
+        yaml_data['peer']['tls']['clientAuthRequired'] = 'true'
         yaml_data['peer']['tls']['clientRootCAs'] = [orderer['ca']['certfile']]
 
         yaml_data['peer']['gossip']['useLeaderElection'] = 'true'

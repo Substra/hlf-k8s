@@ -1,5 +1,4 @@
 import json
-import os
 # from hfc.fabric_ca.caservice import ca_service
 from subprocess import call
 

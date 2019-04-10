@@ -37,6 +37,15 @@ if __name__ == '__main__':
                tlsdir + '/' + conf['tls']['ca'],
                enrollment_url)
 
+    create_directory(conf['tls']['dir'])
+    # Generate client TLS cert and key pair for the orderer CLI (will be used by external tools)
+    # in a binded volume
+    genTLSCert(conf['host'],
+               conf['tls']['clientCert'],
+               conf['tls']['clientKey'],
+               conf['tls']['clientCa'],
+               enrollment_url)
+
     # Enroll again to get the orderer's enrollment certificate for getting signcert and being able to launch orderer
     call(['fabric-ca-client',
           'enroll', '-d',

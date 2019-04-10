@@ -26,6 +26,10 @@ orderer = {
         # will be the same as certfile normally, used for explicitely
         # decoupling cert INSIDE container
         'ca': 'ca.pem',
+        'dir': '/substra/data/orgs/orderer/tls/',
+        'clientCert': '/substra/data/orgs/orderer/tls/cli-client.crt',
+        'clientKey': '/substra/data/orgs/orderer/tls/cli-client.key',
+        'clientCa': '/substra/data/orgs/orderer/tls/cli-client.pem',
     },
     'ca': {
         'name': 'rca-orderer',

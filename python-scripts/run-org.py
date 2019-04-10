@@ -66,6 +66,7 @@ def run(conf):
 
 def createSystemUpdateProposal(conf, old_block, new_block, channel_name):
 
+    # To DO : improve proposal like link below (fetch genesis block and update it)
     # https://console.bluemix.net/docs/services/blockchain/howto/orderer_operate.html?locale=en#orderer-operate
 
     for block in [old_block, new_block]:
@@ -130,11 +131,11 @@ def signAndPushSystemUpdateProposal(conf, channel_name):
           '-c', channel_name,
           '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
           '--tls',
-          # '--clientauth',
+          '--clientauth',
           '--cafile', orderer['ca']['certfile'],
           # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          # '--keyfile', peer['tls']['clientKey'],
-          # '--certfile', peer['tls']['clientCert']
+          '--keyfile', orderer['tls']['clientKey'],
+          '--certfile', orderer['tls']['clientCert']
           ])
 
     # clean env variables
@@ -165,10 +166,10 @@ if __name__ == "__main__":
         createSystemUpdateProposal(conf,
                                    '/substra/data/genesis_init.block',
                                    '/substra/data/genesis.block',
-                                   'testchainid')
-        signAndPushSystemUpdateProposal(conf, 'testchainid')
+                                   'substrasystemchannel')
+        signAndPushSystemUpdateProposal(conf, 'substrasystemchannel')
 
-        # run(conf)
+        run(conf)
     else:
         conf_global = confs[0]
         for conf_org in confs[1:]:
