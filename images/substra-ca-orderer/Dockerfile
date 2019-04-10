@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-FROM hyperledger/fabric-orderer:1.4
+FROM hyperledger/fabric-orderer:1.4.1-rc1
 
 RUN apt-get update
 RUN apt-get install -y curl netcat
