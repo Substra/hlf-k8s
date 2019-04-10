@@ -112,19 +112,20 @@ def upgradeChainCode(conf, args, org, peer):
     clean_env_variables()
 
 
-def createConfig(org):
+def createConfig(org, with_anchor=True):
 
     org_config = check_output(['configtxgen',
                                '-printOrg', org['name']])
 
     org_config = json.loads(org_config.decode('utf-8'))
 
-    # Add Anchor peer
-    peer = org['peers'][0]
-    org_config['values']['AnchorPeers'] = {'mod_policy': 'Admins',
-                                           'value': {'anchor_peers': [{'host': peer['host'],
-                                                                       'port': peer['port']}]},
-                                           'version': '0'}
+    if with_anchor:
+        # Add Anchor peer
+        peer = org['peers'][0]
+        org_config['values']['AnchorPeers'] = {'mod_policy': 'Admins',
+                                               'value': {'anchor_peers': [{'host': peer['host'],
+                                                                           'port': peer['port']}]},
+                                               'version': '0'}
 
     return org_config
 

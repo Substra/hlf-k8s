@@ -173,18 +173,6 @@ def registerUsers(conf):
 
 
 def generateChannelArtifacts(conf):
-    print('Generating orderer genesis block at %(genesis_bloc_file)s' % {
-        'genesis_bloc_file': conf['misc']['genesis_bloc_file']
-    }, flush=True)
-
-    # Note: For some unknown reason (at least for now) the block file can't be
-    # named orderer.genesis.block or the orderer will fail to launch
-
-    # configtxgen -profile OrgsOrdererGenesis -outputBlock /substra/data/genesis.block
-    call(['configtxgen',
-          '-profile', 'OrgsOrdererGenesis',
-          '-channelID', 'substrasystemchannel',
-          '-outputBlock', conf['misc']['genesis_bloc_file']])
 
     print('Generating channel configuration transaction at %(channel_tx_file)s' % {
         'channel_tx_file': conf['misc']['channel_tx_file']}, flush=True)
@@ -207,6 +195,21 @@ def generateChannelArtifacts(conf):
               '-asOrg', org['name']])
 
 
+def generateGenesis(conf):
+    print('Generating orderer genesis block at %(genesis_bloc_file)s' % {
+        'genesis_bloc_file': conf['misc']['genesis_bloc_file']
+    }, flush=True)
+
+    # Note: For some unknown reason (at least for now) the block file can't be
+    # named orderer.genesis.block or the orderer will fail to launch
+
+    # configtxgen -profile OrgsOrdererGenesis -outputBlock /substra/data/genesis.block
+    call(['configtxgen',
+          '-profile', 'OrgsOrdererGenesis',
+          '-channelID', 'substrasystemchannel',
+          '-outputBlock', conf['misc']['genesis_bloc_file']])
+
+
 if __name__ == '__main__':
 
     conf_path = '/substra/conf/conf.json'
@@ -214,6 +217,7 @@ if __name__ == '__main__':
 
     registerIdentities(conf)
     registerUsers(conf)
+    generateGenesis(conf)
     generateChannelArtifacts(conf)
     print('Finished building channel artifacts', flush=True)
     call(['touch', conf['misc']['setup_success_file']])

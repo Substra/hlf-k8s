@@ -1,6 +1,6 @@
 from run import createChannel, peersJoinChannel, updateAnchorPeers, installChainCodeOnPeers, instanciateChaincode, waitForInstantiation, queryChaincodeFromFirstPeerFirstOrg
 from setup import generateChannelArtifacts
-from run_add import generateChannelUpdate, upgradeChainCode, set_env_variables, clean_env_variables
+from run_add import generateChannelUpdate, upgradeChainCode, set_env_variables, clean_env_variables, createConfig
 import glob
 import os
 import json
@@ -64,34 +64,49 @@ def run(conf):
         call(['touch', conf['misc']['run_fail_file']])
 
 
-def createSystemUpdateProposal(conf, old_block, new_block, channel_name):
+def createSystemUpdateProposal(conf, channel_name):
 
     # To DO : improve proposal like link below (fetch genesis block and update it)
     # https://console.bluemix.net/docs/services/blockchain/howto/orderer_operate.html?locale=en#orderer-operate
 
-    for block in [old_block, new_block]:
-        call(['configtxlator',
-              'proto_decode',
-              '--input', block,
-              '--type', 'common.Block',
-              '--output', 'system_channelconfig.json'])
+    org = conf['orgs'][0]
 
-        system_channel_config = json.load(open('system_channelconfig.json', 'r'))
+    org_config = createConfig(org, False)
 
-        # Keep useful part
-        system_channel_config = system_channel_config['data']['data'][0]['payload']['data']['config']
-        json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
-        call(['configtxlator',
-              'proto_encode',
-              '--input', 'system_channelconfig.json',
-              '--type', 'common.Config',
-              '--output', block])
+    call(['configtxlator',
+          'proto_decode',
+          '--input', conf['misc']['genesis_bloc_file'],
+          '--type', 'common.Block',
+          '--output', 'system_channelconfig.json'])
+
+    system_channel_config = json.load(open('system_channelconfig.json', 'r'))
+
+    # Keep useful part
+    system_channel_config = system_channel_config['data']['data'][0]['payload']['data']['config']
+
+    json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
+
+    call(['configtxlator',
+          'proto_encode',
+          '--input', 'system_channelconfig.json',
+          '--type', 'common.Config',
+          '--output', 'systemchannelgenesis.block'])
+
+    system_channel_config['channel_group']['groups']['Consortiums']['groups']['SampleConsortium']['groups'][org['name']] = org_config
+
+    json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
+
+    call(['configtxlator',
+          'proto_encode',
+          '--input', 'system_channelconfig.json',
+          '--type', 'common.Config',
+          '--output', 'systemchannelupdate.block'])
 
     call(['configtxlator',
           'compute_update',
           '--channel_id', channel_name,
-          '--original', old_block,
-          '--updated', new_block,
+          '--original', 'systemchannelgenesis.block',
+          '--updated', 'systemchannelupdate.block',
           '--output', 'compute_update.pb'])
 
     call(['configtxlator',
@@ -103,7 +118,7 @@ def createSystemUpdateProposal(conf, old_block, new_block, channel_name):
     # Prepare proposal
     update = json.load(open('compute_update.json', 'r'))
 
-    print(json.dumps(update, indent=4))
+    # print(json.dumps(update, indent=4))
     proposal = {'payload': {'header': {'channel_header': {'channel_id': channel_name,
                                                           'type': 2}},
                             'data': {'config_update': update}}}
@@ -157,15 +172,8 @@ if __name__ == "__main__":
              if 'init' not in file_path and 'org' not in file_path and org_name not in file_path]
     if not confs:
 
-        os.rename('/substra/data/genesis.block', '/substra/data/genesis_init.block')
-
-        sleep(1)
-
-        generateChannelArtifacts(conf)  # Generate new genesis config_block
-
+        generateChannelArtifacts(conf)
         createSystemUpdateProposal(conf,
-                                   '/substra/data/genesis_init.block',
-                                   '/substra/data/genesis.block',
                                    'substrasystemchannel')
         signAndPushSystemUpdateProposal(conf, 'substrasystemchannel')
 
