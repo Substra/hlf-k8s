@@ -44,8 +44,7 @@ url:
 # Membership Service Provider (MSP) directory
 # This is useful when the client is used to enroll a peer or orderer, so
 # that the enrollment artifacts are stored in the format expected by MSP.
-mspdir:
-  msp
+mspdir: msp
 
 #############################################################################
 #    TLS section for secure socket connection
@@ -58,11 +57,11 @@ mspdir:
 #    is enabled on server
 #############################################################################
 tls:
-  # TLS for the server's listening port
+  # TLS section for secure socket connection
   certfiles:
   client:
-      certfile:
-      keyfile:
+    certfile:
+    keyfile:
 
 #############################################################################
 #  Certificate Signing Request section for generating the CSR for an
@@ -99,16 +98,19 @@ tls:
 #
 #############################################################################
 csr:
-   cn:
-   serialnumber:
-   names:
-      - C: FR
-        ST: "Loire-Atlantique"
-        L: Nantes
-        O: owkin
-        OU:
-   hosts:
-      - localhost
+  cn:
+  keyrequest:
+    algo: ecdsa
+    size: 256
+  serialnumber:
+  names:
+    - C: FR
+      ST: "Loire-Atlantique"
+      L: Nantes
+      O: owkin
+      OU:
+  hosts:
+    - localhost
 
 #############################################################################
 #  Registration section used to register a new identity with fabric-ca server
@@ -125,7 +127,7 @@ id:
   name:
   type:
   affiliation:
-  maxenrollments: -1
+  maxenrollments: 0
   attributes:
    # - name:
    #   value:
