@@ -66,16 +66,18 @@ def run(conf):
 
 def createSystemUpdateProposal(conf, channel_name):
 
-    # To DO : improve proposal like link below (fetch genesis block and update it)
     # https://console.bluemix.net/docs/services/blockchain/howto/orderer_operate.html?locale=en#orderer-operate
 
     org = conf['orgs'][0]
-
     org_config = createConfig(org, False)
+
+    system_channelblock = 'systemchannel.block'
+
+    getSystemChannelConfigBlock(conf, channel_name, system_channelblock)
 
     call(['configtxlator',
           'proto_decode',
-          '--input', conf['misc']['genesis_bloc_file'],
+          '--input', system_channelblock,
           '--type', 'common.Block',
           '--output', 'system_channelconfig.json'])
 
@@ -90,7 +92,7 @@ def createSystemUpdateProposal(conf, channel_name):
           'proto_encode',
           '--input', 'system_channelconfig.json',
           '--type', 'common.Config',
-          '--output', 'systemchannelgenesis.block'])
+          '--output', 'systemchannelold.block'])
 
     system_channel_config['channel_group']['groups']['Consortiums']['groups']['SampleConsortium']['groups'][org['name']] = org_config
 
@@ -105,7 +107,7 @@ def createSystemUpdateProposal(conf, channel_name):
     call(['configtxlator',
           'compute_update',
           '--channel_id', channel_name,
-          '--original', 'systemchannelgenesis.block',
+          '--original', 'systemchannelold.block',
           '--updated', 'systemchannelupdate.block',
           '--output', 'compute_update.pb'])
 
@@ -129,6 +131,36 @@ def createSystemUpdateProposal(conf, channel_name):
           '--input', 'proposal.json',
           '--type', 'common.Envelope',
           '--output', 'proposal.pb'])
+
+
+def getSystemChannelConfigBlock(conf, channel_name, block_name):
+    # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
+
+    orderer = conf['orderers'][0]
+    orderer_admin_home = orderer['users']['admin']['home']
+    orderer_admin_msp_dir = orderer_admin_home + '/msp'
+    orderer_core = '/substra/conf/%s' % orderer['name']
+
+    set_env_variables(orderer_core, orderer_admin_msp_dir)
+
+    call([
+        'peer',
+        'channel',
+        'fetch',
+        'config',
+        block_name,
+        '--logging-level=DEBUG',
+        '-c', channel_name,
+        '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
+        '--tls',
+        '--clientauth',
+        '--cafile', orderer['ca']['certfile'],
+        '--keyfile', orderer['tls']['clientKey'],
+        '--certfile', orderer['tls']['clientCert']
+    ])
+
+    # clean env variables
+    clean_env_variables()
 
 
 def signAndPushSystemUpdateProposal(conf, channel_name):
