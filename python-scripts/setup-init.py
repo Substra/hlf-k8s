@@ -66,8 +66,7 @@ if __name__ == '__main__':
     registerOrdererIdentities(conf)
     conf['orgs'] = []  # Hack for setup
     registerUsers(conf)
-    for orderer in conf['orderers']:
-        init(orderer)
+    init(conf['orderers'][0])
     generateGenesis(conf)
     print('Finished building channel artifacts', flush=True)
     call(['touch', conf['misc']['setup_success_file']])

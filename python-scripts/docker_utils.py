@@ -12,13 +12,15 @@ def generate_docker_compose_org(org, substra_path, network):
                                            'svc': []},
                       'substra_tools': {'setup': {'container_name': f'setup-{org["name"]}',
                                                   'image': 'substra/substra-ca-tools',
-                                                  'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup-org.py 2>&1| tee {substra_path}/data/log/setup-{org["name"]}.log"',
+                                                  'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup-org.py 2>&1 | tee {substra_path}/data/log/setup-{org["name"]}.log"',
                                                   'environment': ['FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server',
+                                                                  'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric/',
                                                                   f'FABRIC_CFG_PATH={substra_path}/data'],
                                                   'volumes': [f'{substra_path}/data:{substra_path}/data',
                                                               f'{substra_path}/conf:{substra_path}/conf',
                                                               './python-scripts:/scripts',
                                                               f'{substra_path}/data/configtx-{org["name"]}.yaml:{substra_path}/data/configtx.yaml',
+                                                              f"{substra_path}/conf/{org['name']}/fabric-ca-client-config.yaml:/etc/hyperledger/fabric/fabric-ca-client-config.yaml",
                                                               f"{substra_path}/conf/conf-{org['name']}.json:/{substra_path}/conf/conf-org.json"],
                                                   'networks': [network],
                                                   'depends_on': [],
@@ -70,24 +72,22 @@ def generate_docker_compose_org(org, substra_path, network):
                'restart': 'unless-stopped',
                'command': 'python3 start-peer.py 2>&1',
                'environment': [# https://medium.com/@Alibaba_Cloud/hyperledger-fabric-deployment-on-alibaba-cloud-environment-sigsegv-problem-analysis-and-solutions-9a708313f1a4
-                               'GODEBUG=netdns=go+1',
-                               'FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric/'],
+                               'GODEBUG=netdns=go+1'],
                'working_dir': '/etc/hyperledger/',
                'ports': [f"{peer['host_port']}:{peer['port']}",
                          f"{peer['host_event_port']}:{peer['event_port']}"],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': [f'{substra_path}/data:{substra_path}/data',
-                           f"{substra_path}/conf/{org['name']}/{peer['name']}/conf.json:{substra_path}/conf/conf.json",
+                           f"{substra_path}/data/orgs/{org['name']}/{peer['name']}/fabric/msp/:{org['core']['docker']['msp_config_path']}",
                            f"{substra_path}/backup/orgs/{org['name']}/{peer['name']}/:/var/hyperledger/production/",
-                           './python-scripts/util.py:/etc/hyperledger/util.py',
                            '/var/run/docker.sock:/host/var/run/docker.sock',
-                           f"{substra_path}/conf/{org['name']}/fabric-ca-client-config.yaml:/etc/hyperledger/fabric/fabric-ca-client-config.yaml",
                            f"{substra_path}/conf/{org['name']}/{peer['name']}/core.yaml:/etc/hyperledger/fabric/core.yaml",
                            ],
                'networks': [network],
                'depends_on': ['setup']}
 
         docker_compose['substra_tools']['run']['depends_on'].append(peer['host'])
+        docker_compose['substra_tools']['setup']['volumes'].append(f"{substra_path}/data/orgs/{org['name']}/{peer['name']}/fabric/msp/:{org['core']['docker']['msp_config_path']}/{peer['name']}",)
         docker_compose['substra_services']['svc'].append((peer['host'], svc))
 
         # Create all services along to conf
