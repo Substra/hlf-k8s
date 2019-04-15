@@ -1,18 +1,17 @@
 import json
-# from hfc.fabric_ca.caservice import ca_service
 from subprocess import call
 
-from setup import registerPeerIdentities, registerUsers
-from util import genTLSCert, create_directory
+from utils.setup_utils import registerPeerIdentities, registerUsers
+from utils.common_utils import genTLSCert, create_directory
 from shutil import copyfile
 
 
-def init(conf):
+def init(org_conf):
 
-    admin = conf['users']['admin']
+    admin = org_conf['users']['admin']
     org_admin_msp_dir = admin['home'] + '/msp'
 
-    for peer in conf['peers']:
+    for peer in org_conf['peers']:
 
         # remove ugly sample files defined here https://github.com/hyperledger/fabric/tree/master/sampleconfig
         # except core.yaml from binded volume
@@ -26,14 +25,14 @@ def init(conf):
         enrollment_url = 'https://%(name)s:%(pass)s@%(host)s:%(port)s' % {
             'name': peer['name'],
             'pass': peer['pass'],
-            'host': conf['ca']['host'],
-            'port': conf['ca']['port']
+            'host': org_conf['ca']['host'],
+            'port': org_conf['ca']['port']
         }
 
         create_directory(peer['tls']['dir'])
 
         # Generate server TLS cert and key pair in container
-        tlsdir = conf['core']['docker']['peer_home'] + '/tls'
+        tlsdir = org_conf['core']['docker']['peer_home'] + '/tls'
         create_directory(tlsdir)
         genTLSCert(peer['host'],
                    peer['tls']['serverCert'],
@@ -53,22 +52,21 @@ def init(conf):
         call(['fabric-ca-client',
               'enroll', '-d',
               '-u', enrollment_url,
-              '-M', conf['core']['docker']['msp_config_path'] + '/' + peer['name']])
+              '-M', org_conf['core']['docker']['msp_config_path'] + '/' + peer['name']])
 
         # copy the admincerts from the admin user for being able to install chaincode
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
         # https://lists.hyperledger.org/g/fabric/topic/17549225#1250
         # https://github.com/hyperledger/fabric-sdk-go/blob/master/internal/github.com/hyperledger/fabric/msp/mspimpl.go#L460
         # https://jira.hyperledger.org/browse/FAB-3840
-        dst_ca_dir = conf['core']['docker']['msp_config_path'] + '/' + peer['name'] + '/admincerts/'
+        dst_ca_dir = org_conf['core']['docker']['msp_config_path'] + '/' + peer['name'] + '/admincerts/'
         create_directory(dst_ca_dir)
         copyfile(org_admin_msp_dir + '/signcerts/cert.pem', dst_ca_dir + '%s-cert.pem' % admin['name'])
 
 
 if __name__ == '__main__':
 
-    conf_path = '/substra/conf/conf-org.json'
-    conf = json.load(open(conf_path, 'r'))
+    conf = json.load(open('/substra/conf/conf-org.json', 'r'))
 
     conf['orderers'] = []  # Hack for setup
     registerPeerIdentities(conf)

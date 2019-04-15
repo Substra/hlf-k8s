@@ -33,7 +33,7 @@ def revokeFabricUserAndGenerateCRL(org, username):
     call(['fabric-ca-client',
           'revoke', '-d',
           '-c', org['ca-client-config-path'],
-          '-M', org_admin_msp_dir, # override msp dir for not taking one from bootstrap admin, but from admin
+          '-M', org_admin_msp_dir,  # override msp dir for not taking one from bootstrap admin, but from admin
           '--revoke.name', username,
           '--gencrl'])
 

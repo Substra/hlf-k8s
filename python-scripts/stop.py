@@ -1,8 +1,11 @@
 import os
+import glob
 from subprocess import call
-from util import remove_chaincode_docker_containers, remove_chaincode_docker_images
+from utils.common_utils import remove_chaincode_docker_containers, remove_chaincode_docker_images
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
+from start import SUBSTRA_PATH
 
 
 def stop():
@@ -10,13 +13,12 @@ def stop():
     remove_chaincode_docker_containers()
     remove_chaincode_docker_images()
 
-    docker_compose_path = '../docker-compose.yaml'
+    # Stop all
+    docker_compose_paths = os.path.join(SUBSTRA_PATH, 'dockerfiles')
+    docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
 
-    if os.path.exists(os.path.join(dir_path, '../docker-compose-dynamic.yaml')):
-        docker_compose_path = '../docker-compose-dynamic.yaml'
-
-    if os.path.exists(docker_compose_path):
-        call(['docker-compose', '-f', os.path.join(dir_path, docker_compose_path), 'down', '--remove-orphans'])
+    for docker_compose_path in docker_compose_paths:
+        call(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
 
 
 if __name__ == "__main__":

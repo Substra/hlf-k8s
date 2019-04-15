@@ -6,6 +6,7 @@ import subprocess
 from conf2orgs import conf
 from subprocess import call, check_output, CalledProcessError
 
+
 def set_env_variables(fabric_cfg_path, msp_dir):
     os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
     os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
