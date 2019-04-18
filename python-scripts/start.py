@@ -14,7 +14,6 @@ except ImportError:
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-LOGGING_LEVEL = ['critical', 'error', 'warning', 'notice', 'info', 'debug']
 SUBSTRA_PATH = '/substra'
 
 
@@ -142,7 +141,6 @@ def create_core_peer_config(conf):
             yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
             yaml_data['vm']['docker']['hostConfig']['NetworkMode'] = 'net_substra'
 
-            yaml_data['logging']['level'] = LOGGING_LEVEL[4]  # info, needed for substrabac
 
             create_directory(peer['docker_core_dir'])
             filename = f"{peer['docker_core_dir']}/core.yaml"
@@ -170,7 +168,6 @@ def create_orderer_config(conf):
         yaml_data['General']['GenesisFile'] = conf['misc']['genesis_bloc_file']
         yaml_data['General']['LocalMSPID'] = orderer['msp_id']
         yaml_data['General']['LocalMSPDir'] = orderer['local_msp_dir']
-        yaml_data['General']['LogLevel'] = LOGGING_LEVEL[4]  # info, needed for substrabac
 
         yaml_data['Debug']['BroadcastTraceDir'] = orderer['broadcast_dir']
 
