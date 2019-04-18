@@ -1,6 +1,9 @@
 import os
 
 
+HLF_VERSION = '1.4.1'
+
+
 def generate_docker_compose_org(org, substra_path, network):
     try:
         from ruamel import yaml
@@ -47,7 +50,7 @@ def generate_docker_compose_org(org, substra_path, network):
 
     # RCA
     rca = {'container_name': org['ca']['host'],
-           'image': 'hyperledger/fabric-ca:1.3.0',
+           'image': f'hyperledger/fabric-ca:{HLF_VERSION}',
            'restart': 'unless-stopped',
            'working_dir': '/etc/hyperledger/',
            'ports': [f"{org['ca']['host_port']}:{org['ca']['port']}"],
@@ -68,7 +71,7 @@ def generate_docker_compose_org(org, substra_path, network):
     # Peer
     for index, peer in enumerate(org['peers']):
         svc = {'container_name': peer['host'],
-               'image': 'hyperledger/fabric-peer:1.3.0',
+               'image': f'hyperledger/fabric-peer:{HLF_VERSION}',
                'restart': 'unless-stopped',
                'command': '/bin/bash -c "peer node start 2>&1"',
                'environment': [# https://medium.com/@Alibaba_Cloud/hyperledger-fabric-deployment-on-alibaba-cloud-environment-sigsegv-problem-analysis-and-solutions-9a708313f1a4
@@ -136,7 +139,7 @@ def generate_docker_compose_orderer(orderer, substra_path, network):
 
     # RCA
     rca = {'container_name': orderer['ca']['host'],
-           'image': 'hyperledger/fabric-ca:1.3.0',
+           'image': f'hyperledger/fabric-ca:{HLF_VERSION}',
            'restart': 'unless-stopped',
            'working_dir': '/etc/hyperledger/',
            'ports': [f"{orderer['ca']['host_port']}:{orderer['ca']['port']}"],
@@ -155,7 +158,7 @@ def generate_docker_compose_orderer(orderer, substra_path, network):
 
     # ORDERER
     svc = {'container_name': orderer['host'],
-           'image': 'hyperledger/fabric-orderer:1.3.0',
+           'image': f'hyperledger/fabric-orderer:{HLF_VERSION}',
            'restart': 'unless-stopped',
            'working_dir': '/etc/hyperledger/',
            'command': '/bin/bash -c "orderer 2>&1"',
