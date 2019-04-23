@@ -3,6 +3,13 @@ import glob
 import json
 import argparse
 
+from yaml import load, dump
+
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+
 from subprocess import call
 
 from utils.common_utils import dowait, create_directory, remove_chaincode_docker_images, remove_chaincode_docker_containers
@@ -21,8 +28,6 @@ def stop(docker_compose):
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'True'
     call(['docker-compose', '-f', docker_compose, '--project-directory', dir_path, 'down'])
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
-    # remove_chaincode_docker_containers()
-    # remove_chaincode_docker_images()
 
 
 def start(conf, docker_compose):
@@ -81,12 +86,11 @@ def start(conf, docker_compose):
 def substra_orderer(conf):
 
     # Orderer config file
-    conf_orderer = {'misc': dict(conf['misc']),
+    conf_orderer = {'misc': {k: conf['misc'][k] for k in ['system_channel_name', 'channel_name', 'channel_block', 'chaincode_name',
+                                                          'chaincode_version', 'genesis_bloc_file', 'channel_tx_file',
+                                                          'configtx-config-path', 'config_block_file', 'config_update_envelope_file',
+                                                          'setup_logfile', 'setup_success_file', ]},
                     'orderers': conf['orderers']}
-    del conf_orderer['misc']['run_logfile']
-    del conf_orderer['misc']['run_sumfile']
-    del conf_orderer['misc']['run_success_file']
-    del conf_orderer['misc']['run_fail_file']
     json.dump(conf_orderer, open(f'{SUBSTRA_PATH}/conf/conf-orderer.json', 'w'))
 
     # Orderer directories
@@ -177,10 +181,18 @@ def substra_network(conf):
 
 def remove_all():
 
+    # Stop all
+    services = []
+    docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
+
+    for docker_compose_path in docker_compose_paths:
+        call(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
+        with open(docker_compose_path) as dockercomposefile:
+            dockercomposeconf = load(dockercomposefile)
+            services.extend(dockercomposeconf['services'].keys())
+
     # Hardcoded removal
-    call(['docker', 'rm', '-f', 'rca-orderer', 'rca-owkin', 'rca-chu-nantes',
-          'setup', 'orderer1-orderer', 'peer1-owkin', 'peer2-owkin', 'peer1-chu-nantes',
-          'peer2-chu-nantes', 'run', 'run-owkin', 'run-chu-nantes', 'setup-owkin', 'setup-chu-nantes'])
+    call(['docker', 'rm', '-f'] + services)
 
     remove_chaincode_docker_containers()
     remove_chaincode_docker_images()

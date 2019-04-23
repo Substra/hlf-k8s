@@ -206,5 +206,5 @@ def generateGenesis(conf):
     # configtxgen -profile OrgsOrdererGenesis -outputBlock /substra/data/genesis.block
     call(['configtxgen',
           '-profile', 'OrgsOrdererGenesis',
-          '-channelID', 'substrasystemchannel',
+          '-channelID', conf['misc']['system_channel_name'],
           '-outputBlock', conf['misc']['genesis_bloc_file']])

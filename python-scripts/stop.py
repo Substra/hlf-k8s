@@ -14,7 +14,6 @@ def stop():
     remove_chaincode_docker_images()
 
     # Stop all
-    docker_compose_paths = os.path.join(SUBSTRA_PATH, 'dockerfiles')
     docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
 
     for docker_compose_path in docker_compose_paths:

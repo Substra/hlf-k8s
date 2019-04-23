@@ -1,4 +1,5 @@
 misc = {
+    'system_channel_name': 'substrasystemchannel',
     'channel_name': 'mychannel',
     'channel_block': '/substra/data/mychannel.block',
     'chaincode_name': 'mycc',

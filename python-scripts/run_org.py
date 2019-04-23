@@ -11,7 +11,6 @@ from utils.setup_utils import generateChannelArtifacts
 
 
 def add_org(conf, conf_global):
-    org = conf['orgs'][0]
     generateChannelUpdate(conf, conf_global)
     peersJoinChannel(conf)
 
@@ -19,7 +18,7 @@ def add_org(conf, conf_global):
     org = conf_global['orgs'][0]
     peer = org['peers'][0]
     conf_global['orgs'] += conf['orgs']
-    conf_global['misc']['chaincode_version'] = '2.0'
+    conf_global['misc']['chaincode_version'] = '%.1f' % (float(conf_global['misc']['chaincode_version']) + 1.0)
 
     # Install chaincode on peer in each org
     installChainCodeOnPeers(conf_global)
@@ -35,6 +34,11 @@ def add_org(conf, conf_global):
 
 
 def add_org_with_channel(conf):
+
+    generateChannelArtifacts(conf)
+    createSystemUpdateProposal(conf, conf['misc']['system_channel_name'])
+    signAndPushSystemUpdateProposal(conf, conf['misc']['system_channel_name'])
+
     res = True
     org = conf['orgs'][0]
     createChannel(conf, org, org['peers'][0])
@@ -77,9 +81,6 @@ if __name__ == "__main__":
              if 'orderer' not in file_path and 'org' not in file_path and org_name not in file_path]
 
     if not confs:
-        generateChannelArtifacts(conf)
-        createSystemUpdateProposal(conf, 'substrasystemchannel')
-        signAndPushSystemUpdateProposal(conf, 'substrasystemchannel')
         add_org_with_channel(conf)
     else:
         conf_global = confs[0]

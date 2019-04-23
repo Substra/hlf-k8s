@@ -14,11 +14,13 @@ client = docker.from_env()
 def set_env_variables(fabric_cfg_path, msp_dir):
     os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
     os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
+    os.environ['FABRIC_LOGGING_SPEC'] = 'debug'
 
 
 def clean_env_variables():
     del os.environ['FABRIC_CFG_PATH']
     del os.environ['CORE_PEER_MSPCONFIGPATH']
+    del os.environ['FABRIC_LOGGING_SPEC']
 
 
 # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
@@ -89,7 +91,6 @@ def getChannelBlock(conf, org, peer):
         'fetch',
         '0',
         'mychannel.block',
-        '--logging-level=DEBUG',
         '-c', conf['misc']['channel_name'],
         '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
         '--tls',
@@ -119,7 +120,6 @@ def getChannelConfigBlock(conf, org, peer, block_name):
         'fetch',
         'config',
         block_name,
-        '--logging-level=DEBUG',
         '-c', conf['misc']['channel_name'],
         '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
         '--tls',
@@ -248,7 +248,6 @@ def signAndPushUpdateProposal(conf, org_type='orgs'):
 
         call(['peer',
               'channel', 'update',
-              '--logging-level', 'DEBUG',
               '-f', 'proposal.pb',
               '-c', conf['misc']['channel_name'],
               '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
@@ -356,7 +355,6 @@ def waitForInstantiation(conf):
     while int(time.time()) - starttime < 30:
         call(['sleep', '1'])
         output = subprocess.run(['peer',
-                                 '--logging-level', 'DEBUG',
                                  'chaincode', 'list',
                                  '-C', conf['misc']['channel_name'],
                                  '--instantiated',
@@ -411,7 +409,6 @@ def instanciateChainCode(conf, args, org, peer):
 
     call(['peer',
           'chaincode', 'instantiate',
-          '--logging-level', 'DEBUG',
           '-C', conf['misc']['channel_name'],
           '-n', conf['misc']['chaincode_name'],
           '-v', conf['misc']['chaincode_version'],
@@ -450,7 +447,6 @@ def upgradeChainCode(conf, args, org, peer):
 
     call(['peer',
           'chaincode', 'upgrade',
-          '--logging-level', 'DEBUG',
           '-C', conf['misc']['channel_name'],
           '-n', conf['misc']['chaincode_name'],
           '-v', conf['misc']['chaincode_version'],
@@ -555,42 +551,37 @@ def createSystemUpdateProposal(conf, channel_name):
           '--input', system_channelblock,
           '--type', 'common.Block',
           '--output', 'system_channelconfig.json'])
-
     system_channel_config = json.load(open('system_channelconfig.json', 'r'))
 
     # Keep useful part
     system_channel_config = system_channel_config['data']['data'][0]['payload']['data']['config']
-
     json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
-
     call(['configtxlator',
           'proto_encode',
           '--input', 'system_channelconfig.json',
           '--type', 'common.Config',
           '--output', 'systemchannelold.block'])
 
+    # Update useful part
     system_channel_config['channel_group']['groups']['Consortiums']['groups']['SampleConsortium']['groups'][org['name']] = org_config
-
     json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
-
     call(['configtxlator',
           'proto_encode',
           '--input', 'system_channelconfig.json',
           '--type', 'common.Config',
           '--output', 'systemchannelupdate.block'])
 
-    call(['configtxlator',
-          'compute_update',
-          '--channel_id', channel_name,
-          '--original', 'systemchannelold.block',
-          '--updated', 'systemchannelupdate.block',
-          '--output', 'compute_update.pb'])
-
-    call(['configtxlator',
-          'proto_decode',
-          '--input', 'compute_update.pb',
-          '--type', 'common.ConfigUpdate',
-          '--output', 'compute_update.json'])
+    # Compute update
+    call(' '.join(['configtxlator',
+                   'compute_update',
+                   '--channel_id', channel_name,
+                   '--original', 'systemchannelold.block',
+                   '--updated', 'systemchannelupdate.block',
+                   ' | ', 'configtxlator',
+                   'proto_decode',
+                   '--type', 'common.ConfigUpdate',
+                   '--output', 'compute_update.json']),
+         shell=True)
 
     # Prepare proposal
     update = json.load(open('compute_update.json', 'r'))
@@ -624,7 +615,6 @@ def getSystemChannelConfigBlock(conf, channel_name, block_name):
         'fetch',
         'config',
         block_name,
-        '--logging-level=DEBUG',
         '-c', channel_name,
         '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
         '--tls',
@@ -648,7 +638,6 @@ def signAndPushSystemUpdateProposal(conf, channel_name):
 
     call(['peer',
           'channel', 'update',
-          '--logging-level', 'DEBUG',
           '-f', 'proposal.pb',
           '-c', channel_name,
           '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
