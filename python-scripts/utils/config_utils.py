@@ -1,16 +1,9 @@
 import os
 import json
-import argparse
 
-from subprocess import call
-from .common_utils import dowait, create_directory
+from .common_utils import create_directory
 
-from yaml import load, dump
-
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
+from yaml import load, dump, FullLoader
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -21,7 +14,7 @@ def create_ca_server_config(orgs):
     # For each org, create a config file from template
     for org in orgs:
         stream = open(os.path.join(dir_path, '../../templates/fabric-ca-server-config.yaml'), 'r')
-        yaml_data = load(stream, Loader=Loader)
+        yaml_data = load(stream, Loader=FullLoader)
 
         # override template here
         yaml_data['tls']['certfile'] = org['tls']['certfile']
@@ -45,7 +38,7 @@ def create_ca_client_config(orgs):
     # For each org, create a config file from template
     for org in orgs:
         stream = open(os.path.join(dir_path, '../../templates/fabric-ca-client-config.yaml'), 'r')
-        yaml_data = load(stream, Loader=Loader)
+        yaml_data = load(stream, Loader=FullLoader)
 
         # override template here
         # https://hyperledger-fabric-ca.readthedocs.io/en/release-1.2/users-guide.html#enabling-tls
@@ -79,7 +72,7 @@ def create_configtx(conf, filename=None):
         filename = conf['misc']['configtx-config-path']
 
     stream = open(os.path.join(dir_path, '../../templates/configtx.yaml'), 'r')
-    yaml_data = load(stream, Loader=Loader)
+    yaml_data = load(stream, Loader=FullLoader)
 
     # override template here
 
@@ -121,7 +114,7 @@ def create_core_peer_config(conf):
     for org in conf['orgs']:
         for peer in org['peers']:
             stream = open(os.path.join(dir_path, '../../templates/core.yaml'), 'r')
-            yaml_data = load(stream, Loader=Loader)
+            yaml_data = load(stream, Loader=FullLoader)
 
             # override template here
 
@@ -159,7 +152,7 @@ def create_core_peer_config(conf):
 def create_orderer_config(conf):
     for orderer in conf['orderers']:
         stream = open(os.path.join(dir_path, '../../templates/orderer.yaml'), 'r')
-        yaml_data = load(stream, Loader=Loader)
+        yaml_data = load(stream, Loader=FullLoader)
 
         # override template here
         yaml_data['General']['TLS']['Certificate'] = orderer['tls']['cert']
@@ -184,7 +177,7 @@ def create_orderer_config(conf):
             f.write(dump(yaml_data, default_flow_style=False))
 
         stream = open(os.path.join(dir_path, '../../templates/core.yaml'), 'r')
-        yaml_data = load(stream, Loader=Loader)
+        yaml_data = load(stream, Loader=FullLoader)
 
         # override template here
 
@@ -234,7 +227,7 @@ def create_fabric_ca_peer_config(conf):
                         peer_conf[k] = {k: v for k, v in v.items() if k == 'admin'}
                     else:
                         peer_conf[k] = v
-            json.dump(peer_conf, open(filename, 'w+'))
+            json.dump(peer_conf, open(filename, 'w+'), indent=4)
 
 
 def create_fabric_ca_orderer_config(conf):
@@ -249,7 +242,7 @@ def create_fabric_ca_orderer_config(conf):
                     orderer_conf[k] = v
 
         orderer_conf.update({'misc': conf['misc']})
-        json.dump(orderer_conf, open(filename, 'w+'))
+        json.dump(orderer_conf, open(filename, 'w+'), indent=4)
 
 
 def create_substrabac_config(conf):
@@ -283,4 +276,4 @@ def create_substrabac_config(conf):
                 'ca': orderer['ca']['certfile'],
             }
         }
-        json.dump(res, open(filename, 'w+'))
+        json.dump(res, open(filename, 'w+'), indent=4)

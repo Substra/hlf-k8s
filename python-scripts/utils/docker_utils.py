@@ -1,14 +1,10 @@
 import os
-
+import yaml
 
 HLF_VERSION = '1.4.1'
 
 
 def generate_docker_compose_org(org, substra_path, network):
-    try:
-        from ruamel import yaml
-    except ImportError:
-        import yaml
 
     # Docker compose config
     docker_compose = {'substra_services': {'rca': [],
@@ -113,10 +109,6 @@ def generate_docker_compose_org(org, substra_path, network):
 
 
 def generate_docker_compose_orderer(orderer, substra_path, network):
-    try:
-        from ruamel import yaml
-    except ImportError:
-        import yaml
 
     # Docker compose config
     docker_compose = {'substra_services': {'rca': [],

@@ -3,12 +3,7 @@ import glob
 import json
 import argparse
 
-from yaml import load, dump
-
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
+from yaml import load, FullLoader
 
 from subprocess import call
 
@@ -182,17 +177,18 @@ def substra_network(conf):
 def remove_all():
 
     # Stop all
-    services = []
     docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
 
     for docker_compose_path in docker_compose_paths:
-        call(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
         with open(docker_compose_path) as dockercomposefile:
-            dockercomposeconf = load(dockercomposefile)
-            services.extend(dockercomposeconf['services'].keys())
+            dockercomposeconf = load(dockercomposefile, Loader=FullLoader)
+            services = list(dockercomposeconf['services'].keys())
 
-    # Hardcoded removal
-    call(['docker', 'rm', '-f'] + services)
+            # Force removal (quicker)
+            if services:
+                call(['docker', 'rm', '-f'] + services)
+
+            call(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
 
     remove_chaincode_docker_containers()
     remove_chaincode_docker_images()
