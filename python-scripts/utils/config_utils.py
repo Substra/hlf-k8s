@@ -240,8 +240,6 @@ def create_substrabac_config(org, orderer_conf):
             'host': orderer['host'],
             'port': orderer['port']['external'],
             'ca': tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-            'clientKey': orderer['tls']['key'],
-            'clientCert': orderer['tls']['cert'],
             'grpcOptions': {
                 'grpc-max-send-message-length': 15,
                 'grpc.ssl_target_name_override': orderer['host']
