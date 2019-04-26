@@ -67,14 +67,14 @@ def add_org_with_channel(conf, conf_orderer):
 
 if __name__ == "__main__":
 
-    conf = json.load(open('/substra/conf/conf.json', 'r'))
-    conf_orderer = json.load(open('/substra/conf/conf-orderer.json', 'r'))
+    conf = json.load(open('/substra/conf.json', 'r'))
+    conf_orderer = json.load(open('/substra/conf/config/conf-orderer.json', 'r'))
 
     org = conf['service']
     org_name = org['name']
 
     if os.path.exists(conf['misc']['channel_tx_file']):
-        files = glob.glob('/substra/conf/conf-*.json')
+        files = glob.glob('/substra/conf/config/conf-*.json')
         conf_externals = [json.load(open(file_path, 'r'))
                           for file_path in files
                           if 'orderer' not in file_path and org_name not in file_path]

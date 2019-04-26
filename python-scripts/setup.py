@@ -130,7 +130,7 @@ def init(conf):
 
 if __name__ == '__main__':
 
-    conf = json.load(open('/substra/conf/conf.json', 'r'))
+    conf = json.load(open('/substra/conf.json', 'r'))
     registerIdentities(conf)
     registerUsers(conf)
     init(conf)

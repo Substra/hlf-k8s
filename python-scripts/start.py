@@ -204,6 +204,7 @@ if __name__ == '__main__':
 
     create_directory(f'{SUBSTRA_PATH}/data/log')
     create_directory(f'{SUBSTRA_PATH}/conf/')
+    create_directory(f'{SUBSTRA_PATH}/conf/config')
     create_directory(f'{SUBSTRA_PATH}/dryrun/')
     create_directory(f'{SUBSTRA_PATH}/dockerfiles/')
 
@@ -213,9 +214,9 @@ if __name__ == '__main__':
     else:
         call(['python3', os.path.join(dir_path, 'conf/2orgs.py')])
 
-    orderer = json.load(open(f'{SUBSTRA_PATH}/conf/conf-orderer.json', 'r'))
+    orderer = json.load(open(f'{SUBSTRA_PATH}/conf/config/conf-orderer.json', 'r'))
 
-    files = glob.glob('/substra/conf/conf-*.json')
+    files = glob.glob(f'{SUBSTRA_PATH}/conf/config/conf-*.json')
     files.sort(key=os.path.getmtime)
     orgs = [json.load(open(file_path, 'r'))
             for file_path in files

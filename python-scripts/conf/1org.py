@@ -24,7 +24,7 @@ def main():
     conf['misc']['configtx-config-path'] = f'/substra/data/configtx-{service_name}.yaml'
     conf['misc']['setup_success_file'] = f'/substra/data/log/setup-{service_name}.successful'
 
-    with open('/substra/conf/conf-orderer.json', 'w+') as write_file:
+    with open('/substra/conf/config/conf-orderer.json', 'w+') as write_file:
         json.dump(conf, write_file, indent=4)
 
     conf = {
@@ -40,7 +40,7 @@ def main():
     conf['misc']['run_success_file'] = f'/substra/data/log/run-{service_name}.successful'
     conf['misc']['run_fail_file'] = f'/substra/data/log/run-{service_name}.fail'
 
-    with open(f'/substra/conf/conf-{service_name}.json', 'w+') as write_file:
+    with open(f'/substra/conf/config/conf-{service_name}.json', 'w+') as write_file:
         json.dump(conf, write_file, indent=4)
 
 
