@@ -1,0 +1,83 @@
+import glob
+import os
+import json
+from subprocess import call
+
+from utils.run_utils import (createChannel, peersJoinChannel, updateAnchorPeers, installChainCodeOnPeers, instanciateChaincode,
+                             waitForInstantiation, queryChaincodeFromFirstPeerFirstOrg, generateChannelUpdate, upgradeChainCode,
+                             createSystemUpdateProposal, signAndPushSystemUpdateProposal, getChaincodeVersion)
+
+from utils.setup_utils import generateChannelArtifacts
+
+
+def add_org(conf, conf_externals, orderer):
+    generateChannelUpdate(conf, conf_externals, orderer)
+    peersJoinChannel(conf)
+
+    new_chaincode_version = '%.1f' % (getChaincodeVersion(conf_externals[0], orderer) + 1.0)
+
+    # Install chaincode on peer in each org
+    orgs_mspid = []
+    for conf_org in [conf] + conf_externals:
+        installChainCodeOnPeers(conf_org, new_chaincode_version)
+        orgs_mspid.append(conf_org['service']['msp_id'])
+
+    upgradeChainCode(conf_externals[0], '{"Args":["init"]}', orderer, orgs_mspid, new_chaincode_version)
+
+    if queryChaincodeFromFirstPeerFirstOrg(conf):
+        print('Congratulations! Ledger has been correctly initialized.', flush=True)
+        call(['touch', conf['misc']['run_success_file']])
+    else:
+        print('Fail to initialize ledger.', flush=True)
+        call(['touch', conf['misc']['run_fail_file']])
+
+
+def add_org_with_channel(conf, conf_orderer):
+
+    generateChannelArtifacts(conf)
+    createSystemUpdateProposal(conf, conf_orderer)
+    signAndPushSystemUpdateProposal(conf_orderer)
+
+    res = True
+
+    createChannel(conf, conf_orderer['service'])
+
+    peersJoinChannel(conf)
+    updateAnchorPeers(conf, conf_orderer['service'])
+
+    # Install chaincode on peer in each org
+    installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
+
+    # Instantiate chaincode on the 1st peer of the 2nd org
+    instanciateChaincode(conf, conf_orderer['service'])
+
+    # Wait chaincode is correctly instantiated and initialized
+    res = res and waitForInstantiation(conf, conf_orderer['service'])
+
+    # Query chaincode from the 1st peer of the 1st org
+    res = res and queryChaincodeFromFirstPeerFirstOrg(conf)
+
+    if res:
+        print('Congratulations! Ledger has been correctly initialized.', flush=True)
+        call(['touch', conf['misc']['run_success_file']])
+    else:
+        print('Fail to initialize ledger.', flush=True)
+        call(['touch', conf['misc']['run_fail_file']])
+
+
+if __name__ == "__main__":
+
+    conf = json.load(open('/substra/conf/conf.json', 'r'))
+    conf_orderer = json.load(open('/substra/conf/conf-orderer.json', 'r'))
+
+    org = conf['service']
+    org_name = org['name']
+
+    if os.path.exists(conf['misc']['channel_tx_file']):
+        files = glob.glob('/substra/conf/conf-*.json')
+        conf_externals = [json.load(open(file_path, 'r'))
+                          for file_path in files
+                          if 'orderer' not in file_path and org_name not in file_path]
+        add_org(conf, conf_externals, conf_orderer['service'])
+    else:
+        add_org_with_channel(conf, conf_orderer)

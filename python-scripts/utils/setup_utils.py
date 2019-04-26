@@ -74,100 +74,100 @@ def enrollCABootstrapAdmin(org):
     # enrollment = caClient.enroll(org['bootstrap_admin']['name'], org['bootstrap_admin']['pass'])
 
 
-def registerOrdererIdentities(conf):
-    for orderer in conf['orderers']:
-        enrollCABootstrapAdmin(orderer)
+def registerOrdererIdentities(orderer):
+    enrollCABootstrapAdmin(orderer)
 
-        print('Registering %(orderer_name)s with %(ca_name)s' % {'orderer_name': orderer['name'],
-                                                                 'ca_name': orderer['ca']['name']},
-              flush=True)
+    print('Registering %(orderer_name)s with %(ca_name)s' % {'orderer_name': orderer['name'],
+                                                             'ca_name': orderer['ca']['name']},
+          flush=True)
 
-        call(['fabric-ca-client',
-              'register', '-d',
-              '-c', '/root/cas/' + orderer['ca']['name'] + '/fabric-ca-client-config.yaml',
-              '--id.name', orderer['users']['orderer']['name'],
-              '--id.secret', orderer['users']['orderer']['name'],
-              '--id.type', 'orderer'])
+    call(['fabric-ca-client',
+          'register', '-d',
+          '-c', '/root/cas/' + orderer['ca']['name'] + '/fabric-ca-client-config.yaml',
+          '--id.name', orderer['users']['orderer']['name'],
+          '--id.secret', orderer['users']['orderer']['name'],
+          '--id.type', 'orderer'])
 
-        print('Registering admin identity with %(ca_name)s' % {'ca_name': orderer['ca']['name']}, flush=True)
+    print('Registering admin identity with %(ca_name)s' % {'ca_name': orderer['ca']['name']}, flush=True)
 
-        # The admin identity has the "admin" attribute which is added to ECert by default
-        call(['fabric-ca-client',
-              'register', '-d',
-              '-c', '/root/cas/' + orderer['ca']['name'] + '/fabric-ca-client-config.yaml',
-              '--id.name', orderer['users']['admin']['name'],
-              '--id.secret', orderer['users']['admin']['pass'],
-              '--id.attrs', 'admin=true:ecert'])
+    # The admin identity has the "admin" attribute which is added to ECert by default
+    call(['fabric-ca-client',
+          'register', '-d',
+          '-c', '/root/cas/' + orderer['ca']['name'] + '/fabric-ca-client-config.yaml',
+          '--id.name', orderer['users']['admin']['name'],
+          '--id.secret', orderer['users']['admin']['pass'],
+          '--id.attrs', 'admin=true:ecert'])
 
 
-def registerPeerIdentities(conf):
-    for org in conf['orgs']:
-        enrollCABootstrapAdmin(org)
-        for peer in org['peers']:
-            print('Registering %(peer_name)s with %(ca_name)s\n' % {'peer_name': peer['name'],
-                                                                    'ca_name': org['ca']['name']}, flush=True)
-            call(['fabric-ca-client', 'register', '-d',
-                  '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
-                  '--id.name', peer['name'],
-                  '--id.secret', peer['pass'],
-                  '--id.type', 'peer'])
-
-        print('Registering admin identity with %(ca_name)s' % {'ca_name': org['ca']['name']}, flush=True)
-
-        # The admin identity has the "admin" attribute which is added to ECert by default
-        call(['fabric-ca-client',
-              'register', '-d',
+def registerPeerIdentities(org):
+    enrollCABootstrapAdmin(org)
+    for peer in org['peers']:
+        print('Registering %(peer_name)s with %(ca_name)s\n' % {'peer_name': peer['name'],
+                                                                'ca_name': org['ca']['name']}, flush=True)
+        call(['fabric-ca-client', 'register', '-d',
               '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
-              '--id.name', org['users']['admin']['name'],
-              '--id.secret', org['users']['admin']['pass'],
-              '--id.attrs',
-              'hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert'
-              ])
+              '--id.name', peer['name'],
+              '--id.secret', peer['pass'],
+              '--id.type', 'peer'])
 
-        print('Registering user identity with %(ca_name)s\n' % {'ca_name': org['ca']['name']}, flush=True)
-        call(['fabric-ca-client',
-              'register', '-d',
-              '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
-              '--id.name', org['users']['user']['name'],
-              '--id.secret', org['users']['user']['pass']])
+    print('Registering admin identity with %(ca_name)s' % {'ca_name': org['ca']['name']}, flush=True)
+
+    # The admin identity has the "admin" attribute which is added to ECert by default
+    call(['fabric-ca-client',
+          'register', '-d',
+          '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
+          '--id.name', org['users']['admin']['name'],
+          '--id.secret', org['users']['admin']['pass'],
+          '--id.attrs',
+          'hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert'
+          ])
+
+    print('Registering user identity with %(ca_name)s\n' % {'ca_name': org['ca']['name']}, flush=True)
+    call(['fabric-ca-client',
+          'register', '-d',
+          '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
+          '--id.name', org['users']['user']['name'],
+          '--id.secret', org['users']['user']['pass']])
 
 
 def registerIdentities(conf):
-    print('Registering identities...\n', flush=True)
+    service = conf['service']
 
-    registerOrdererIdentities(conf)
-    registerPeerIdentities(conf)
+    if 'peers' in service:
+        registerPeerIdentities(service)
+    else:
+        registerOrdererIdentities(service)
 
 
 def registerUsers(conf):
     print('Getting CA certificates ...\n', flush=True)
 
-    orgs = conf.get('orgs', [])
-    for org in orgs:
-        org_admin_msp_dir = org['users']['admin']['home'] + '/msp'
+    service = conf['service']
+
+    if 'peers' in service:
+        org_admin_msp_dir = service['users']['admin']['home'] + '/msp'
 
         # will create admin and user folder with an msp folder and populate it. Populate admincerts for configtxgen to work
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
 
         # register admin and create admincerts
-        configLocalMSP(org, 'admin')
+        configLocalMSP(service, 'admin')
         # needed for tls communication for create channel from peer for example, copy tlscacerts from cacerts
         completeMSPSetup(org_admin_msp_dir)
 
         # register user and create admincerts
-        configLocalMSP(org, 'user')
+        configLocalMSP(service, 'user')
 
-    orderers = conf.get('orderers', [])
-    for org in orderers:
-        org_admin_msp_dir = org['users']['admin']['home'] + '/msp'
+    else:
+        org_admin_msp_dir = service['users']['admin']['home'] + '/msp'
 
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
         # will create admincerts for configtxgen to work
 
         # register admin and create admincerts
-        configLocalMSP(org, 'admin')
+        configLocalMSP(service, 'admin')
         # create tlscacerts directory and remove intermediatecerts if exists
         completeMSPSetup(org_admin_msp_dir)
 
@@ -182,17 +182,17 @@ def generateChannelArtifacts(conf):
           '-outputCreateChannelTx', conf['misc']['channel_tx_file'],
           '-channelID', conf['misc']['channel_name']])
 
-    for org in conf['orgs']:
-        print('Generating anchor peer update transaction for %(org_name)s at %(anchor_tx_file)s' % {
-            'org_name': org['name'],
-            'anchor_tx_file': org['anchor_tx_file']
-        }, flush=True)
+    org = conf['service']
+    print('Generating anchor peer update transaction for %(org_name)s at %(anchor_tx_file)s' % {
+        'org_name': org['name'],
+        'anchor_tx_file': org['anchor_tx_file']
+    }, flush=True)
 
-        call(['configtxgen',
-              '-profile', 'OrgsChannel',
-              '-outputAnchorPeersUpdate', org['anchor_tx_file'],
-              '-channelID', conf['misc']['channel_name'],
-              '-asOrg', org['name']])
+    call(['configtxgen',
+          '-profile', 'OrgsChannel',
+          '-outputAnchorPeersUpdate', org['anchor_tx_file'],
+          '-channelID', conf['misc']['channel_name'],
+          '-asOrg', org['name']])
 
 
 def generateGenesis(conf):

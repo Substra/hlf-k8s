@@ -8,8 +8,8 @@ from yaml import load, FullLoader
 from subprocess import call
 
 from utils.common_utils import dowait, create_directory, remove_chaincode_docker_images, remove_chaincode_docker_containers
-from utils.config_utils import (create_configtx, create_ca_server_config, create_ca_client_config, create_core_peer_config, create_orderer_config,
-                                create_fabric_ca_peer_config, create_fabric_ca_orderer_config, create_substrabac_config)
+from utils.config_utils import (create_configtx, create_ca_server_config, create_ca_client_config, create_core_peer_config,
+                                create_orderer_config, create_fabric_ca_peer_config, create_substrabac_config)
 from utils.docker_utils import generate_docker_compose_org, generate_docker_compose_orderer
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -18,7 +18,7 @@ SUBSTRA_PATH = '/substra'
 SUBSTRA_NETWORK = 'net_substra'
 
 
-def stop(docker_compose):
+def intern_stop(docker_compose):
     print('stopping container', flush=True)
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'True'
     call(['docker-compose', '-f', docker_compose, '--project-directory', dir_path, 'down'])
@@ -64,7 +64,11 @@ def start(conf, docker_compose):
                peers_orgs_files)
 
     # Run
-    if 'run_success_file' in conf['misc']:
+    with open(docker_compose['path']) as dockercomposefile:
+        dockercomposeconf = load(dockercomposefile, Loader=FullLoader)
+        has_run = 'run' in dockercomposeconf['services'].keys()
+
+    if has_run and 'run_success_file' in conf['misc']:
         if not os.path.exists(conf['misc']['run_success_file']):
             call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d', '--no-deps', 'run'])
 
@@ -78,56 +82,38 @@ def start(conf, docker_compose):
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
 
 
-def substra_orderer(conf):
+def substra_orderer(orderer):
 
-    # Orderer config file
-    conf_orderer = {'misc': {k: conf['misc'][k] for k in ['system_channel_name', 'channel_name', 'channel_block', 'chaincode_name',
-                                                          'chaincode_version', 'genesis_bloc_file', 'channel_tx_file',
-                                                          'configtx-config-path', 'config_block_file', 'config_update_envelope_file',
-                                                          'setup_logfile', 'setup_success_file', ]},
-                    'orderers': conf['orderers']}
-    json.dump(conf_orderer, open(f'{SUBSTRA_PATH}/conf/conf-orderer.json', 'w'))
-
+    orderer_name = orderer['service']['name']
     # Orderer directories
-    print('Prepare Orderers : ', [orderer['name'] for orderer in conf_orderer['orderers']])
-    for orderer in conf_orderer['orderers']:
-        create_directory(f"{SUBSTRA_PATH}/data/orgs/{orderer['name']}")
-        create_directory(f"{SUBSTRA_PATH}/conf/{orderer['name']}")
+    print('Prepare Orderers : ', orderer_name)
+
+    create_directory(f"{SUBSTRA_PATH}/data/orgs/{orderer_name}")
+    create_directory(f"{SUBSTRA_PATH}/conf/{orderer_name}")
 
     # CA files
-    create_ca_server_config(conf_orderer['orderers'])
-    create_ca_client_config(conf_orderer['orderers'])
+    create_ca_server_config(orderer['service'])
+    create_ca_client_config(orderer['service'])
 
     # Configtx file
-    config_filepath = conf_orderer['misc']['configtx-config-path']
-    config_filepath = config_filepath.replace('configtx.yaml', 'configtx-orderer.yaml')
-    create_configtx(conf_orderer, config_filepath)
+    config_filepath = orderer['misc']['configtx-config-path']
+    create_configtx([orderer['service']], [], config_filepath)
 
     # Orderer Config files
-    create_orderer_config(conf_orderer)
-    create_fabric_ca_orderer_config(conf_orderer)
+    create_orderer_config(orderer['service'], orderer['misc']['genesis_bloc_file'])
 
     # Docker-compose for orderer
-    orderer_docker_compose = generate_docker_compose_orderer(conf_orderer['orderers'][0], SUBSTRA_PATH, SUBSTRA_NETWORK)
-    stop(orderer_docker_compose['path'])
-    start(conf_orderer, orderer_docker_compose)
+    orderer_docker_compose = generate_docker_compose_orderer(orderer['service'],
+                                                             SUBSTRA_PATH,
+                                                             SUBSTRA_NETWORK,
+                                                             orderer['misc']['genesis_bloc_file'])
+    intern_stop(orderer_docker_compose['path'])
+    start(orderer, orderer_docker_compose)
 
 
-def substra_org(conf, org):
+def substra_org(org, orderer):
 
-    org_name = org['name']
-
-    # Org config file
-    conf_org = {'misc': dict(conf['misc']),
-                'orderers': conf['orderers'],
-                'orgs': [org]}
-    conf_org['misc']['setup_logfile'] = f'/substra/data/log/setup-{org_name}.log',
-    conf_org['misc']['setup_success_file'] = f'/substra/data/log/setup-{org_name}.successful'
-    conf_org['misc']['run_logfile'] = f'/substra/data/log/run-{org_name}.log'
-    conf_org['misc']['run_sumfile'] = f'/substra/data/log/run-{org_name}.sum'
-    conf_org['misc']['run_success_file'] = f'/substra/data/log/run-{org_name}.successful'
-    conf_org['misc']['run_fail_file'] = f'/substra/data/log/run-{org_name}.fail'
-    json.dump(conf_org, open(f'{SUBSTRA_PATH}/conf/conf-{org_name}.json', 'w'))
+    org_name = org['service']['name']
 
     print(f'Prepare Node : {org_name}')
     create_directory(f"{SUBSTRA_PATH}/dryrun/{org_name}")
@@ -135,46 +121,46 @@ def substra_org(conf, org):
     create_directory(f"{SUBSTRA_PATH}/conf/{org_name}")
 
     # CA files
-    create_ca_server_config([org])
-    create_ca_client_config([org])
+    create_ca_server_config(org['service'])
+    create_ca_client_config(org['service'])
 
     # Configtx file
-    config_filepath = conf_org['misc']['configtx-config-path']
-    config_filepath = config_filepath.replace('configtx.yaml', f'configtx-{org_name}.yaml')
-    create_configtx(conf_org, config_filepath)
+    config_filepath = org['misc']['configtx-config-path']
+    create_configtx([], [org['service']], config_filepath)
 
     # Org Config files
-    create_core_peer_config(conf_org)
-    create_fabric_ca_peer_config(conf_org)
-    create_substrabac_config(conf_org)
+    create_core_peer_config(org['service'])
+    create_fabric_ca_peer_config(org['service'])
+    create_substrabac_config(org, orderer)
 
-    org_docker_compose = generate_docker_compose_org(org, SUBSTRA_PATH, SUBSTRA_NETWORK)
-    stop(org_docker_compose['path'])
-    start(conf_org, org_docker_compose)
+    org_docker_compose = generate_docker_compose_org(org['service'], SUBSTRA_PATH, SUBSTRA_NETWORK)
+    intern_stop(org_docker_compose['path'])
+    start(org, org_docker_compose)
 
 
-def substra_network(conf):
+def substra_network(orderer, orgs):
 
     # Stop all
     docker_compose_paths = os.path.join(SUBSTRA_PATH, 'dockerfiles')
     docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
 
-    for docker_compose_path in docker_compose_paths:
-        stop(docker_compose_path)
-
     # Remove all
-    remove_all()
+    remove_all_docker()
+
+    for docker_compose_path in docker_compose_paths:
+        intern_stop(docker_compose_path)
 
     # Create Network
     call(['docker', 'network', 'create', SUBSTRA_NETWORK])
-    substra_orderer(conf)
+
+    substra_orderer(orderer)
 
     # Prepare each org
-    for org in conf['orgs']:
-        substra_org(conf, org)
+    for org in orgs:
+        substra_org(org, orderer['service'])
 
 
-def remove_all():
+def remove_all_docker():
 
     # Stop all
     docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
@@ -205,11 +191,8 @@ if __name__ == '__main__':
                         help="Remove backup binded volume. Launch from scratch")
     args = vars(parser.parse_args())
 
-    # Global configuration
-    conf_path = f'{SUBSTRA_PATH}/conf/conf.json'
-
     # Stop all docker
-    remove_all()
+    remove_all_docker()
 
     if args['no_backup']:
         # create directory with correct rights
@@ -224,24 +207,27 @@ if __name__ == '__main__':
     create_directory(f'{SUBSTRA_PATH}/dryrun/')
     create_directory(f'{SUBSTRA_PATH}/dockerfiles/')
 
-    if not os.path.exists(conf_path):
-        if args['config']:
-            call(['python3', args['config']])
-        else:
-            call(['python3', os.path.join(dir_path, 'conf/2orgs.py')])
+    # Global configuration
+    if args['config']:
+        call(['python3', args['config']])
     else:
-        print(f'Use existing configuration in {SUBSTRA_PATH}/conf/conf.json', flush=True)
+        call(['python3', os.path.join(dir_path, 'conf/2orgs.py')])
 
-    conf = json.load(open(conf_path, 'r'))
+    orderer = json.load(open(f'{SUBSTRA_PATH}/conf/conf-orderer.json', 'r'))
+
+    files = glob.glob('/substra/conf/conf-*.json')
+    files.sort(key=os.path.getmtime)
+    orgs = [json.load(open(file_path, 'r'))
+            for file_path in files
+            if 'orderer' not in file_path]
 
     print('Build substra-network for : ', flush=True)
     print('  Orderer :')
-    for orderer in conf['orderers']:
-        print('   -', orderer['name'], flush=True)
+    print('   -', orderer['service']['name'], flush=True)
 
     print('  Organizations :', flush=True)
-    for org in conf['orgs']:
-        print('   -', org['name'], flush=True)
+    for org in orgs:
+        print('   -', org['service']['name'], flush=True)
     print('', flush=True)
 
-    substra_network(conf)
+    substra_network(orderer, orgs)

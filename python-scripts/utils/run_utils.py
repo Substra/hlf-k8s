@@ -25,11 +25,12 @@ def clean_env_variables():
 
 # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
 # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
-def createChannel(conf, org, peer):
+def createChannel(conf, orderer):
 
+    org = conf['service']
+    peer = org['peers'][0]
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
@@ -53,8 +54,8 @@ def createChannel(conf, org, peer):
     clean_env_variables()
 
 
-def joinChannel(conf, peer, org):
-    org_admin_home = org['users']['admin']['home']
+def joinChannel(conf, peer):
+    org_admin_home = conf['service']['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     channel_name = conf['misc']['channel_name']
@@ -70,46 +71,17 @@ def joinChannel(conf, peer, org):
 
 
 def peersJoinChannel(conf):
-    for org in conf['orgs']:
-        for peer in org['peers']:
-            joinChannel(conf, peer, org)
+    for peer in conf['service']['peers']:
+        joinChannel(conf, peer)
 
 
-def getChannelBlock(conf, org, peer):
+def getChannelConfigBlockWithPeer(conf, orderer):
     # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
+    org = conf['service']
+    peer = org['peers'][0]
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
-
-    call([
-        'peer',
-        'channel',
-        'fetch',
-        '0',
-        'mychannel.block',
-        '-c', conf['misc']['channel_name'],
-        '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
-        '--tls',
-        '--clientauth',
-        '--cafile', orderer['ca']['certfile'],
-        '--keyfile', peer['tls']['clientKey'],
-        '--certfile', peer['tls']['clientCert']
-    ])
-
-    # clean env variables
-    clean_env_variables()
-
-
-def getChannelConfigBlock(conf, org, peer, block_name):
-    # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
-
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
@@ -119,7 +91,7 @@ def getChannelConfigBlock(conf, org, peer, block_name):
         'channel',
         'fetch',
         'config',
-        block_name,
+        conf['misc']['channel_block'],
         '-c', conf['misc']['channel_name'],
         '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
         '--tls',
@@ -151,7 +123,7 @@ def createChannelConfig(org, with_anchor=True):
     return org_config
 
 
-def createUpdateProposal(org, org_config, conf, input_block, channel_name):
+def createUpdateProposal(conf, org__channel_config, input_block, channel_name):
     call(['configtxlator',
           'proto_decode',
           '--input', input_block,
@@ -165,7 +137,7 @@ def createUpdateProposal(org, org_config, conf, input_block, channel_name):
     json.dump(my_channel_config, open('mychannelconfig.json', 'w'))
 
     # Add org
-    my_channel_config['channel_group']['groups']['Application']['groups'][org['name']] = org_config
+    my_channel_config['channel_group']['groups']['Application']['groups'][conf['service']['name']] = org__channel_config
     json.dump(my_channel_config, open('mychannelconfigupdate.json', 'w'))
 
     # Compute diff
@@ -208,14 +180,12 @@ def createUpdateProposal(org, org_config, conf, input_block, channel_name):
           '--output', 'proposal.pb'])
 
 
-def signAndPushUpdateProposal(conf, org_type='orgs'):
-    orderer = conf['orderers'][0]
+def signAndPushUpdateProposal(orgs, orderer, channel_name):
 
-    for org in conf[org_type]:
-
+    for org in orgs:
+        # Sign
         org_admin_home = org['users']['admin']['home']
         org_admin_msp_dir = org_admin_home + '/msp'
-        orderer = conf['orderers'][0]
         peer = org['peers'][0]
 
         set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
@@ -237,9 +207,9 @@ def signAndPushUpdateProposal(conf, org_type='orgs'):
         # clean env variables
         clean_env_variables()
     else:
+        # Push
         org_admin_home = org['users']['admin']['home']
         org_admin_msp_dir = org_admin_home + '/msp'
-        orderer = conf['orderers'][0]
         peer = org['peers'][0]
 
         set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
@@ -249,7 +219,7 @@ def signAndPushUpdateProposal(conf, org_type='orgs'):
         call(['peer',
               'channel', 'update',
               '-f', 'proposal.pb',
-              '-c', conf['misc']['channel_name'],
+              '-c', channel_name,
               '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
               '--tls',
               '--clientauth',
@@ -263,58 +233,53 @@ def signAndPushUpdateProposal(conf, org_type='orgs'):
         clean_env_variables()
 
 
-def generateChannelUpdate(conf, conf_global):
+def generateChannelUpdate(conf, conf_externals, orderer):
 
-    for org in conf['orgs']:
-        org_config = createChannelConfig(org)
-        getChannelConfigBlock(conf_global,
-                              conf_global['orgs'][0],
-                              conf_global['orgs'][0]['peers'][0],
-                              'mychannelconfig.block')
+    org_channel_config = createChannelConfig(conf['service'])
+    getChannelConfigBlockWithOrderer(orderer, conf['misc']['channel_name'], 'mychannelconfig.block')
 
-        createUpdateProposal(org, org_config, conf, 'mychannelconfig.block', conf['misc']['channel_name'])
-        signAndPushUpdateProposal(conf_global)
+    createUpdateProposal(conf, org_channel_config, 'mychannelconfig.block', conf['misc']['channel_name'])
+    external_orgs = [conf_org['service'] for conf_org in conf_externals]
+    signAndPushUpdateProposal(external_orgs, orderer, conf['misc']['channel_name'])
 
 
 # # the updater of the channel anchor transaction must have admin rights for one of the consortium orgs
 # Update the anchor peers
-def updateAnchorPeers(conf):
+def updateAnchorPeers(conf, orderer):
     # :warning: for updating anchor peers make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
-    for org in conf['orgs']:
-        org_admin_home = org['users']['admin']['home']
-        org_admin_msp_dir = org_admin_home + '/msp'
-        orderer = conf['orderers'][0]
-
-        peer = org['peers'][0]
-        print('Updating anchor peers for %(peer_host)s ...' % {'peer_host': org['peers'][0]['host']}, flush=True)
-
-        # update config path for using right core.yaml and right msp dir
-        set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
-
-        call(['peer',
-              'channel', 'update',
-              '-c', conf['misc']['channel_name'],
-              '-f', org['anchor_tx_file'],
-              '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
-              '--tls',
-              '--clientauth',
-              '--cafile', orderer['ca']['certfile'],
-              # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-              '--keyfile', peer['tls']['clientKey'],
-              '--certfile', peer['tls']['clientCert']
-              ])
-
-        # clean env variables
-        clean_env_variables()
-
-
-def installChainCode(conf, org, peer):
+    org = conf['service']
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
+    peer = org['peers'][0]
+    print('Updating anchor peers for %(peer_host)s ...' % {'peer_host': org['peers'][0]['host']}, flush=True)
+
+    # update config path for using right core.yaml and right msp dir
+    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+
+    call(['peer',
+          'channel', 'update',
+          '-c', conf['misc']['channel_name'],
+          '-f', org['anchor_tx_file'],
+          '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
+          '--tls',
+          '--clientauth',
+          '--cafile', orderer['ca']['certfile'],
+          # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
+          '--keyfile', peer['tls']['clientKey'],
+          '--certfile', peer['tls']['clientCert']
+          ])
+
+    # clean env variables
+    clean_env_variables()
+
+
+def installChainCode(conf, peer, chaincode_version):
+    org_admin_home = conf['service']['users']['admin']['home']
+    org_admin_msp_dir = org_admin_home + '/msp'
+
     chaincode_name = conf['misc']['chaincode_name']
-    chaincode_version = conf['misc']['chaincode_version']
 
     print('Installing chaincode on %(peer_host)s ...' % {'peer_host': peer['host']}, flush=True)
 
@@ -331,19 +296,17 @@ def installChainCode(conf, org, peer):
     clean_env_variables()
 
 
-def installChainCodeOnPeers(conf):
-    for org in conf['orgs']:
-        for peer in org['peers']:
-            installChainCode(conf, org, peer)
+def installChainCodeOnPeers(conf, chaincode_version):
+    for peer in conf['service']['peers']:
+        installChainCode(conf, peer, chaincode_version)
 
 
-def waitForInstantiation(conf):
-    org = conf['orgs'][0]
+def waitForInstantiation(conf, orderer):
+    org = conf['service']
     peer = org['peers'][0]
 
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
@@ -381,13 +344,41 @@ def waitForInstantiation(conf):
     return False
 
 
-def makePolicy(conf):
+def getChaincodeVersion(conf, orderer):
+    org = conf['service']
+    peer = org['peers'][0]
+
+    org_admin_home = org['users']['admin']['home']
+    org_admin_msp_dir = org_admin_home + '/msp'
+
+    # update config path for using right core.yaml and right msp dir
+    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+
+    output = subprocess.run(['peer',
+                             'chaincode', 'list',
+                             '-C', conf['misc']['channel_name'],
+                             '--instantiated',
+                             '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
+                             '--tls',
+                             '--clientauth',
+                             '--cafile', orderer['tls']['certfile'],
+                             # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
+                             '--keyfile', peer['tls']['clientKey'],
+                             '--certfile', peer['tls']['clientCert']
+                             ],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    data = output.stdout.decode('utf-8')
+    return float(data.split('Version: ')[-1].split(',')[0])
+
+
+def makePolicy(orgs_mspid):
     policy = 'OR('
 
-    for index, org in enumerate(conf['orgs']):
+    for index, org_mspid in enumerate(orgs_mspid):
         if index != 0:
             policy += ','
-        policy += '\'' + org['msp_id'] + '.member\''
+        policy += '\'' + org_mspid + '.member\''
 
     policy += ')'
     print('policy: %s' % policy, flush=True)
@@ -395,12 +386,12 @@ def makePolicy(conf):
     return policy
 
 
-def instanciateChainCode(conf, args, org, peer):
-    policy = makePolicy(conf)
+def instanciateChainCode(conf, orderer, args):
+    policy = makePolicy([conf['service']['msp_id']])
 
-    org_admin_home = org['users']['admin']['home']
+    org_admin_home = conf['service']['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers'][0]
+    peer = conf['service']['peers'][0]
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
@@ -427,18 +418,17 @@ def instanciateChainCode(conf, args, org, peer):
     clean_env_variables()
 
 
-def instanciateChaincode(conf):
-    org = conf['orgs'][0]
+def instanciateChaincode(conf, orderer):
+    instanciateChainCode(conf, orderer, '{"Args":["init"]}')
+
+
+def upgradeChainCode(conf, args, orderer, orgs_mspid, chaincode_version):
+    policy = makePolicy(orgs_mspid)
+
+    org = conf['service']
     peer = org['peers'][0]
-    instanciateChainCode(conf, '{"Args":["init"]}', org, peer)
-
-
-def upgradeChainCode(conf, args, org, peer):
-    policy = makePolicy(conf)
-
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
@@ -449,7 +439,7 @@ def upgradeChainCode(conf, args, org, peer):
           'chaincode', 'upgrade',
           '-C', conf['misc']['channel_name'],
           '-n', conf['misc']['chaincode_name'],
-          '-v', conf['misc']['chaincode_version'],
+          '-v', chaincode_version,
           '-c', args,
           '-P', policy,
           '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
@@ -511,7 +501,7 @@ def chainCodeQueryWith(conf, arg, org, peer):
 
 
 def queryChaincodeFromFirstPeerFirstOrg(conf):
-    org = conf['orgs'][0]
+    org = conf['service']
     peer = org['peers'][0]
 
     print('Try to query chaincode from first peer first org before invoke', flush=True)
@@ -535,20 +525,19 @@ def queryChaincodeFromFirstPeerFirstOrg(conf):
     return False
 
 
-def createSystemUpdateProposal(conf, channel_name):
+def createSystemUpdateProposal(conf, conf_orderer):
 
     # https://console.bluemix.net/docs/services/blockchain/howto/orderer_operate.html?locale=en#orderer-operate
 
-    org = conf['orgs'][0]
+    channel_name = conf['misc']['system_channel_name']
+    org = conf['service']
     org_config = createChannelConfig(org, False)
 
-    system_channelblock = 'systemchannel.block'
-
-    getSystemChannelConfigBlock(conf, channel_name, system_channelblock)
+    getSystemChannelConfigBlock(conf_orderer, 'systemchannel.block')
 
     call(['configtxlator',
           'proto_decode',
-          '--input', system_channelblock,
+          '--input', 'systemchannel.block',
           '--type', 'common.Block',
           '--output', 'system_channelconfig.json'])
     system_channel_config = json.load(open('system_channelconfig.json', 'r'))
@@ -599,10 +588,14 @@ def createSystemUpdateProposal(conf, channel_name):
           '--output', 'proposal.pb'])
 
 
-def getSystemChannelConfigBlock(conf, channel_name, block_name):
+def getSystemChannelConfigBlock(conf, block_name):
+
+    getChannelConfigBlockWithOrderer(conf['service'], conf['misc']['system_channel_name'], block_name)
+
+
+def getChannelConfigBlockWithOrderer(orderer, channel_name, block_name):
     # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
-    orderer = conf['orderers'][0]
     orderer_admin_home = orderer['users']['admin']['home']
     orderer_admin_msp_dir = orderer_admin_home + '/msp'
     orderer_core = '/substra/conf/%s' % orderer['name']
@@ -628,8 +621,9 @@ def getSystemChannelConfigBlock(conf, channel_name, block_name):
     clean_env_variables()
 
 
-def signAndPushSystemUpdateProposal(conf, channel_name):
-    orderer = conf['orderers'][0]
+def signAndPushSystemUpdateProposal(conf):
+    orderer = conf['service']
+    channel_name = conf['misc']['system_channel_name']
     orderer_admin_home = orderer['users']['admin']['home']
     orderer_admin_msp_dir = orderer_admin_home + '/msp'
     orderer_core = '/substra/conf/%s' % orderer['name']
