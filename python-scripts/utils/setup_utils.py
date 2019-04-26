@@ -37,7 +37,7 @@ def configLocalMSP(org, user_name):
 
         call(['fabric-ca-client',
               'enroll', '-d',
-              '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
+              '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
               '-u', enrollment_url,
               '-M', org_user_msp_dir])  # :warning: override msp dir
 
@@ -64,7 +64,7 @@ def enrollCABootstrapAdmin(org):
 
     call(['fabric-ca-client',
           'enroll', '-d',
-          '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
+          '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
           '-u', enrollment_url])
 
     # python sdk
@@ -83,7 +83,7 @@ def registerOrdererIdentities(orderer):
 
     call(['fabric-ca-client',
           'register', '-d',
-          '-c', '/root/cas/' + orderer['ca']['name'] + '/fabric-ca-client-config.yaml',
+          '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
           '--id.name', orderer['users']['orderer']['name'],
           '--id.secret', orderer['users']['orderer']['name'],
           '--id.type', 'orderer'])
@@ -93,7 +93,7 @@ def registerOrdererIdentities(orderer):
     # The admin identity has the "admin" attribute which is added to ECert by default
     call(['fabric-ca-client',
           'register', '-d',
-          '-c', '/root/cas/' + orderer['ca']['name'] + '/fabric-ca-client-config.yaml',
+          '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
           '--id.name', orderer['users']['admin']['name'],
           '--id.secret', orderer['users']['admin']['pass'],
           '--id.attrs', 'admin=true:ecert'])
@@ -105,7 +105,7 @@ def registerPeerIdentities(org):
         print('Registering %(peer_name)s with %(ca_name)s\n' % {'peer_name': peer['name'],
                                                                 'ca_name': org['ca']['name']}, flush=True)
         call(['fabric-ca-client', 'register', '-d',
-              '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
+              '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
               '--id.name', peer['name'],
               '--id.secret', peer['pass'],
               '--id.type', 'peer'])
@@ -115,7 +115,7 @@ def registerPeerIdentities(org):
     # The admin identity has the "admin" attribute which is added to ECert by default
     call(['fabric-ca-client',
           'register', '-d',
-          '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
+          '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
           '--id.name', org['users']['admin']['name'],
           '--id.secret', org['users']['admin']['pass'],
           '--id.attrs',
@@ -125,7 +125,7 @@ def registerPeerIdentities(org):
     print('Registering user identity with %(ca_name)s\n' % {'ca_name': org['ca']['name']}, flush=True)
     call(['fabric-ca-client',
           'register', '-d',
-          '-c', '/root/cas/' + org['ca']['name'] + '/fabric-ca-client-config.yaml',
+          '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
           '--id.name', org['users']['user']['name'],
           '--id.secret', org['users']['user']['pass']])
 

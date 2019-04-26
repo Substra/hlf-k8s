@@ -165,6 +165,8 @@ def remove_all_docker():
     # Stop all
     docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
 
+    down_cmds = []
+
     for docker_compose_path in docker_compose_paths:
         with open(docker_compose_path) as dockercomposefile:
             dockercomposeconf = load(dockercomposefile, Loader=FullLoader)
@@ -174,7 +176,10 @@ def remove_all_docker():
             if services:
                 call(['docker', 'rm', '-f'] + services)
 
-            call(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
+            down_cmds.append(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
+
+    for cmd in down_cmds:
+        call(cmd)
 
     remove_chaincode_docker_containers()
     remove_chaincode_docker_images()
