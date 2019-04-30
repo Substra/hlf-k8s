@@ -6,9 +6,7 @@ from .users.user import user
 
 owkin = {
     'name': 'owkin',
-    'msp_dir': '/substra/data/orgs/owkin/msp',
     'msp_id': 'owkinMSP',
-    'user_home': '/substra/data/orgs/owkin/user',
     'anchor_tx_file': '/substra/data/orgs/owkin/anchors.tx',
     'ca-server-config-path': '/substra/conf/owkin/fabric-ca-server-config.yaml',
     'ca-client-config-path': '/substra/conf/owkin/fabric-ca-client-config.yaml',

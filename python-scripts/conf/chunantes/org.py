@@ -6,10 +6,7 @@ from .users.user import user
 
 chunantes = {
     'name': 'chu-nantes',
-    'msp_dir': '/substra/data/orgs/chu-nantes/msp',
     'msp_id': 'chu-nantesMSP',
-    'admin_home': '/substra/data/orgs/chu-nantes/admin',
-    'user_home': '/substra/data/orgs/chu-nantes/user',
     'anchor_tx_file': '/substra/data/orgs/chu-nantes/anchors.tx',
     'ca-server-config-path': '/substra/conf/chu-nantes/fabric-ca-server-config.yaml',
     'ca-client-config-path': '/substra/conf/chu-nantes/fabric-ca-client-config.yaml',

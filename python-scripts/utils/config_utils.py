@@ -161,7 +161,7 @@ def create_orderer_config(orderer, genesis_bloc_file):
     yaml_data['peer']['id'] = orderer['host']
     yaml_data['peer']['address'] = f"{orderer['host']}:{orderer['port']}"
     yaml_data['peer']['localMspId'] = orderer['msp_id']
-    yaml_data['peer']['mspConfigPath'] = orderer['admin_home'] + '/msp'
+    yaml_data['peer']['mspConfigPath'] = orderer['users']['admin']['home'] + '/msp'
 
     yaml_data['peer']['tls']['cert']['file'] = orderer['tls']['cert']
     yaml_data['peer']['tls']['key']['file'] = orderer['tls']['key']
