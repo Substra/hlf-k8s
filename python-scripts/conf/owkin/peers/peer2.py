@@ -4,8 +4,6 @@ peer2 = {
     'host': 'peer2-owkin',
     'port': 7051,
     'host_port': 8051,
-    'event_port': 7053,
-    'host_event_port': 8053,
     'anchor': False,
     'docker_core_dir': '/substra/conf/owkin/peer2',
     'tls': {

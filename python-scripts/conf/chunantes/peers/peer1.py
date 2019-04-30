@@ -4,8 +4,6 @@ peer1 = {
     'host': 'peer1-chu-nantes',
     'port': 7051,
     'host_port': 9051,
-    'event_port': 7053,
-    'host_event_port': 9053,
     'anchor': True,
     'docker_core_dir': '/substra/conf/chu-nantes/peer1',
     'tls': {
