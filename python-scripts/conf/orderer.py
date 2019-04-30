@@ -6,8 +6,6 @@ orderer = {
     'broadcast_dir': '/substra/data/log/broadcast',
     'home': '/etc/hyperledger/fabric',
     'local_msp_dir': '/etc/hyperledger/fabric/msp',
-    'ca-server-config-path': '/substra/conf/orderer/fabric-ca-server-config.yaml',
-    'ca-client-config-path': '/substra/conf/orderer/fabric-ca-client-config.yaml',
     'config-path': '/substra/conf/orderer/orderer.yaml',
     'core': {
         'docker': '/etc/hyperledger/fabric/',
@@ -34,10 +32,14 @@ orderer = {
         'host': 'rca-orderer',
         'certfile': '/substra/data/orgs/orderer/ca-cert.pem',
         'keyfile': '/substra/data/orgs/orderer/ca-key.pem',
-        'port': 7054,
-        'host_port': 9054,
+        'port': {
+            'internal': 7054,
+            'external': 9054
+        },
         'url': 'https://rca-orderer:7054',
         'logfile': '/substra/data/log/rca-orderer.log',
+        'server-config-path': '/substra/conf/orderer/fabric-ca-server-config.yaml',
+        'client-config-path': '/substra/conf/orderer/fabric-ca-client-config.yaml',
     },
     'users': {
         'bootstrap_admin': {

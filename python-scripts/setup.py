@@ -27,7 +27,7 @@ def init_org(conf):
             'name': peer['name'],
             'pass': peer['pass'],
             'host': service['ca']['host'],
-            'port': service['ca']['port']
+            'port': service['ca']['port']['internal']
         }
 
         create_directory(peer['tls']['dir'])
@@ -79,7 +79,7 @@ def init_orderer(conf):
         'name': admin['name'],
         'pass': admin['pass'],
         'host': service['ca']['host'],
-        'port': service['ca']['port']
+        'port': service['ca']['port']['internal']
     }
 
     # Generate server TLS cert and key pair

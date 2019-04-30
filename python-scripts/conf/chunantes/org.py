@@ -8,8 +8,6 @@ chunantes = {
     'name': 'chu-nantes',
     'msp_id': 'chu-nantesMSP',
     'anchor_tx_file': '/substra/data/orgs/chu-nantes/anchors.tx',
-    'ca-server-config-path': '/substra/conf/chu-nantes/fabric-ca-server-config.yaml',
-    'ca-client-config-path': '/substra/conf/chu-nantes/fabric-ca-client-config.yaml',
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in the docker image, do not forget to remove these examples files if naming the same way
         'certfile': '/substra/data/orgs/chu-nantes/tls-ca-cert.pem',
@@ -20,10 +18,14 @@ chunantes = {
         'host': 'rca-chu-nantes',
         'certfile': '/substra/data/orgs/chu-nantes/ca-cert.pem',
         'keyfile': '/substra/data/orgs/chu-nantes/ca-key.pem',
-        'port': 7054,
-        'host_port': 8054,
+        'port': {
+            'internal': 7054,
+            'external': 8054
+        },
         'url': 'https://rca-chu-nantes:7054',
-        'logfile': '/substra/data/log/rca-chu-nantes.log'
+        'logfile': '/substra/data/log/rca-chu-nantes.log',
+        'server-config-path': '/substra/conf/chu-nantes/fabric-ca-server-config.yaml',
+        'client-config-path': '/substra/conf/chu-nantes/fabric-ca-client-config.yaml',
     },
     'users': {
         'bootstrap_admin': bootstrap_admin,

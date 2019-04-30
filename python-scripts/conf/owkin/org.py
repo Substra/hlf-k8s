@@ -8,8 +8,6 @@ owkin = {
     'name': 'owkin',
     'msp_id': 'owkinMSP',
     'anchor_tx_file': '/substra/data/orgs/owkin/anchors.tx',
-    'ca-server-config-path': '/substra/conf/owkin/fabric-ca-server-config.yaml',
-    'ca-client-config-path': '/substra/conf/owkin/fabric-ca-client-config.yaml',
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in the docker image, do not forget to remove these examples files in your docker CMD overriding if naming the same way
         'certfile': '/substra/data/orgs/owkin/tls-ca-cert.pem',
@@ -20,10 +18,14 @@ owkin = {
         'host': 'rca-owkin',
         'certfile': '/substra/data/orgs/owkin/ca-cert.pem',
         'keyfile': '/substra/data/orgs/owkin/ca-key.pem',
-        'port': 7054,
-        'host_port': 7054,
+        'port': {
+            'internal': 7054,
+            'external': 7054
+        },
         'url': 'https://rca-owkin:7054',
-        'logfile': '/substra/data/log/rca-owkin.log'
+        'logfile': '/substra/data/log/rca-owkin.log',
+        'server-config-path': '/substra/conf/owkin/fabric-ca-server-config.yaml',
+        'client-config-path': '/substra/conf/owkin/fabric-ca-client-config.yaml',
     },
     'users': {
         'bootstrap_admin': bootstrap_admin,

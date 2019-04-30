@@ -32,7 +32,7 @@ def configLocalMSP(org, user_name):
             'name': user['name'],
             'pass': user['pass'],
             'host': org['ca']['host'],
-            'port': org['ca']['port']
+            'port': org['ca']['port']['internal']
         }
 
         call(['fabric-ca-client',
@@ -52,14 +52,14 @@ def enrollCABootstrapAdmin(org):
              90,
              org['ca']['logfile'],
              org['ca']['host'],
-             org['ca']['port'])
+             org['ca']['port']['internal'])
     print('Enrolling with %(CA_NAME)s as bootstrap identity ...' % {'CA_NAME': org['ca']['name']}, flush=True)
 
     enrollment_url = 'https://%(name)s:%(pass)s@%(host)s:%(port)s' % {
         'name': org['users']['bootstrap_admin']['name'],
         'pass': org['users']['bootstrap_admin']['pass'],
         'host': org['ca']['host'],
-        'port': org['ca']['port']
+        'port': org['ca']['port']['internal']
     }
 
     call(['fabric-ca-client',

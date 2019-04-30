@@ -28,7 +28,7 @@ def create_ca_server_config(org):
     yaml_data['registry']['identities'][0]['name'] = org['users']['bootstrap_admin']['name']
     yaml_data['registry']['identities'][0]['pass'] = org['users']['bootstrap_admin']['pass']
 
-    filename = org['ca-server-config-path']
+    filename = org['ca']['server-config-path']
     with open(filename, 'w+') as f:
         f.write(dump(yaml_data, default_flow_style=False))
 
@@ -49,7 +49,7 @@ def create_ca_client_config(org):
 
     yaml_data['url'] = org['ca']['url']
 
-    filename = org['ca-client-config-path']
+    filename = org['ca']['client-config-path']
     with open(filename, 'w+') as f:
         f.write(dump(yaml_data, default_flow_style=False))
 
