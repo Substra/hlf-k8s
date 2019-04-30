@@ -1,6 +1,9 @@
 orderer = {
     'host': 'orderer1-orderer',
-    'port': 7050,
+    'port': {
+        'internal': 7050,
+        'external': 7050
+    },
     'name': 'orderer',
     'msp_id': 'ordererMSP',
     'broadcast_dir': '/substra/data/log/broadcast',
@@ -10,6 +13,10 @@ orderer = {
     'core': {
         'docker': '/etc/hyperledger/fabric/',
         'host': '/substra/data/orgs/orderer',
+    },
+    'core_dir': {
+        'internal': '/etc/hyperledger/fabric',
+        'external': '/substra/data/orgs/orderer'
     },
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a
@@ -26,6 +33,23 @@ orderer = {
         'clientCert': '/substra/data/orgs/orderer/tls/cli-client.crt',
         'clientKey': '/substra/data/orgs/orderer/tls/cli-client.key',
         'clientCa': '/substra/data/orgs/orderer/tls/cli-client.pem',
+
+        'core_dir': {
+            'external': '/substra/data/orgs/orderer/tls/orderer1',
+            'internal': '/etc/hyperledger/fabric/tls'
+        },
+        'client': {
+            'dir': 'client',
+            'cert': 'client.crt',
+            'key': 'client.key',
+            'ca': 'client.pem'
+        },
+        'server': {
+            'dir': 'server',
+            'cert': 'server.crt',
+            'key': 'server.key',
+            'ca': 'server.pem'
+        },
     },
     'ca': {
         'name': 'rca-orderer',

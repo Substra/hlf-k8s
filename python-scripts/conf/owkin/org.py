@@ -47,5 +47,9 @@ owkin = {
             'msp_config_path': '/substra/data/orgs/owkin/user/msp',
         }
     },
+    'core_dir': {
+        'internal': '/etc/hyperledger/fabric',
+        'external': '/substra/data/orgs/owkin'
+    },
     'peers': [peer1, peer2]
 }

@@ -61,7 +61,7 @@ def create_configtx(orderers, orgs, filename):
 
     # override template here
 
-    yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = [f"{x['host']}:{x['port']}" for x in orderers]
+    yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = [f"{x['host']}:{x['port']['internal']}" for x in orderers]
 
     configtx_orderers = [{
         'Name': x['name'],
@@ -75,7 +75,7 @@ def create_configtx(orderers, orgs, filename):
         'MSPDir': f"{x['users']['admin']['home']}/msp",
         'AnchorPeers': [{
             'Host': peer['host'],
-            'Port': peer['port']
+            'Port': peer['port']['internal']
         } for peer in x['peers'] if peer['anchor']]
     } for x in orgs]
 
@@ -97,7 +97,7 @@ def create_core_peer_config(org):
         # override template here
 
         yaml_data['peer']['id'] = peer['host']
-        yaml_data['peer']['address'] = f"{peer['host']}:{peer['port']}"
+        yaml_data['peer']['address'] = f"{peer['host']}:{peer['port']['internal']}"
         yaml_data['peer']['localMspId'] = org['msp_id']
         yaml_data['peer']['mspConfigPath'] = org['core']['docker']['msp_config_path']
 
@@ -115,7 +115,7 @@ def create_core_peer_config(org):
 
         yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
         yaml_data['peer']['gossip']['orgLeader'] = 'false'
-        yaml_data['peer']['gossip']['externalEndpoint'] = f"{peer['host']}:{peer['port']}"
+        yaml_data['peer']['gossip']['externalEndpoint'] = f"{peer['host']}:{peer['port']['internal']}"
         yaml_data['peer']['gossip']['skipHandshake'] = 'true'
 
         yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
@@ -159,7 +159,7 @@ def create_orderer_config(orderer, genesis_bloc_file):
     # override template here
 
     yaml_data['peer']['id'] = orderer['host']
-    yaml_data['peer']['address'] = f"{orderer['host']}:{orderer['port']}"
+    yaml_data['peer']['address'] = f"{orderer['host']}:{orderer['port']['internal']}"
     yaml_data['peer']['localMspId'] = orderer['msp_id']
     yaml_data['peer']['mspConfigPath'] = orderer['users']['admin']['home'] + '/msp'
 
@@ -177,7 +177,7 @@ def create_orderer_config(orderer, genesis_bloc_file):
 
     yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
     yaml_data['peer']['gossip']['orgLeader'] = 'false'
-    yaml_data['peer']['gossip']['externalEndpoint'] = f"{orderer['host']}:{orderer['port']}"
+    yaml_data['peer']['gossip']['externalEndpoint'] = f"{orderer['host']}:{orderer['port']['internal']}"
     yaml_data['peer']['gossip']['skipHandshake'] = 'true'
 
     yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
@@ -224,8 +224,8 @@ def create_substrabac_config(org, orderer):
         'peer': {
             'name': peer['name'],
             'host': peer['host'],
-            'port': peer['host_port'],
-            'docker_port': peer['port'],
+            'port': peer['host_port']['external'],
+            'docker_port': peer['port']['internal'],
             'docker_core_dir': peer['docker_core_dir'],
             'clientKey': peer['tls']['clientKey'],
             'clientCert': peer['tls']['clientCert'],
@@ -233,7 +233,7 @@ def create_substrabac_config(org, orderer):
         'orderer': {
             'name': orderer['name'],
             'host': orderer['host'],
-            'port': orderer['port'],
+            'port': orderer['port']['external'],
             'ca': orderer['ca']['certfile'],
         }
     }

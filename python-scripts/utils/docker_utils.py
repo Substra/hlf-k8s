@@ -76,7 +76,7 @@ def generate_docker_compose_org(org, substra_path, network):
                'environment': [# https://medium.com/@Alibaba_Cloud/hyperledger-fabric-deployment-on-alibaba-cloud-environment-sigsegv-problem-analysis-and-solutions-9a708313f1a4
                                'GODEBUG=netdns=go+1'],
                'working_dir': '/etc/hyperledger/fabric',
-               'ports': [f'{peer["host_port"]}:{peer["port"]}'],
+               'ports': [f'{peer["port"]["external"]}:{peer["port"]["internal"]}'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': ['/var/run/docker.sock:/host/var/run/docker.sock',
                            f'{substra_path}/data/channel/:{substra_path}/data/channel/',
@@ -162,7 +162,7 @@ def generate_docker_compose_orderer(orderer, substra_path, network, genesis_bloc
            'restart': 'unless-stopped',
            'working_dir': '/etc/hyperledger/fabric',
            'command': '/bin/bash -c "orderer 2>&1"',
-           'ports': [f"{orderer['port']}:{orderer['port']}"],
+           'ports': [f"{orderer['port']['external']}:{orderer['port']['internal']}"],
            'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
            'volumes': [
                f'{genesis_bloc_file}:{genesis_bloc_file}',

@@ -2,8 +2,10 @@ peer1 = {
     'name': 'peer1',
     'pass': 'peer1pw',
     'host': 'peer1-chu-nantes',
-    'port': 7051,
-    'host_port': 9051,
+    'port': {
+        'internal': 7051,
+        'external': 9051
+    },
     'anchor': True,
     'docker_core_dir': '/substra/conf/chu-nantes/peer1',
     'tls': {
@@ -17,5 +19,25 @@ peer1 = {
         #  but will be put by fabric-ca inside tlscacerts directory
         # it will be equal to org['ca']['certfile']
         'serverCa': '/substra/data/orgs/chu-nantes/tls/peer1/server.pem',
+
+        'core_dir': {
+            'external': '/substra/data/orgs/chu-nantes/tls/peer1',
+            'internal': '/etc/hyperledger/fabric/tls'
+        },
+        'client': {
+            'dir': 'client',
+            'cert': 'client.crt',
+            'key': 'client.key',
+            'ca': 'client.pem'
+        },
+        'server': {
+            'dir': 'server',
+            'cert': 'server.crt',
+            'key': 'server.key',
+            #  paradoxically, this will not be a tls certificate,
+            #  but will be put by fabric-ca inside tlscacerts directory
+            # it will be equal to org['ca']['certfile']
+            'ca': 'server.pem'
+        },
     }
 }

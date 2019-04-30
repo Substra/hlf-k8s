@@ -47,5 +47,9 @@ chunantes = {
             'msp_config_path': '/substra/data/orgs/chu-nantes/user/msp',
         }
     },
+    'core_dir': {
+        'internal': '/etc/hyperledger/fabric',
+        'external': '/substra/data/orgs/chu-nantes'
+    },
     'peers': [peer1, peer2]
 }
