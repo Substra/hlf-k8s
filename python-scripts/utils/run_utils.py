@@ -14,7 +14,7 @@ client = docker.from_env()
 def set_env_variables(fabric_cfg_path, msp_dir):
     os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
     os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
-    os.environ['FABRIC_LOGGING_SPEC'] = 'debug'
+    os.environ['FABRIC_LOGGING_SPEC'] = 'info'
 
 
 def clean_env_variables():
@@ -593,12 +593,14 @@ def getSystemChannelConfigBlock(conf, block_name):
     getChannelConfigBlockWithOrderer(conf['service'], conf['misc']['system_channel_name'], block_name)
 
 
-def getChannelConfigBlockWithOrderer(orderer, channel_name, block_name):
+def getChannelConfigBlockWithOrderer(org, channel_name, block_name):
     # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
-    orderer_admin_home = orderer['users']['admin']['home']
+    orderer_admin_home = org['users']['admin']['home']
     orderer_admin_msp_dir = orderer_admin_home + '/msp'
-    orderer_core = '/substra/conf/%s' % orderer['name']
+
+    orderer = org['orderers'][0]
+    orderer_core = '/substra/conf/%s/%s' % (org['name'], orderer['name'])
 
     set_env_variables(orderer_core, orderer_admin_msp_dir)
 
@@ -612,9 +614,9 @@ def getChannelConfigBlockWithOrderer(orderer, channel_name, block_name):
         '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
         '--tls',
         '--clientauth',
-        '--cafile', orderer['ca']['certfile'],
-        '--keyfile', orderer['tls']['clientKey'],
-        '--certfile', orderer['tls']['clientCert']
+        '--cafile', org['ca']['certfile'],
+        '--keyfile', org['tls']['clientKey'],
+        '--certfile', org['tls']['clientCert']
     ])
 
     # clean env variables
@@ -622,11 +624,14 @@ def getChannelConfigBlockWithOrderer(orderer, channel_name, block_name):
 
 
 def signAndPushSystemUpdateProposal(conf):
-    orderer = conf['service']
+    org = conf['service']
     channel_name = conf['misc']['system_channel_name']
-    orderer_admin_home = orderer['users']['admin']['home']
-    orderer_admin_msp_dir = orderer_admin_home + '/msp'
-    orderer_core = '/substra/conf/%s' % orderer['name']
+
+    org_admin_home = org['users']['admin']['home']
+    orderer_admin_msp_dir = org_admin_home + '/msp'
+
+    orderer = org['orderers'][0]
+    orderer_core = '/substra/conf/%s/%s' % (org['name'], orderer['name'])
 
     set_env_variables(orderer_core, orderer_admin_msp_dir)
 
@@ -637,10 +642,10 @@ def signAndPushSystemUpdateProposal(conf):
           '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
           '--tls',
           '--clientauth',
-          '--cafile', orderer['ca']['certfile'],
+          '--cafile', org['ca']['certfile'],
           # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--keyfile', orderer['tls']['clientKey'],
-          '--certfile', orderer['tls']['clientCert']
+          '--keyfile', org['tls']['clientKey'],
+          '--certfile', org['tls']['clientCert']
           ])
 
     # clean env variables

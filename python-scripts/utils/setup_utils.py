@@ -74,29 +74,30 @@ def enrollCABootstrapAdmin(org):
     # enrollment = caClient.enroll(org['bootstrap_admin']['name'], org['bootstrap_admin']['pass'])
 
 
-def registerOrdererIdentities(orderer):
-    enrollCABootstrapAdmin(orderer)
+def registerOrdererIdentities(org):
+    enrollCABootstrapAdmin(org)
 
-    print('Registering %(orderer_name)s with %(ca_name)s' % {'orderer_name': orderer['name'],
-                                                             'ca_name': orderer['ca']['name']},
-          flush=True)
+    for orderer in org['orderers']:
+        print('Registering %(orderer_name)s with %(ca_name)s' % {'orderer_name': orderer['name'],
+                                                                 'ca_name': org['ca']['name']},
+              flush=True)
 
-    call(['fabric-ca-client',
-          'register', '-d',
-          '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
-          '--id.name', orderer['users']['orderer']['name'],
-          '--id.secret', orderer['users']['orderer']['name'],
-          '--id.type', 'orderer'])
+        call(['fabric-ca-client',
+              'register', '-d',
+              '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
+              '--id.name', orderer['name'],
+              '--id.secret', orderer['pass'],
+              '--id.type', 'orderer'])
 
-    print('Registering admin identity with %(ca_name)s' % {'ca_name': orderer['ca']['name']}, flush=True)
+        print('Registering admin identity with %(ca_name)s' % {'ca_name': org['ca']['name']}, flush=True)
 
-    # The admin identity has the "admin" attribute which is added to ECert by default
-    call(['fabric-ca-client',
-          'register', '-d',
-          '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
-          '--id.name', orderer['users']['admin']['name'],
-          '--id.secret', orderer['users']['admin']['pass'],
-          '--id.attrs', 'admin=true:ecert'])
+        # The admin identity has the "admin" attribute which is added to ECert by default
+        call(['fabric-ca-client',
+              'register', '-d',
+              '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
+              '--id.name', org['users']['admin']['name'],
+              '--id.secret', org['users']['admin']['pass'],
+              '--id.attrs', 'admin=true:ecert'])
 
 
 def registerPeerIdentities(org):

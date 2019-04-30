@@ -1,3 +1,7 @@
+from .users.bootstrap_admin import bootstrap_admin
+from .users.admin import admin
+from orderer.orderers.orderer1 import orderer1
+
 orderer = {
     'host': 'orderer1-orderer',
     'port': {
@@ -66,16 +70,8 @@ orderer = {
         'client-config-path': '/substra/conf/orderer/fabric-ca-client-config.yaml',
     },
     'users': {
-        'bootstrap_admin': {
-            'name': 'admin',
-            'pass': 'adminpw',
-            'home': '/substra/data/orgs/orderer'
-        },
-        'admin': {
-            'name': 'admin-orderer',
-            'pass': 'admin-ordererpw',
-            'home': '/substra/data/orgs/orderer/admin'
-        },
+        'bootstrap_admin': bootstrap_admin,
+        'admin': admin,
         'orderer': {
             'name': 'orderer',
             'pass': 'ordererpw',
@@ -87,4 +83,5 @@ orderer = {
         # The "hosts" value is a list of the domain names which the certificate should be valid for.
         'hosts': ['rca-orderer']
     },
+    'orderers': [orderer1],
 }

@@ -61,13 +61,16 @@ def create_configtx(orderers, orgs, filename):
 
     # override template here
 
-    yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = [f"{x['host']}:{x['port']['internal']}" for x in orderers]
+    configtx_orderers = []
+    for org in orderers:
+        for x in org['orderers']:
+            yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = f"{x['host']}:{x['port']['internal']}"
 
-    configtx_orderers = [{
-        'Name': x['name'],
-        'ID': x['msp_id'],
-        'MSPDir': f"{x['users']['admin']['home']}/msp",
-    } for x in orderers]
+        configtx_orderers.append({
+            'Name': org['name'],
+            'ID': org['msp_id'],
+            'MSPDir': f"{org['users']['admin']['home']}/msp",
+        })
 
     configtx_orgs = [{
         'Name': x['name'],
@@ -127,65 +130,71 @@ def create_core_peer_config(org):
             f.write(dump(yaml_data, default_flow_style=False))
 
 
-def create_orderer_config(orderer, genesis_bloc_file):
+def create_orderer_config(org, genesis_bloc_file):
     stream = open(os.path.join(dir_path, '../../templates/orderer.yaml'), 'r')
     yaml_data = load(stream, Loader=FullLoader)
 
-    # override template here
-    yaml_data['General']['TLS']['Certificate'] = orderer['tls']['cert']
-    yaml_data['General']['TLS']['PrivateKey'] = orderer['tls']['key']
-    yaml_data['General']['TLS']['Enabled'] = 'true'
-    # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
-    # from the py sdk if peer clientCert/clientKey is not set correctly
-    yaml_data['General']['TLS']['ClientAuthRequired'] = 'true'
-    yaml_data['General']['TLS']['RootCAs'] = [orderer['ca']['certfile']]
-    yaml_data['General']['TLS']['ClientRootCAs'] = [orderer['ca']['certfile']]
+    for orderer in org['orderers']:
 
-    yaml_data['General']['ListenAddress'] = '0.0.0.0'
-    yaml_data['General']['GenesisMethod'] = 'file'
-    yaml_data['General']['GenesisFile'] = genesis_bloc_file
-    yaml_data['General']['LocalMSPID'] = orderer['msp_id']
-    yaml_data['General']['LocalMSPDir'] = orderer['local_msp_dir']
+        # override template here
+        yaml_data['General']['TLS']['Certificate'] = org['tls']['cert']
+        yaml_data['General']['TLS']['PrivateKey'] = org['tls']['key']
+        yaml_data['General']['TLS']['Enabled'] = 'true'
+        # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
+        # from the py sdk if peer clientCert/clientKey is not set correctly
+        yaml_data['General']['TLS']['ClientAuthRequired'] = 'true'
+        yaml_data['General']['TLS']['RootCAs'] = [org['ca']['certfile']]
+        yaml_data['General']['TLS']['ClientRootCAs'] = [org['ca']['certfile']]
 
-    yaml_data['Debug']['BroadcastTraceDir'] = orderer['broadcast_dir']
+        yaml_data['General']['ListenAddress'] = '0.0.0.0'
+        yaml_data['General']['GenesisMethod'] = 'file'
+        yaml_data['General']['GenesisFile'] = genesis_bloc_file
+        yaml_data['General']['LocalMSPID'] = org['msp_id']
+        yaml_data['General']['LocalMSPDir'] = org['local_msp_dir']
 
-    filename = orderer['config-path']
-    with open(filename, 'w+') as f:
-        f.write(dump(yaml_data, default_flow_style=False))
+        yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']
 
-    stream = open(os.path.join(dir_path, '../../templates/core.yaml'), 'r')
-    yaml_data = load(stream, Loader=FullLoader)
+        dir = f'{SUBSTRA_PATH}/conf/{org["name"]}/{orderer["name"]}'
+        create_directory(dir)
+        filename = f"{dir}/orderer.yaml"
+        with open(filename, 'w+') as f:
+            f.write(dump(yaml_data, default_flow_style=False))
 
-    # override template here
+        stream = open(os.path.join(dir_path, '../../templates/core.yaml'), 'r')
+        yaml_data = load(stream, Loader=FullLoader)
 
-    yaml_data['peer']['id'] = orderer['host']
-    yaml_data['peer']['address'] = f"{orderer['host']}:{orderer['port']['internal']}"
-    yaml_data['peer']['localMspId'] = orderer['msp_id']
-    yaml_data['peer']['mspConfigPath'] = orderer['users']['admin']['home'] + '/msp'
+        # override template here
 
-    yaml_data['peer']['tls']['cert']['file'] = orderer['tls']['cert']
-    yaml_data['peer']['tls']['key']['file'] = orderer['tls']['key']
-    yaml_data['peer']['tls']['clientCert']['file'] = orderer['tls']['clientCert']
-    yaml_data['peer']['tls']['clientKey']['file'] = orderer['tls']['clientKey']
-    yaml_data['peer']['tls']['enabled'] = 'true'
-    # the same as peer['tls']['serverCa'] but this one is inside the container
-    yaml_data['peer']['tls']['rootcert']['file'] = orderer['ca']['certfile']
-    # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
-    # from the py sdk if peer clientCert/clientKey is not set correctly
-    yaml_data['peer']['tls']['clientAuthRequired'] = 'true'
-    yaml_data['peer']['tls']['clientRootCAs'] = [orderer['ca']['certfile']]
+        yaml_data['peer']['id'] = org['host']
+        yaml_data['peer']['address'] = f"{orderer['host']}:{orderer['port']['internal']}"
+        yaml_data['peer']['localMspId'] = org['msp_id']
+        yaml_data['peer']['mspConfigPath'] = org['users']['admin']['home'] + '/msp'
 
-    yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
-    yaml_data['peer']['gossip']['orgLeader'] = 'false'
-    yaml_data['peer']['gossip']['externalEndpoint'] = f"{orderer['host']}:{orderer['port']['internal']}"
-    yaml_data['peer']['gossip']['skipHandshake'] = 'true'
+        yaml_data['peer']['tls']['cert']['file'] = org['tls']['cert']
+        yaml_data['peer']['tls']['key']['file'] = org['tls']['key']
+        yaml_data['peer']['tls']['clientCert']['file'] = org['tls']['clientCert']
+        yaml_data['peer']['tls']['clientKey']['file'] = org['tls']['clientKey']
+        yaml_data['peer']['tls']['enabled'] = 'true'
+        # the same as peer['tls']['serverCa'] but this one is inside the container
+        yaml_data['peer']['tls']['rootcert']['file'] = org['ca']['certfile']
+        # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
+        # from the py sdk if peer clientCert/clientKey is not set correctly
+        yaml_data['peer']['tls']['clientAuthRequired'] = 'true'
+        yaml_data['peer']['tls']['clientRootCAs'] = [org['ca']['certfile']]
 
-    yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
-    yaml_data['vm']['docker']['hostConfig']['NetworkMode'] = 'net_substra'
+        yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
+        yaml_data['peer']['gossip']['orgLeader'] = 'false'
+        yaml_data['peer']['gossip']['externalEndpoint'] = f"{orderer['host']}:{orderer['port']['internal']}"
+        yaml_data['peer']['gossip']['skipHandshake'] = 'true'
 
-    filename = f"/substra/conf/{orderer['name']}/core.yaml"
-    with open(filename, 'w+') as f:
-        f.write(dump(yaml_data, default_flow_style=False))
+        yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
+        yaml_data['vm']['docker']['hostConfig']['NetworkMode'] = 'net_substra'
+
+        dir = f'{SUBSTRA_PATH}/conf/{org["name"]}/{orderer["name"]}'
+        create_directory(dir)
+        filename = f"{dir}/core.yaml"
+        with open(filename, 'w+') as f:
+            f.write(dump(yaml_data, default_flow_style=False))
 
 
 def create_fabric_ca_peer_config(org):

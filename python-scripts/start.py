@@ -138,7 +138,7 @@ def substra_org(org, orderer):
     start(org, org_docker_compose)
 
 
-def substra_network(orderer, orgs):
+def substra_network(orgs):
 
     # Stop all
     docker_compose_paths = os.path.join(SUBSTRA_PATH, 'dockerfiles')
@@ -153,12 +153,12 @@ def substra_network(orderer, orgs):
     # Create Network
     call(['docker', 'network', 'create', SUBSTRA_NETWORK])
 
-    substra_orderer(orderer)
-
-    # Prepare each org
-    for org in orgs:
-        substra_org(org, orderer['service'])
-
+    for orderer in [x for x in orgs if 'orderers' in x['service']]:
+        substra_orderer(orderer)
+    else:
+        # Prepare each org
+        for org in [x for x in orgs if 'peers' in x['service']]:
+            substra_org(org, orderer['service'])
 
 def remove_all_docker():
 
@@ -223,17 +223,11 @@ if __name__ == '__main__':
 
     files = glob.glob(f'{SUBSTRA_PATH}/conf/config/conf-*.json')
     files.sort(key=os.path.getmtime)
-    orgs = [json.load(open(file_path, 'r'))
-            for file_path in files
-            if 'orderer' not in file_path]
-
-    print('Build substra-network for : ', flush=True)
-    print('  Orderer :')
-    print('   -', orderer['service']['name'], flush=True)
+    orgs = [json.load(open(file_path, 'r')) for file_path in files]
 
     print('  Organizations :', flush=True)
     for org in orgs:
         print('   -', org['service']['name'], flush=True)
     print('', flush=True)
 
-    substra_network(orderer, orgs)
+    substra_network(orgs)
