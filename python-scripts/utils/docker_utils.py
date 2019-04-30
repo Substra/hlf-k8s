@@ -131,7 +131,7 @@ def generate_docker_compose_orderer(org, substra_path, network, genesis_bloc_fil
                                                               f'{substra_path}/data/genesis:{substra_path}/data/genesis',
                                                               f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
                                                               f'{substra_path}/data/configtx-{org["name"]}.yaml:{FABRIC_CFG_PATH}/configtx.yaml',
-                                                              f'{substra_path}/data/orgs/{org["name"]}/fabric/msp/:{org["local_msp_dir"]}',
+                                                              #f'{substra_path}/data/orgs/{org["name"]}/fabric/msp/:{org["local_msp_dir"]}',
                                                               f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
                                                               f'{substra_path}/conf/{org["name"]}/fabric-ca-client-config.yaml:{FABRIC_CA_CLIENT_HOME}/fabric-ca-client-config.yaml',
                                                               ],
@@ -173,7 +173,7 @@ def generate_docker_compose_orderer(org, substra_path, network, genesis_bloc_fil
                    f"{substra_path}/backup/orgs/{org['name']}/{orderer['name']}:/var/hyperledger/production/orderer",
 
                     # EDIT me to fail
-                   f"{substra_path}/data/orgs/{org['name']}/fabric/msp/:{org['local_msp_dir']}",
+                   f"{substra_path}/data/orgs/{org['name']}/{orderer['name']}/fabric/msp/:{org['local_msp_dir']}",
 
                    # conf files
                    f"{substra_path}/data/configtx-{org['name']}.yaml:{org['core_dir']['internal']}/configtx.yaml",

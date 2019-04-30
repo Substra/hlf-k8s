@@ -104,18 +104,19 @@ def init_orderer(conf):
                    enrollment_url)
 
         # Enroll again to get the orderer's enrollment certificate for getting signcert and being able to launch orderer
+        local_msp_dir = service['core']['docker'] + '/msp/'
         call(['fabric-ca-client',
               'enroll', '-d',
               '-u', enrollment_url,
-              '-M', service['local_msp_dir']])
+              '-M', local_msp_dir + orderer['name']])
 
         # copy the admincerts from the admin user for being able to launch orderer
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
         # https://lists.hyperledger.org/g/fabric/topic/17549225#1250
 
-        dst_ca_dir = '%s/admincerts/' % service['local_msp_dir']
+        dst_ca_dir = '%s/%s/admincerts/' % (local_msp_dir, orderer['name'])
         create_directory(dst_ca_dir)
-        copyfile('%s/signcerts/cert.pem' % service['local_msp_dir'], '%s/%s-cert.pem' % (dst_ca_dir, admin['name']))
+        copyfile('%s/%s/signcerts/cert.pem' % (local_msp_dir, orderer['name']), '%s/%s-cert.pem' % (dst_ca_dir, admin['name']))
 
     create_directory(service['broadcast_dir'])
 
