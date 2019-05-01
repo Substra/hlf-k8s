@@ -136,7 +136,7 @@ def registerIdentities(conf):
 
     if 'peers' in service:
         registerPeerIdentities(service)
-    else:
+    if 'orderers' in service:
         registerOrdererIdentities(service)
 
 
@@ -204,7 +204,7 @@ def generateGenesis(conf):
     # Note: For some unknown reason (at least for now) the block file can't be
     # named orderer.genesis.block or the orderer will fail to launch
 
-    # configtxgen -profile OrgsOrdererGenesis -outputBlock /substra/data/genesis.block
+    # configtxgen -profile OrgsOrdererGenesis -channelID substrasystemchannel -outputBlock /substra/data/genesis.block
     call(['configtxgen',
           '-profile', 'OrgsOrdererGenesis',
           '-channelID', conf['misc']['system_channel_name'],

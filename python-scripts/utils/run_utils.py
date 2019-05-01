@@ -25,15 +25,22 @@ def clean_env_variables():
 
 # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
 # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
-def createChannel(conf, orderer):
+def createChannel(conf, orderer_org):
 
     org = conf['service']
-    peer = org['peers'][0]
+
+    orderer = orderer_org['orderers'][0]
+
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
+    peer = org['peers'][0]
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+    set_env_variables(peer_core, org_admin_msp_dir)
+
+    tls_client_dir = peer['tls']['core_dir']['external'] + '/' + peer['tls']['client']['dir']
 
     call([
         'peer',
@@ -45,7 +52,7 @@ def createChannel(conf, orderer):
         '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
         '--tls',
         '--clientauth',
-        '--cafile', orderer['ca']['certfile'],
+        '--cafile', orderer_org['ca']['certfile'],
         '--keyfile', peer['tls']['clientKey'],
         '--certfile', peer['tls']['clientCert']
     ])
