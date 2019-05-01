@@ -4,9 +4,9 @@ from misc import misc
 from orderer import orderer
 from owkin import owkin
 
-# misc.update({
-#     'fixtures_path': 'fixtures1org.py'
-# })
+misc.update({
+    'fixtures_path': 'fixtures1org.py'
+})
 
 
 def main():

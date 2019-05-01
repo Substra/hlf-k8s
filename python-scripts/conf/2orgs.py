@@ -5,9 +5,9 @@ from orderer import orderer
 from owkin import owkin
 from chunantes import chunantes
 
-# misc.update({
-#     'fixtures_path': 'fixtures2orgs.py'
-# })
+misc.update({
+    'fixtures_path': 'fixtures2orgs.py'
+})
 
 
 def main():
