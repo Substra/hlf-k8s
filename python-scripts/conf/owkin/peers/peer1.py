@@ -7,7 +7,6 @@ peer1 = {
         'external': 7051
     },
     'anchor': True,
-    'docker_core_dir': '/substra/conf/owkin/peer1',
     'tls': {
         'dir': '/substra/data/orgs/owkin/tls/peer1/',
         'clientCert': '/substra/data/orgs/owkin/tls/peer1/cli-client.crt',

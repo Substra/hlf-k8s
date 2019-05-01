@@ -86,12 +86,14 @@ def getChannelConfigBlockWithPeer(conf, orderer):
     # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
     org = conf['service']
-    peer = org['peers'][0]
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
+    peer = org['peers'][0]
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+    set_env_variables(peer_core, org_admin_msp_dir)
 
     call([
         'peer',
@@ -193,9 +195,11 @@ def signAndPushUpdateProposal(orgs, orderer, channel_name):
         # Sign
         org_admin_home = org['users']['admin']['home']
         org_admin_msp_dir = org_admin_home + '/msp'
-        peer = org['peers'][0]
 
-        set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+        peer = org['peers'][0]
+        peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+
+        set_env_variables(peer_core, org_admin_msp_dir)
 
         print('Sign update proposal on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
@@ -217,9 +221,11 @@ def signAndPushUpdateProposal(orgs, orderer, channel_name):
         # Push
         org_admin_home = org['users']['admin']['home']
         org_admin_msp_dir = org_admin_home + '/msp'
-        peer = org['peers'][0]
 
-        set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+        peer = org['peers'][0]
+        peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+
+        set_env_variables(peer_core, org_admin_msp_dir)
 
         print('Send update proposal on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
@@ -260,10 +266,12 @@ def updateAnchorPeers(conf, orderer):
     org_admin_msp_dir = org_admin_home + '/msp'
 
     peer = org['peers'][0]
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+
     print('Updating anchor peers for %(peer_host)s ...' % {'peer_host': org['peers'][0]['host']}, flush=True)
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+    set_env_variables(peer_core, org_admin_msp_dir)
 
     call(['peer',
           'channel', 'update',
@@ -290,8 +298,10 @@ def installChainCode(conf, peer, chaincode_version):
 
     print('Installing chaincode on %(peer_host)s ...' % {'peer_host': peer['host']}, flush=True)
 
+    peer_core = '/substra/conf/%s/%s' % (conf['service']['name'], peer['name'])
+
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+    set_env_variables(peer_core, org_admin_msp_dir)
 
     call(['peer',
           'chaincode', 'install',
@@ -310,13 +320,15 @@ def installChainCodeOnPeers(conf, chaincode_version):
 
 def waitForInstantiation(conf, orderer):
     org = conf['service']
+
     peer = org['peers'][0]
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
 
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+    set_env_variables(peer_core, org_admin_msp_dir)
 
     print('Test if chaincode is instantiated on %(PEER_HOST)s ... (timeout 15 seconds)' % {'PEER_HOST': peer['host']},
           flush=True)
@@ -353,13 +365,15 @@ def waitForInstantiation(conf, orderer):
 
 def getChaincodeVersion(conf, orderer):
     org = conf['service']
+
     peer = org['peers'][0]
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
 
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+    set_env_variables(peer_core, org_admin_msp_dir)
 
     output = subprocess.run(['peer',
                              'chaincode', 'list',
@@ -398,10 +412,12 @@ def instanciateChainCode(conf, orderer, args):
 
     org_admin_home = conf['service']['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
+
     peer = conf['service']['peers'][0]
+    peer_core = '/substra/conf/%s/%s' % (conf['service']['name'], peer['name'])
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+    set_env_variables(peer_core, org_admin_msp_dir)
 
     print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
@@ -433,12 +449,15 @@ def upgradeChainCode(conf, args, orderer, orgs_mspid, chaincode_version):
     policy = makePolicy(orgs_mspid)
 
     org = conf['service']
+
     peer = org['peers'][0]
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+    set_env_variables(peer_core, org_admin_msp_dir)
 
     print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
@@ -466,8 +485,10 @@ def chainCodeQueryWith(conf, arg, org, peer):
     org_user_home = org['users']['user']['home']
     org_user_msp_dir = org_user_home + '/msp'
 
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_user_msp_dir)
+    set_env_variables(peer_core, org_user_msp_dir)
 
     channel_name = conf['misc']['channel_name']
     chaincode_name = conf['misc']['chaincode_name']

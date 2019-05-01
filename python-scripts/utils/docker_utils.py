@@ -32,15 +32,25 @@ def generate_docker_compose_org(org, substra_path, network):
                                                 'image': 'substra/substra-ca-tools',
                                                 'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 | tee {substra_path}/data/log/run-{org["name"]}.log"',
                                                 'environment': ['GOPATH=/opt/gopath',
-                                                                f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}'],
+                                                                f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
+                                                                f'ORG={org["name"]}'],
                                                 'volumes': ['/var/run/docker.sock:/var/run/docker.sock',
                                                             './python-scripts:/scripts',
                                                             f'{substra_path}/data/log/:{substra_path}/data/log/',
                                                             f'{substra_path}/data/channel/:{substra_path}/data/channel/',
                                                             f'{substra_path}/data/orgs/:{substra_path}/data/orgs/',
+
+                                                            # conf files
                                                             f'{substra_path}/conf/:{substra_path}/conf/',
-                                                            f'{substra_path}/conf/config/conf-{org["name"]}.json:/{substra_path}/conf.json',
+                                                            #f'{substra_path}/conf/config/conf-{org["name"]}.json:/{substra_path}/conf.json',
+                                                            f'{substra_path}/conf/config/:{substra_path}/conf/config',
+                                                            #f'{substra_path}/conf/{org["name"]}/:{substra_path}/conf/{org["name"]}',
                                                             f'{substra_path}/data/configtx-{org["name"]}.yaml:{FABRIC_CFG_PATH}/configtx.yaml',
+
+                                                            # TODO make it dynamic
+                                                            # orderer core yaml for peer binary
+                                                            f'{substra_path}/conf/orderer/orderer1/:{substra_path}/conf/orderer/orderer1/',
+
                                                             '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode'
                                                             ],
                                                 'networks': [network],
@@ -78,13 +88,15 @@ def generate_docker_compose_org(org, substra_path, network):
                'working_dir': '/etc/hyperledger/fabric',
                'ports': [f'{peer["port"]["external"]}:{peer["port"]["internal"]}'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
-               'volumes': ['/var/run/docker.sock:/host/var/run/docker.sock',
-                           f'{substra_path}/data/channel/:{substra_path}/data/channel/',
-                           f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
-                           f'{substra_path}/backup/orgs/{org["name"]}/{peer["name"]}/:/var/hyperledger/production/',
-                           f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/fabric/msp/:{org["core"]["docker"]["msp_config_path"]}',
-                           f'{substra_path}/conf/{org["name"]}/{peer["name"]}/core.yaml:{FABRIC_CA_CLIENT_HOME}/core.yaml',
-                           ],
+               'volumes': [
+                   # docker in docker chaincode
+                    '/var/run/docker.sock:/host/var/run/docker.sock',
+                    f'{substra_path}/data/channel/:{substra_path}/data/channel/',
+                    f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
+                    f'{substra_path}/backup/orgs/{org["name"]}/{peer["name"]}/:/var/hyperledger/production/',
+                    f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/fabric/msp/:{org["core"]["docker"]["msp_config_path"]}',
+                    f'{substra_path}/conf/{org["name"]}/{peer["name"]}/core.yaml:{FABRIC_CA_CLIENT_HOME}/core.yaml',
+                    ],
                'networks': [network],
                'depends_on': ['setup']}
 

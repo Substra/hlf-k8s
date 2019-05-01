@@ -130,7 +130,7 @@ def substra_org(org, orderer):
 
     # Org Config files
     create_core_peer_config(org['service'])
-    create_fabric_ca_peer_config(org['service'])
+    #create_fabric_ca_peer_config(org['service'])
     #create_substrabac_config(org, orderer)
 
     org_docker_compose = generate_docker_compose_org(org['service'], SUBSTRA_PATH, SUBSTRA_NETWORK)

@@ -7,7 +7,6 @@ peer2 = {
         'external': 10051
     },
     'anchor': False,
-    'docker_core_dir': '/substra/conf/chu-nantes/peer2',
     'tls': {
         'dir': '/substra/data/orgs/chu-nantes/tls/peer2/',
         'clientCert': '/substra/data/orgs/chu-nantes/tls/peer2/cli-client.crt',

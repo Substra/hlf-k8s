@@ -124,8 +124,9 @@ def create_core_peer_config(org):
         yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
         yaml_data['vm']['docker']['hostConfig']['NetworkMode'] = 'net_substra'
 
-        create_directory(peer['docker_core_dir'])
-        filename = f"{peer['docker_core_dir']}/core.yaml"
+        peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+        create_directory(peer_core)
+        filename = f"{peer_core}/core.yaml"
         with open(filename, 'w+') as f:
             f.write(dump(yaml_data, default_flow_style=False))
 
@@ -223,6 +224,7 @@ def create_substrabac_config(org, orderer):
     filename = f"{SUBSTRA_PATH}/conf/{org['service']['name']}/substrabac/conf.json"
     # select what need substrabac conf
     peer = org['service']['peers'][0]
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
     res = {
         'name': org['service']['name'],
         'signcert': org['service']['users']['user']['home'] + '/msp/signcerts/cert.pem',
@@ -235,7 +237,7 @@ def create_substrabac_config(org, orderer):
             'host': peer['host'],
             'port': peer['host_port']['external'],
             'docker_port': peer['port']['internal'],
-            'docker_core_dir': peer['docker_core_dir'],
+            'docker_core_dir': peer_core,
             'clientKey': peer['tls']['clientKey'],
             'clientCert': peer['tls']['clientCert'],
         },

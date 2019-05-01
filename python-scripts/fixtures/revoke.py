@@ -44,11 +44,12 @@ def fetchConfigBlock(org, peer):
     channel_name = conf['misc']['channel_name']
     orderer = conf['orderers'][0]
     config_block_file = conf['misc']['config_block_file']
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
 
     print('Fetching the configuration block of the channel \'%s\'' % channel_name, flush=True)
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+    set_env_variables(peer_core, org_admin_msp_dir)
 
     call(['peer', 'channel', 'fetch', 'config', config_block_file,
           '-c', channel_name,
@@ -167,8 +168,10 @@ def updateConfigBlock(org, peer):
     orderer = conf['orderers'][0]
     config_update_envelope_file = conf['misc']['config_update_envelope_file']
 
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
+    set_env_variables(peer_core, org_admin_msp_dir)
     print('Updating the configuration block of the channel \'%s\'' % channel_name, flush=True)
     call(['peer', 'channel', 'update',
           '-f', config_update_envelope_file,
@@ -190,7 +193,8 @@ def queryAsRevokedUser(arg, org, peer, username):
     org_user_msp_dir = org_user_home + '/msp'
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_user_msp_dir)
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+    set_env_variables(peer_core, org_user_msp_dir)
 
     channel_name = conf['misc']['channel_name']
     chaincode_name = conf['misc']['chaincode_name']
