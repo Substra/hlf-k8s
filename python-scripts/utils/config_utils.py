@@ -203,8 +203,8 @@ def create_substrabac_config(org, orderer_conf):
             'port': peer['port']['external'],
             'docker_port': peer['port']['internal'],
             'docker_core_dir': peer_core,
-            'clientKey': tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-            'clientCert': tls_peer_client_dir + '/' + peer['tls']['client']['key'],
+            'clientCert': tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
+            'clientKey': tls_peer_client_dir + '/' + peer['tls']['client']['key'],
         },
         'orderer': {
             'name': orderer['name'],

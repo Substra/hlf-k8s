@@ -106,10 +106,9 @@ def peersJoinChannel(conf):
         joinChannel(conf, peer)
 
 
-def getChannelConfigBlockWithPeer(conf, conf_orderer):
+def getChannelConfigBlockWithPeer(org, conf_orderer):
     # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
-    org = conf
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
@@ -129,8 +128,8 @@ def getChannelConfigBlockWithPeer(conf, conf_orderer):
         'channel',
         'fetch',
         'config',
-        conf['misc']['channel_block'],
-        '-c', conf['misc']['channel_name'],
+        org['misc']['channel_block'],
+        '-c', org['misc']['channel_name'],
         '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
         '--tls',
         '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
@@ -616,19 +615,19 @@ def queryChaincodeFromFirstPeerFirstOrg(conf):
     return False
 
 
-def createSystemUpdateProposal(conf, conf_orderer):
+def createSystemUpdateProposal(org, conf_orderer):
 
     # https://console.bluemix.net/docs/services/blockchain/howto/orderer_operate.html?locale=en#orderer-operate
 
-    channel_name = conf['misc']['system_channel_name']
-    org = conf
+    channel_name = org['misc']['system_channel_name']
+    channel_block = org['misc']['system_channel_block']
     org_config = createChannelConfig(org, False)
 
-    getSystemChannelConfigBlock(conf_orderer, 'systemchannel.block')
+    getSystemChannelConfigBlock(conf_orderer, channel_block)
 
     call(['configtxlator',
           'proto_decode',
-          '--input', 'systemchannel.block',
+          '--input', channel_block,
           '--type', 'common.Block',
           '--output', 'system_channelconfig.json'])
     system_channel_config = json.load(open('system_channelconfig.json', 'r'))
@@ -680,7 +679,6 @@ def createSystemUpdateProposal(conf, conf_orderer):
 
 
 def getSystemChannelConfigBlock(conf, block_name):
-
     getChannelConfigBlockWithOrderer(conf, conf['misc']['system_channel_name'], block_name)
 
 

@@ -13,7 +13,7 @@ misc.update({
 def main():
 
     orderer.update({
-        'misc': {k: misc[k] for k in ['system_channel_name', 'channel_name', 'channel_block', 'chaincode_name',
+        'misc': {k: misc[k] for k in ['system_channel_name', 'system_channel_block', 'channel_name', 'channel_block', 'chaincode_name',
                                       'chaincode_version', 'genesis_bloc_file', 'channel_tx_file',
                                       'config_block_file', 'config_update_envelope_file']},
     })
