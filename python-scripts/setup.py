@@ -8,7 +8,7 @@ from shutil import copyfile
 
 def init_org(conf):
 
-    service = conf['service']
+    service = conf
     admin = service['users']['admin']
     org_admin_msp_dir = admin['home'] + '/msp'
 
@@ -70,7 +70,7 @@ def init_org(conf):
 
 def init_orderer(conf):
 
-    service = conf['service']
+    service = conf
 
     # remove ugly sample files defined here https://github.com/hyperledger/fabric/tree/master/sampleconfig
     # except orderer.yaml from binded volume
@@ -122,11 +122,11 @@ def init_orderer(conf):
 
 
 def init(conf):
-    if 'peers' in conf['service']:
+    if 'peers' in conf:
         init_org(conf)
-    if 'orderers' in conf['service']:
+    if 'orderers' in conf:
         init_orderer(conf)
-        create_directory(conf['service']['broadcast_dir'])
+        create_directory(conf['broadcast_dir'])
         generateGenesis(conf)
 
 

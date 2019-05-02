@@ -178,7 +178,9 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
     return docker_compose
 
 
-def generate_docker_compose_orderer(org, substra_path, network, genesis_bloc_file):
+def generate_docker_compose_orderer(org, substra_path, network):
+
+    genesis_bloc_file = org['misc']['genesis_bloc_file']
 
     FABRIC_CA_HOME = '/etc/hyperledger/fabric-ca-server'
     FABRIC_CFG_PATH = f'{substra_path}/data'

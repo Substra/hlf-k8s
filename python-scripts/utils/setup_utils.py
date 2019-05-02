@@ -132,7 +132,7 @@ def registerPeerIdentities(org):
 
 
 def registerIdentities(conf):
-    service = conf['service']
+    service = conf
 
     if 'peers' in service:
         registerPeerIdentities(service)
@@ -143,7 +143,7 @@ def registerIdentities(conf):
 def registerUsers(conf):
     print('Getting CA certificates ...\n', flush=True)
 
-    service = conf['service']
+    service = conf
 
     if 'peers' in service:
         org_admin_msp_dir = service['users']['admin']['home'] + '/msp'

@@ -33,7 +33,7 @@ def generateChannelArtifacts(conf):
           '-outputCreateChannelTx', conf['misc']['channel_tx_file'],
           '-channelID', conf['misc']['channel_name']])
 
-    org = conf['service']
+    org = conf
     print('Generating anchor peer update transaction for %(org_name)s at %(anchor_tx_file)s' % {
         'org_name': org['name'],
         'anchor_tx_file': org['anchor_tx_file']
@@ -50,7 +50,7 @@ def generateChannelArtifacts(conf):
 # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
 def createChannel(conf, conf_orderer):
 
-    org = conf['service']
+    org = conf
 
     orderer = conf_orderer['orderers'][0]
 
@@ -86,7 +86,7 @@ def createChannel(conf, conf_orderer):
 
 
 def joinChannel(conf, peer):
-    org_admin_home = conf['service']['users']['admin']['home']
+    org_admin_home = conf['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     channel_name = conf['misc']['channel_name']
@@ -102,14 +102,14 @@ def joinChannel(conf, peer):
 
 
 def peersJoinChannel(conf):
-    for peer in conf['service']['peers']:
+    for peer in conf['peers']:
         joinChannel(conf, peer)
 
 
 def getChannelConfigBlockWithPeer(conf, conf_orderer):
     # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
-    org = conf['service']
+    org = conf
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
@@ -175,7 +175,7 @@ def createUpdateProposal(conf, org__channel_config, input_block, channel_name):
     json.dump(my_channel_config, open('mychannelconfig.json', 'w'))
 
     # Add org
-    my_channel_config['channel_group']['groups']['Application']['groups'][conf['service']['name']] = org__channel_config
+    my_channel_config['channel_group']['groups']['Application']['groups'][conf['name']] = org__channel_config
     json.dump(my_channel_config, open('mychannelconfigupdate.json', 'w'))
 
     # Compute diff
@@ -284,11 +284,11 @@ def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
 
 def generateChannelUpdate(conf, conf_externals, orderer):
 
-    org_channel_config = createChannelConfig(conf['service'])
+    org_channel_config = createChannelConfig(conf)
     getChannelConfigBlockWithOrderer(orderer, conf['misc']['channel_name'], 'mychannelconfig.block')
 
     createUpdateProposal(conf, org_channel_config, 'mychannelconfig.block', conf['misc']['channel_name'])
-    external_orgs = [conf_org['service'] for conf_org in conf_externals]
+    external_orgs = [conf_org for conf_org in conf_externals]
     signAndPushUpdateProposal(external_orgs, orderer, conf['misc']['channel_name'])
 
 
@@ -297,7 +297,7 @@ def generateChannelUpdate(conf, conf_externals, orderer):
 def updateAnchorPeers(conf, conf_orderer):
     # :warning: for updating anchor peers make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
 
-    org = conf['service']
+    org = conf
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
@@ -332,14 +332,14 @@ def updateAnchorPeers(conf, conf_orderer):
 
 
 def installChainCode(conf, peer, chaincode_version):
-    org_admin_home = conf['service']['users']['admin']['home']
+    org_admin_home = conf['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     chaincode_name = conf['misc']['chaincode_name']
 
     print('Installing chaincode on %(peer_host)s ...' % {'peer_host': peer['host']}, flush=True)
 
-    peer_core = '/substra/conf/%s/%s' % (conf['service']['name'], peer['name'])
+    peer_core = '/substra/conf/%s/%s' % (conf['name'], peer['name'])
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
@@ -355,12 +355,12 @@ def installChainCode(conf, peer, chaincode_version):
 
 
 def installChainCodeOnPeers(conf, chaincode_version):
-    for peer in conf['service']['peers']:
+    for peer in conf['peers']:
         installChainCode(conf, peer, chaincode_version)
 
 
 def waitForInstantiation(conf, conf_orderer):
-    org = conf['service']
+    org = conf
 
     channel_name = conf['misc']['channel_name']
 
@@ -412,7 +412,7 @@ def waitForInstantiation(conf, conf_orderer):
 
 
 def getChaincodeVersion(conf, conf_orderer):
-    org = conf['service']
+    org = conf
 
     peer = org['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
@@ -461,13 +461,13 @@ def makePolicy(orgs_mspid):
 
 
 def instanciateChainCode(conf, conf_orderer, args):
-    policy = makePolicy([conf['service']['msp_id']])
+    policy = makePolicy([conf['msp_id']])
 
-    org_admin_home = conf['service']['users']['admin']['home']
+    org_admin_home = conf['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
-    peer = conf['service']['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (conf['service']['name'], peer['name'])
+    peer = conf['peers'][0]
+    peer_core = '/substra/conf/%s/%s' % (conf['name'], peer['name'])
 
     orderer = conf_orderer['orderers'][0]
 
@@ -506,7 +506,7 @@ def instanciateChaincode(conf, orderer):
 def upgradeChainCode(conf, args, conf_orderer, orgs_mspid, chaincode_version):
     policy = makePolicy(orgs_mspid)
 
-    org = conf['service']
+    org = conf
 
     peer = org['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
@@ -592,7 +592,7 @@ def chainCodeQueryWith(conf, arg, org, peer):
 
 
 def queryChaincodeFromFirstPeerFirstOrg(conf):
-    org = conf['service']
+    org = conf
     peer = org['peers'][0]
 
     print('Try to query chaincode from first peer first org before invoke', flush=True)
@@ -621,7 +621,7 @@ def createSystemUpdateProposal(conf, conf_orderer):
     # https://console.bluemix.net/docs/services/blockchain/howto/orderer_operate.html?locale=en#orderer-operate
 
     channel_name = conf['misc']['system_channel_name']
-    org = conf['service']
+    org = conf
     org_config = createChannelConfig(org, False)
 
     getSystemChannelConfigBlock(conf_orderer, 'systemchannel.block')
@@ -681,7 +681,7 @@ def createSystemUpdateProposal(conf, conf_orderer):
 
 def getSystemChannelConfigBlock(conf, block_name):
 
-    getChannelConfigBlockWithOrderer(conf['service'], conf['misc']['system_channel_name'], block_name)
+    getChannelConfigBlockWithOrderer(conf, conf['misc']['system_channel_name'], block_name)
 
 
 def getChannelConfigBlockWithOrderer(org, channel_name, block_name):
@@ -718,7 +718,7 @@ def getChannelConfigBlockWithOrderer(org, channel_name, block_name):
 
 
 def signAndPushSystemUpdateProposal(conf):
-    org = conf['service']
+    org = conf
     channel_name = conf['misc']['system_channel_name']
 
     org_admin_home = org['users']['admin']['home']
