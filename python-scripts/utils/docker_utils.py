@@ -24,7 +24,10 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                   'volumes': ['./python-scripts:/scripts',
                                                               f'{substra_path}/data/log:{substra_path}/data/log',
                                                               f'{substra_path}/conf/config/conf-{org["name"]}.json:/{substra_path}/conf.json',
+
+                                                              # TODO, remove
                                                               f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
+
                                                               f'{substra_path}/conf/{org["name"]}/fabric-ca-client-config.yaml:{FABRIC_CA_CLIENT_HOME}/fabric-ca-client-config.yaml'],
                                                   'networks': [network],
                                                   'depends_on': [],
@@ -36,24 +39,44 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                 'environment': ['GOPATH=/opt/gopath',
                                                                 f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
                                                                 f'ORG={org["name"]}'],
-                                                'volumes': ['/var/run/docker.sock:/var/run/docker.sock',
+                                                'volumes': [
+                                                            # docker in docker
+                                                            '/var/run/docker.sock:/var/run/docker.sock',
+
+                                                            # scripts
                                                             './python-scripts:/scripts',
+
+                                                            # logs
                                                             f'{substra_path}/data/log/:{substra_path}/data/log/',
+
+                                                            # chaincode
+                                                            '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode',
+
+                                                            # channel
                                                             f'{substra_path}/data/channel/:{substra_path}/data/channel/',
+
+                                                            # TODO remove
                                                             f'{substra_path}/data/orgs/:{substra_path}/data/orgs/',
+
+
+                                                            # msp
+                                                            f'{org["users"]["admin"]["home"]}/msp:{org["users"]["admin"]["home"]}/msp',
+                                                            f'{org["users"]["user"]["home"]}/msp:{org["users"]["user"]["home"]}/msp',
+                                                            f'{conf_orderer["users"]["admin"]["home"]}/msp:{conf_orderer["users"]["admin"]["home"]}/msp',
 
                                                             # conf files
                                                             f'{substra_path}/conf/:{substra_path}/conf/',
-                                                            #f'{substra_path}/conf/config/conf-{org["name"]}.json:/{substra_path}/conf.json',
                                                             f'{substra_path}/conf/config/:{substra_path}/conf/config',
-                                                            #f'{substra_path}/conf/{org["name"]}/:{substra_path}/conf/{org["name"]}',
                                                             f'{substra_path}/data/configtx-{org["name"]}.yaml:{FABRIC_CFG_PATH}/configtx.yaml',
 
                                                             # orderer core yaml for peer binary
                                                             f'{substra_path}/conf/{conf_orderer["name"]}/{orderer["name"]}/:{substra_path}/conf/{conf_orderer["name"]}/{orderer["name"]}/',
+                                                            # ca file
+                                                            f"{org['ca']['certfile']}/:{org['ca']['certfile']}",
 
-                                                            '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode'
-                                                            ],
+                                                            # tls
+                                                            f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
+                                                ],
                                                 'networks': [network],
                                                 'depends_on': [],
                                                 }
@@ -96,8 +119,6 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                    # channel
                    f'{substra_path}/data/channel/:{substra_path}/data/channel/',
 
-                   f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
-
                    # backup files
                    f'{substra_path}/backup/orgs/{org["name"]}/{peer["name"]}/:/var/hyperledger/production/',
 
@@ -108,17 +129,34 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                    # tls orderer client files
                    f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
 
+                   # TODO, remove
+                   f'{substra_path}/data/orgs/{org["name"]}/:{substra_path}/data/orgs/{org["name"]}/',
+
                    # msp
                    f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/msp',
 
                    # conf files
-                   f'{substra_path}/conf/{org["name"]}/{peer["name"]}/core.yaml:{FABRIC_CA_CLIENT_HOME}/core.yaml',
+                   f'{substra_path}/conf/{org["name"]}/{peer["name"]}/core.yaml:{org["core_dir"]["internal"]}/core.yaml',
+
+                   # ca file
+                   f"{org['ca']['certfile']}/:{org['ca']['certfile']}",
+
+                   # anchors.tx
+                   f"{org['anchor_tx_file']}/:{org['anchor_tx_file']}",
                     ],
                'networks': [network],
                'depends_on': ['setup']}
 
+        # run
         docker_compose['substra_tools']['run']['depends_on'].append(peer['host'])
+
+        # run override
+        docker_compose['substra_tools']['run']['volumes'].append(f"{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}:{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}", )
+        docker_compose['substra_tools']['run']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/{peer["name"]}/msp', )
+
+        # setup override
         docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/{peer["name"]}/msp',)
+
         docker_compose['substra_services']['svc'].append((peer['host'], svc))
 
         # Create all services along to conf
@@ -160,7 +198,10 @@ def generate_docker_compose_orderer(org, substra_path, network, genesis_bloc_fil
                                                               f'{substra_path}/data/genesis:{substra_path}/data/genesis',
                                                               f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
                                                               f'{substra_path}/data/configtx-{org["name"]}.yaml:{FABRIC_CFG_PATH}/configtx.yaml',
+
+                                                              # TODO, remove
                                                               f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
+
                                                               f'{substra_path}/conf/{org["name"]}/fabric-ca-client-config.yaml:{FABRIC_CA_CLIENT_HOME}/fabric-ca-client-config.yaml',
                                                               ],
                                                   'networks': [network],
@@ -197,8 +238,6 @@ def generate_docker_compose_orderer(org, substra_path, network, genesis_bloc_fil
                    # genesis file
                    f'{genesis_bloc_file}:{genesis_bloc_file}',
 
-                   f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
-
                    # backup files
                    f"{substra_path}/backup/orgs/{org['name']}/{orderer['name']}:/var/hyperledger/production/orderer",
 
@@ -212,6 +251,9 @@ def generate_docker_compose_orderer(org, substra_path, network, genesis_bloc_fil
                    f"{substra_path}/data/configtx-{org['name']}.yaml:{org['core_dir']['internal']}/configtx.yaml",
                    f"{substra_path}/conf/{org['name']}/{orderer['name']}/core.yaml:{org['core_dir']['internal']}/core.yaml",
                    f"{substra_path}/conf/{org['name']}/{orderer['name']}/orderer.yaml:{org['core_dir']['internal']}/orderer.yaml",
+
+                   # ca file
+                   f"{org['ca']['certfile']}/:{org['ca']['certfile']}",
                ],
                'networks': [network],
                'depends_on': ['setup']}
