@@ -39,11 +39,9 @@ chunantes = {
     },
     'core': {
         'docker': {
-            'peer_home': '/etc/hyperledger/fabric/',
             'msp_config_path': '/etc/hyperledger/fabric/msp',
         },
         'host': {
-            'peer_home': '/substra/data/orgs/chu-nantes',
             'msp_config_path': '/substra/data/orgs/chu-nantes/user/msp',
         }
     },

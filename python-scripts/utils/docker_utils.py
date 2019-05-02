@@ -90,12 +90,25 @@ def generate_docker_compose_org(org, substra_path, network):
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': [
                    # docker in docker chaincode
-                    '/var/run/docker.sock:/host/var/run/docker.sock',
-                    f'{substra_path}/data/channel/:{substra_path}/data/channel/',
-                    f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
-                    f'{substra_path}/backup/orgs/{org["name"]}/{peer["name"]}/:/var/hyperledger/production/',
-                    f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/fabric/msp/:{org["core"]["docker"]["msp_config_path"]}',
-                    f'{substra_path}/conf/{org["name"]}/{peer["name"]}/core.yaml:{FABRIC_CA_CLIENT_HOME}/core.yaml',
+                   '/var/run/docker.sock:/host/var/run/docker.sock',
+
+                   # channel
+                   f'{substra_path}/data/channel/:{substra_path}/data/channel/',
+
+                   f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
+
+                   # backup files
+                   f'{substra_path}/backup/orgs/{org["name"]}/{peer["name"]}/:/var/hyperledger/production/',
+
+                   # tls server files
+                   f"{peer['tls']['dir']['external']}/{peer['tls']['server']['dir']}:{peer['tls']['dir']['internal']}",
+                   # tls client files
+                   f"{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}:{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}",
+
+                   f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/fabric/msp/:{org["core"]["docker"]["msp_config_path"]}',
+
+                   # conf files
+                   f'{substra_path}/conf/{org["name"]}/{peer["name"]}/core.yaml:{FABRIC_CA_CLIENT_HOME}/core.yaml',
                     ],
                'networks': [network],
                'depends_on': ['setup']}
@@ -178,10 +191,12 @@ def generate_docker_compose_orderer(org, substra_path, network, genesis_bloc_fil
                'ports': [f"{orderer['port']['external']}:{orderer['port']['internal']}"],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': [
+                   # genesis file
                    f'{genesis_bloc_file}:{genesis_bloc_file}',
 
                    f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
 
+                   # backup files
                    f"{substra_path}/backup/orgs/{org['name']}/{orderer['name']}:/var/hyperledger/production/orderer",
 
                     # EDIT me to fail

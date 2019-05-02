@@ -33,7 +33,7 @@ def init_org(conf):
         create_directory(peer['tls']['dir'])
 
         # Generate server TLS cert and key pair in container
-        tlsdir = service['core']['docker']['peer_home'] + '/tls'
+        tlsdir = peer['tls']['core_dir']['internal']
         create_directory(tlsdir)
         genTLSCert(peer['host'],
                    peer['tls']['serverCert'],

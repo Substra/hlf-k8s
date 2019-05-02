@@ -95,6 +95,7 @@ def create_core_peer_config(org):
         yaml_data['peer']['id'] = peer['host']
         yaml_data['peer']['address'] = f"{peer['host']}:{peer['port']['internal']}"
         yaml_data['peer']['localMspId'] = org['msp_id']
+
         yaml_data['peer']['mspConfigPath'] = org['core']['docker']['msp_config_path']
 
         yaml_data['peer']['tls']['cert']['file'] = peer['tls']['serverCert']
