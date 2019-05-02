@@ -145,7 +145,7 @@ def create_orderer_config(org, genesis_bloc_file):
         yaml_data['General']['GenesisMethod'] = 'file'
         yaml_data['General']['GenesisFile'] = genesis_bloc_file
         yaml_data['General']['LocalMSPID'] = org['msp_id']
-        yaml_data['General']['LocalMSPDir'] = org['local_msp_dir']
+        yaml_data['General']['LocalMSPDir'] = org['core_dir']['internal'] + '/msp'
 
         yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']
 

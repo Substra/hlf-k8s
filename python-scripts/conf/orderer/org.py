@@ -12,7 +12,6 @@ orderer = {
     'msp_id': 'ordererMSP',
     'broadcast_dir': '/substra/data/log/broadcast',
     'home': '/etc/hyperledger/fabric',
-    'local_msp_dir': '/etc/hyperledger/fabric/msp',
     'config-path': '/substra/conf/orderer/orderer.yaml',
     'core': {
         'docker': '/etc/hyperledger/fabric/',

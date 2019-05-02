@@ -40,9 +40,6 @@ owkin = {
     'core': {
         'docker': {
             'msp_config_path': '/etc/hyperledger/fabric/msp',
-        },
-        'host': {
-            'msp_config_path': '/substra/data/orgs/owkin/user/msp',
         }
     },
     'core_dir': {
