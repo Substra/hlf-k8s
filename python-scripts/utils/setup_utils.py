@@ -173,29 +173,6 @@ def registerUsers(conf):
         completeMSPSetup(org_admin_msp_dir)
 
 
-def generateChannelArtifacts(conf):
-
-    print('Generating channel configuration transaction at %(channel_tx_file)s' % {
-        'channel_tx_file': conf['misc']['channel_tx_file']}, flush=True)
-
-    call(['configtxgen',
-          '-profile', 'OrgsChannel',
-          '-outputCreateChannelTx', conf['misc']['channel_tx_file'],
-          '-channelID', conf['misc']['channel_name']])
-
-    org = conf['service']
-    print('Generating anchor peer update transaction for %(org_name)s at %(anchor_tx_file)s' % {
-        'org_name': org['name'],
-        'anchor_tx_file': org['anchor_tx_file']
-    }, flush=True)
-
-    call(['configtxgen',
-          '-profile', 'OrgsChannel',
-          '-outputAnchorPeersUpdate', org['anchor_tx_file'],
-          '-channelID', conf['misc']['channel_name'],
-          '-asOrg', org['name']])
-
-
 def generateGenesis(conf):
     print('Generating orderer genesis block at %(genesis_bloc_file)s' % {
         'genesis_bloc_file': conf['misc']['genesis_bloc_file']

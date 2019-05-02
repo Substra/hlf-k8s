@@ -126,7 +126,7 @@ def init_orderer(conf):
 def init(conf):
     if 'peers' in conf['service']:
         init_org(conf)
-    else:
+    if 'orderers' in conf['service']:
         init_orderer(conf)
 
 

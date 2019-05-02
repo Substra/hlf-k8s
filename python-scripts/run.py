@@ -5,9 +5,7 @@ from subprocess import call
 
 from utils.run_utils import (createChannel, peersJoinChannel, updateAnchorPeers, installChainCodeOnPeers, instanciateChaincode,
                              waitForInstantiation, queryChaincodeFromFirstPeerFirstOrg, generateChannelUpdate, upgradeChainCode,
-                             createSystemUpdateProposal, signAndPushSystemUpdateProposal, getChaincodeVersion)
-
-from utils.setup_utils import generateChannelArtifacts
+                             createSystemUpdateProposal, signAndPushSystemUpdateProposal, getChaincodeVersion, generateChannelArtifacts)
 
 
 def add_org(conf, conf_externals, orderer):

@@ -54,39 +54,32 @@ def create_ca_client_config(org):
         f.write(dump(yaml_data, default_flow_style=False))
 
 
-def create_configtx(orderers, orgs, filename):
+def create_configtx(org, filename):
 
     stream = open(os.path.join(dir_path, '../../templates/configtx.yaml'), 'r')
     yaml_data = load(stream, Loader=FullLoader)
 
     # override template here
 
-    configtx_orderers = []
-    for org in orderers:
-        for x in org['orderers']:
-            yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = f"{x['host']}:{x['port']['internal']}"
+    configtx_org = {
+        'Name': org['name'],
+        'ID': org['msp_id'],
+        'MSPDir': f"{org['users']['admin']['home']}/msp",
+    }
 
-        configtx_orderers.append({
-            'Name': org['name'],
-            'ID': org['msp_id'],
-            'MSPDir': f"{org['users']['admin']['home']}/msp",
-        })
-
-    configtx_orgs = [{
-        'Name': x['name'],
-        'ID': x['msp_id'],
-        'MSPDir': f"{x['users']['admin']['home']}/msp",
-        'AnchorPeers': [{
+    if 'orderers' in org:
+        yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = [f"{x['host']}:{x['port']['internal']}" for x in org['orderers']]
+        yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Organizations'] = [configtx_org]
+    if 'peers' in org:
+        configtx_org['AnchorPeers'] = [{
             'Host': peer['host'],
             'Port': peer['port']['internal']
-        } for peer in x['peers'] if peer['anchor']]
-    } for x in orgs]
+        } for peer in org['peers'] if peer['anchor']]
 
-    yaml_data['Organizations'] = configtx_orderers + configtx_orgs
+        yaml_data['Profiles']['OrgsOrdererGenesis']['Consortiums']['SampleConsortium']['Organizations'] = [configtx_org]
+        yaml_data['Profiles']['OrgsChannel']['Application']['Organizations'] = [configtx_org]
 
-    yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Organizations'] = configtx_orderers
-    yaml_data['Profiles']['OrgsOrdererGenesis']['Consortiums']['SampleConsortium']['Organizations'] = configtx_orgs
-    yaml_data['Profiles']['OrgsChannel']['Application']['Organizations'] = configtx_orgs
+    yaml_data['Organizations'] = [configtx_org]
 
     with open(filename, 'w+') as f:
         f.write(dump(yaml_data, default_flow_style=False))

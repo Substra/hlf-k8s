@@ -23,6 +23,29 @@ def clean_env_variables():
     del os.environ['FABRIC_LOGGING_SPEC']
 
 
+def generateChannelArtifacts(conf):
+
+    print('Generating channel configuration transaction at %(channel_tx_file)s' % {
+        'channel_tx_file': conf['misc']['channel_tx_file']}, flush=True)
+
+    call(['configtxgen',
+          '-profile', 'OrgsChannel',
+          '-outputCreateChannelTx', conf['misc']['channel_tx_file'],
+          '-channelID', conf['misc']['channel_name']])
+
+    org = conf['service']
+    print('Generating anchor peer update transaction for %(org_name)s at %(anchor_tx_file)s' % {
+        'org_name': org['name'],
+        'anchor_tx_file': org['anchor_tx_file']
+    }, flush=True)
+
+    call(['configtxgen',
+          '-profile', 'OrgsChannel',
+          '-outputAnchorPeersUpdate', org['anchor_tx_file'],
+          '-channelID', conf['misc']['channel_name'],
+          '-asOrg', org['name']])
+
+
 # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
 # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
 def createChannel(conf, orderer_org):

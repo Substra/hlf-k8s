@@ -97,7 +97,7 @@ def substra_orderer(orderer):
 
     # Configtx file
     config_filepath = orderer['misc']['configtx-config-path']
-    create_configtx([orderer['service']], [], config_filepath)
+    create_configtx(orderer['service'], config_filepath)
 
     # Orderer Config files
     create_orderer_config(orderer['service'], orderer['misc']['genesis_bloc_file'])
@@ -111,7 +111,7 @@ def substra_orderer(orderer):
     start(orderer, orderer_docker_compose)
 
 
-def substra_org(org, orderer):
+def substra_org(org):
 
     org_name = org['service']['name']
 
@@ -126,7 +126,7 @@ def substra_org(org, orderer):
 
     # Configtx file
     config_filepath = org['misc']['configtx-config-path']
-    create_configtx([], [org['service']], config_filepath)
+    create_configtx(org['service'], config_filepath)
 
     # Org Config files
     create_core_peer_config(org['service'])
@@ -158,7 +158,7 @@ def substra_network(orgs):
     else:
         # Prepare each org
         for org in [x for x in orgs if 'peers' in x['service']]:
-            substra_org(org, orderer['service'])
+            substra_org(org)
 
 def remove_all_docker():
 
@@ -218,8 +218,6 @@ if __name__ == '__main__':
         call(['python3', args['config']])
     else:
         call(['python3', os.path.join(dir_path, 'conf/2orgs.py')])
-
-    orderer = json.load(open(f'{SUBSTRA_PATH}/conf/config/conf-orderer.json', 'r'))
 
     files = glob.glob(f'{SUBSTRA_PATH}/conf/config/conf-*.json')
     files.sort(key=os.path.getmtime)
