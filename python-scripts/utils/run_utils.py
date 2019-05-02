@@ -352,6 +352,8 @@ def installChainCodeOnPeers(conf, chaincode_version):
 def waitForInstantiation(conf, orderer):
     org = conf['service']
 
+    channel_name = conf['misc']['channel_name']
+
     peer = org['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
 
@@ -375,9 +377,9 @@ def waitForInstantiation(conf, orderer):
                                  '--instantiated',
                                  '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
                                  '--tls',
-                                 '--clientauth',
                                  '--cafile', orderer['tls']['certfile'],
                                  # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
+                                 '--clientauth',
                                   '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
                                   '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
                                  ],
@@ -385,7 +387,7 @@ def waitForInstantiation(conf, orderer):
                                 stderr=subprocess.PIPE)
         data = output.stdout.decode('utf-8')
         print(data, flush=True)
-        split_msg = 'Get instantiated chaincodes on channel mychannel:'
+        split_msg = 'Get instantiated chaincodes on channel %s:' % channel_name
         if split_msg in data and len(data.split(split_msg)[1].replace('\n', '')):
             print(data, flush=True)
             clean_env_variables()
