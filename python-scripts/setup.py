@@ -30,23 +30,25 @@ def init_org(conf):
             'port': service['ca']['port']['internal']
         }
 
-        create_directory(peer['tls']['dir'])
+        # create external folder
+        tls_server_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['server']['dir']
+        tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+        create_directory(tls_server_dir)
+        create_directory(tls_client_dir)
 
         # Generate server TLS cert and key pair in container
-        tlsdir = peer['tls']['core_dir']['internal']
-        create_directory(tlsdir)
         genTLSCert(peer['host'],
-                   peer['tls']['serverCert'],
-                   peer['tls']['serverKey'],
-                   peer['tls']['serverCa'],
+                   '%s/%s' % (tls_server_dir, peer['tls']['server']['cert']),
+                   '%s/%s' % (tls_server_dir, peer['tls']['server']['key']),
+                   '%s/%s' % (tls_server_dir, peer['tls']['server']['ca']),
                    enrollment_url)
 
         # Generate client TLS cert and key pair for the peer CLI (will be used by external tools)
         # in a binded volume
         genTLSCert(peer['name'],
-                   peer['tls']['clientCert'],
-                   peer['tls']['clientKey'],
-                   peer['tls']['clientCa'],
+                   '%s/%s' % (tls_client_dir, peer['tls']['client']['cert']),
+                   '%s/%s' % (tls_client_dir, peer['tls']['client']['key']),
+                   '%s/%s' % (tls_client_dir, peer['tls']['client']['ca']),
                    enrollment_url)
 
         # Enroll the peer to get an enrollment certificate and set up the core's local MSP directory for starting peer
@@ -83,24 +85,25 @@ def init_orderer(conf):
             'port': service['ca']['port']['internal']
         }
 
+        # create external folder
+        tls_server_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['server']['dir']
+        tls_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
+        create_directory(tls_server_dir)
+        create_directory(tls_client_dir)
+
         # Generate server TLS cert and key pair
-        tlsdir = service['core']['host'] + '/tls'
-        create_directory(tlsdir)
-        tlsdockerdir = service['core']['docker'] + '/tls'
-        create_directory(tlsdockerdir)
         genTLSCert(orderer['host'],
-                   service['tls']['cert'],
-                   service['tls']['key'],
-                   tlsdir + '/' + service['tls']['ca'],
+                   '%s/%s' % (tls_server_dir, orderer['tls']['server']['cert']),
+                   '%s/%s' % (tls_server_dir, orderer['tls']['server']['key']),
+                   '%s/%s' % (tls_server_dir, orderer['tls']['server']['ca']),
                    enrollment_url)
 
         # Generate client TLS cert and key pair for the orderer CLI (will be used by external tools)
         # in a binded volume
-        create_directory(service['tls']['dir'])
         genTLSCert(orderer['host'],
-                   service['tls']['clientCert'],
-                   service['tls']['clientKey'],
-                   service['tls']['clientCa'],
+                   '%s/%s' % (tls_client_dir, orderer['tls']['client']['cert']),
+                   '%s/%s' % (tls_client_dir, orderer['tls']['client']['key']),
+                   '%s/%s' % (tls_client_dir, orderer['tls']['client']['ca']),
                    enrollment_url)
 
         # Enroll again to get the orderer's enrollment certificate for getting signcert and being able to launch orderer

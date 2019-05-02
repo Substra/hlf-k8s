@@ -63,7 +63,7 @@ def createChannel(conf, orderer_org):
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
 
-    tls_client_dir = peer['tls']['core_dir']['external'] + '/' + peer['tls']['client']['dir']
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
 
     call([
         'peer',
@@ -76,8 +76,8 @@ def createChannel(conf, orderer_org):
         '--tls',
         '--clientauth',
         '--cafile', orderer_org['ca']['certfile'],
-        '--keyfile', peer['tls']['clientKey'],
-        '--certfile', peer['tls']['clientCert']
+        '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+        '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
     ])
 
     # clean env variables
@@ -118,6 +118,8 @@ def getChannelConfigBlockWithPeer(conf, orderer):
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
 
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
     call([
         'peer',
         'channel',
@@ -129,8 +131,8 @@ def getChannelConfigBlockWithPeer(conf, orderer):
         '--tls',
         '--clientauth',
         '--cafile', orderer['ca']['certfile'],
-        '--keyfile', peer['tls']['clientKey'],
-        '--certfile', peer['tls']['clientCert']
+        '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+        '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
     ])
 
     # clean env variables
@@ -224,6 +226,8 @@ def signAndPushUpdateProposal(orgs, orderer, channel_name):
 
         set_env_variables(peer_core, org_admin_msp_dir)
 
+        tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
         print('Sign update proposal on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
         call(['peer',
@@ -234,8 +238,8 @@ def signAndPushUpdateProposal(orgs, orderer, channel_name):
               '--clientauth',
               '--cafile', orderer['ca']['certfile'],
               # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-              '--keyfile', peer['tls']['clientKey'],
-              '--certfile', peer['tls']['clientCert']
+              '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+              '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
               ])
 
         # clean env variables
@@ -250,6 +254,8 @@ def signAndPushUpdateProposal(orgs, orderer, channel_name):
 
         set_env_variables(peer_core, org_admin_msp_dir)
 
+        tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
         print('Send update proposal on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
         call(['peer',
@@ -261,8 +267,8 @@ def signAndPushUpdateProposal(orgs, orderer, channel_name):
               '--clientauth',
               '--cafile', orderer['ca']['certfile'],
               # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-              '--keyfile', peer['tls']['clientKey'],
-              '--certfile', peer['tls']['clientCert']
+              '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+              '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
               ])
 
         # clean env variables
@@ -296,6 +302,8 @@ def updateAnchorPeers(conf, orderer):
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
 
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
     call(['peer',
           'channel', 'update',
           '-c', conf['misc']['channel_name'],
@@ -305,8 +313,8 @@ def updateAnchorPeers(conf, orderer):
           '--clientauth',
           '--cafile', orderer['ca']['certfile'],
           # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--keyfile', peer['tls']['clientKey'],
-          '--certfile', peer['tls']['clientCert']
+          '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+          '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
           ])
 
     # clean env variables
@@ -353,7 +361,9 @@ def waitForInstantiation(conf, orderer):
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
 
-    print('Test if chaincode is instantiated on %(PEER_HOST)s ... (timeout 15 seconds)' % {'PEER_HOST': peer['host']},
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
+    print('Test if chaincode is instantiated on %(PEER_HOST)s ... (timeout 30 seconds)' % {'PEER_HOST': peer['host']},
           flush=True)
 
     starttime = int(time.time())
@@ -368,8 +378,8 @@ def waitForInstantiation(conf, orderer):
                                  '--clientauth',
                                  '--cafile', orderer['tls']['certfile'],
                                  # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-                                 '--keyfile', peer['tls']['clientKey'],
-                                 '--certfile', peer['tls']['clientCert']
+                                  '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+                                  '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
                                  ],
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
@@ -398,6 +408,8 @@ def getChaincodeVersion(conf, orderer):
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
 
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
     output = subprocess.run(['peer',
                              'chaincode', 'list',
                              '-C', conf['misc']['channel_name'],
@@ -407,8 +419,8 @@ def getChaincodeVersion(conf, orderer):
                              '--clientauth',
                              '--cafile', orderer['tls']['certfile'],
                              # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-                             '--keyfile', peer['tls']['clientKey'],
-                             '--certfile', peer['tls']['clientCert']
+                             '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+                             '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
                              ],
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)
@@ -444,6 +456,8 @@ def instanciateChainCode(conf, orderer, args):
 
     print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
     call(['peer',
           'chaincode', 'instantiate',
           '-C', conf['misc']['channel_name'],
@@ -456,8 +470,8 @@ def instanciateChainCode(conf, orderer, args):
           '--clientauth',
           '--cafile', orderer['ca']['certfile'],
           # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--keyfile', peer['tls']['clientKey'],
-          '--certfile', peer['tls']['clientCert']
+          '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+          '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
           ])
 
     # clean env variables
@@ -484,6 +498,8 @@ def upgradeChainCode(conf, args, orderer, orgs_mspid, chaincode_version):
 
     print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
     call(['peer',
           'chaincode', 'upgrade',
           '-C', conf['misc']['channel_name'],
@@ -496,8 +512,8 @@ def upgradeChainCode(conf, args, orderer, orgs_mspid, chaincode_version):
           '--clientauth',
           '--cafile', orderer['ca']['certfile'],
           # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--keyfile', peer['tls']['clientKey'],
-          '--certfile', peer['tls']['clientCert']
+          '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+          '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
           ])
 
     # clean env variables
@@ -655,6 +671,8 @@ def getChannelConfigBlockWithOrderer(org, channel_name, block_name):
 
     set_env_variables(orderer_core, orderer_admin_msp_dir)
 
+    tls_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
+
     call([
         'peer',
         'channel',
@@ -666,8 +684,8 @@ def getChannelConfigBlockWithOrderer(org, channel_name, block_name):
         '--tls',
         '--clientauth',
         '--cafile', org['ca']['certfile'],
-        '--keyfile', org['tls']['clientKey'],
-        '--certfile', org['tls']['clientCert']
+        '--certfile', tls_client_dir + '/' + orderer['tls']['client']['cert'],
+        '--keyfile', tls_client_dir + '/' + orderer['tls']['client']['key']
     ])
 
     # clean env variables
@@ -686,6 +704,8 @@ def signAndPushSystemUpdateProposal(conf):
 
     set_env_variables(orderer_core, orderer_admin_msp_dir)
 
+    tls_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
+
     call(['peer',
           'channel', 'update',
           '-f', 'proposal.pb',
@@ -695,8 +715,8 @@ def signAndPushSystemUpdateProposal(conf):
           '--clientauth',
           '--cafile', org['ca']['certfile'],
           # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--keyfile', org['tls']['clientKey'],
-          '--certfile', org['tls']['clientCert']
+          '--certfile', tls_client_dir + '/' + orderer['tls']['client']['cert'],
+          '--keyfile', tls_client_dir + '/' + orderer['tls']['client']['key']
           ])
 
     # clean env variables

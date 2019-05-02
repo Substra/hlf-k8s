@@ -104,6 +104,8 @@ def invokeChainCode(args, org, peer):
     print('Sending invoke transaction (with waitForEvent) to %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']},
           flush=True)
 
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
     output = subprocess.run(['peer',
                              'chaincode', 'invoke',
                              '-C', channel_name,
@@ -113,8 +115,8 @@ def invokeChainCode(args, org, peer):
                              '--tls',
                              '--clientauth',
                              '--cafile', orderer['ca']['certfile'],
-                             '--keyfile', peer['tls']['clientKey'],
-                             '--certfile', peer['tls']['clientCert'],
+                             '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+                             '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
                              '--waitForEvent'
                              ],
                             stdout=subprocess.PIPE,

@@ -101,9 +101,9 @@ def generate_docker_compose_org(org, substra_path, network):
                    f'{substra_path}/backup/orgs/{org["name"]}/{peer["name"]}/:/var/hyperledger/production/',
 
                    # tls server files
-                   f"{peer['tls']['core_dir']['external']}/{peer['tls']['server']['dir']}:{peer['tls']['core_dir']['internal']}",
+                   f"{peer['tls']['dir']['external']}/{peer['tls']['server']['dir']}:{peer['tls']['dir']['internal']}",
                    # tls client files
-                   f"{peer['tls']['core_dir']['external']}/{peer['tls']['client']['dir']}:{peer['tls']['core_dir']['external']}/{peer['tls']['client']['dir']}",
+                   f"{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}:{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}",
 
                    f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/fabric/msp/:{org["core"]["docker"]["msp_config_path"]}',
 

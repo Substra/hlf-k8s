@@ -51,14 +51,16 @@ def fetchConfigBlock(org, peer):
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
 
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
     call(['peer', 'channel', 'fetch', 'config', config_block_file,
           '-c', channel_name,
           '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
           '--tls',
           '--clientauth',
           '--cafile', orderer['ca']['certfile'],
-          '--keyfile', peer['tls']['clientKey'],
-          '--certfile', peer['tls']['clientCert']
+          '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+          '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
           ])
 
     # clean env variables
@@ -170,6 +172,8 @@ def updateConfigBlock(org, peer):
 
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
 
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
     print('Updating the configuration block of the channel \'%s\'' % channel_name, flush=True)
@@ -180,8 +184,8 @@ def updateConfigBlock(org, peer):
           '--tls',
           '--clientauth',
           '--cafile', orderer['ca']['certfile'],
-          '--keyfile', peer['tls']['clientKey'],
-          '--certfile', peer['tls']['clientCert']
+          '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+          '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
           ])
 
     # clean env variables

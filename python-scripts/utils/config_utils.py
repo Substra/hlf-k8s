@@ -90,6 +90,9 @@ def create_core_peer_config(org):
         stream = open(os.path.join(dir_path, '../../templates/core.yaml'), 'r')
         yaml_data = load(stream, Loader=FullLoader)
 
+        tls_server_dir = peer['tls']['dir']['internal']
+        tls_client_dir = f"{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}"
+
         # override template here
 
         yaml_data['peer']['id'] = peer['host']
@@ -98,10 +101,10 @@ def create_core_peer_config(org):
 
         yaml_data['peer']['mspConfigPath'] = org['core']['docker']['msp_config_path']
 
-        yaml_data['peer']['tls']['cert']['file'] = peer['tls']['serverCert']
-        yaml_data['peer']['tls']['key']['file'] = peer['tls']['serverKey']
-        yaml_data['peer']['tls']['clientCert']['file'] = peer['tls']['clientCert']
-        yaml_data['peer']['tls']['clientKey']['file'] = peer['tls']['clientKey']
+        yaml_data['peer']['tls']['cert']['file'] = f"{tls_server_dir}/{peer['tls']['server']['cert']}"
+        yaml_data['peer']['tls']['key']['file'] = f"{tls_server_dir}/{peer['tls']['server']['key']}"
+        yaml_data['peer']['tls']['clientCert']['file'] = f"{tls_client_dir}/{peer['tls']['client']['cert']}"
+        yaml_data['peer']['tls']['clientKey']['file'] = f"{tls_client_dir}/{peer['tls']['client']['key']}"
         yaml_data['peer']['tls']['enabled'] = 'true'
         # the same as peer['tls']['serverCa'] but this one is inside the container
         yaml_data['peer']['tls']['rootcert']['file'] = org['ca']['certfile']
@@ -130,10 +133,12 @@ def create_orderer_config(org, genesis_bloc_file):
     yaml_data = load(stream, Loader=FullLoader)
 
     for orderer in org['orderers']:
+        tls_server_dir = orderer['tls']['dir']['internal']
+        tls_client_dir = f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}"
 
         # override template here
-        yaml_data['General']['TLS']['Certificate'] = org['tls']['cert']
-        yaml_data['General']['TLS']['PrivateKey'] = org['tls']['key']
+        yaml_data['General']['TLS']['Certificate'] = f"{tls_server_dir}/{orderer['tls']['server']['cert']}"
+        yaml_data['General']['TLS']['PrivateKey'] = f"{tls_server_dir}/{orderer['tls']['server']['key']}"
         yaml_data['General']['TLS']['Enabled'] = 'true'
         # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
         # from the py sdk if peer clientCert/clientKey is not set correctly
@@ -145,7 +150,7 @@ def create_orderer_config(org, genesis_bloc_file):
         yaml_data['General']['GenesisMethod'] = 'file'
         yaml_data['General']['GenesisFile'] = genesis_bloc_file
         yaml_data['General']['LocalMSPID'] = org['msp_id']
-        yaml_data['General']['LocalMSPDir'] = org['core_dir']['internal'] + '/msp'
+        yaml_data['General']['LocalMSPDir'] = f"{org['core_dir']['internal']}/msp"
 
         yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']
 
@@ -165,10 +170,10 @@ def create_orderer_config(org, genesis_bloc_file):
         yaml_data['peer']['localMspId'] = org['msp_id']
         yaml_data['peer']['mspConfigPath'] = org['users']['admin']['home'] + '/msp'
 
-        yaml_data['peer']['tls']['cert']['file'] = org['tls']['cert']
-        yaml_data['peer']['tls']['key']['file'] = org['tls']['key']
-        yaml_data['peer']['tls']['clientCert']['file'] = org['tls']['clientCert']
-        yaml_data['peer']['tls']['clientKey']['file'] = org['tls']['clientKey']
+        yaml_data['peer']['tls']['cert']['file'] = f"{tls_server_dir}/{orderer['tls']['server']['cert']}"
+        yaml_data['peer']['tls']['key']['file'] = f"{tls_server_dir}/{orderer['tls']['server']['key']}"
+        yaml_data['peer']['tls']['clientCert']['file'] = f"{tls_client_dir}/{orderer['tls']['client']['cert']}"
+        yaml_data['peer']['tls']['clientKey']['file'] = f"{tls_client_dir}/{orderer['tls']['client']['key']}"
         yaml_data['peer']['tls']['enabled'] = 'true'
         # the same as peer['tls']['serverCa'] but this one is inside the container
         yaml_data['peer']['tls']['rootcert']['file'] = org['ca']['certfile']
@@ -219,6 +224,9 @@ def create_substrabac_config(org, orderer):
     # select what need substrabac conf
     peer = org['service']['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
+
     res = {
         'name': org['service']['name'],
         'signcert': org['service']['users']['user']['home'] + '/msp/signcerts/cert.pem',
@@ -232,8 +240,8 @@ def create_substrabac_config(org, orderer):
             'port': peer['host_port']['external'],
             'docker_port': peer['port']['internal'],
             'docker_core_dir': peer_core,
-            'clientKey': peer['tls']['clientKey'],
-            'clientCert': peer['tls']['clientCert'],
+            'clientKey': tls_client_dir + '/' + peer['tls']['client']['cert'],
+            'clientCert': tls_client_dir + '/' + peer['tls']['client']['key'],
         },
         'orderer': {
             'name': orderer['name'],
