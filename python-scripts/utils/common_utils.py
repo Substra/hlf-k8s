@@ -4,7 +4,7 @@ import socket
 
 import time
 from shutil import copytree, copy2
-from subprocess import call, check_output, CalledProcessError, STDOUT
+from subprocess import call, check_output
 
 
 def copy_last_file_ext(ext, src, dst):

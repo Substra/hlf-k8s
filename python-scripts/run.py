@@ -1,319 +1,56 @@
-import docker
-import json
+import glob
 import os
-import time
-import subprocess
+import json
+from subprocess import call
 
-from subprocess import call, check_output, CalledProcessError
+from utils.run_utils import (createChannel, peersJoinChannel, updateAnchorPeers, installChainCodeOnPeers, instanciateChaincode,
+                             waitForInstantiation, queryChaincodeFromFirstPeerFirstOrg, generateChannelUpdate, upgradeChainCode,
+                             createSystemUpdateProposal, signAndPushSystemUpdateProposal, getChaincodeVersion, generateChannelArtifacts)
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
 
-client = docker.from_env()
-
-
-def set_env_variables(fabric_cfg_path, msp_dir):
-    os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
-
-
-def clean_env_variables():
-    del os.environ['FABRIC_CFG_PATH']
-    del os.environ['CORE_PEER_MSPCONFIGPATH']
-
-# the signer of the channel creation transaction must have admin rights for one of the consortium orgs
-# https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
-def createChannel(conf, org, peer):
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
-
-    call([
-        'peer',
-        'channel',
-        'create',
-        '-c', conf['misc']['channel_name'],
-        '--outputBlock', conf['misc']['channel_block'],
-        '-f', conf['misc']['channel_tx_file'],
-        '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
-        '--tls',
-        '--clientauth',
-        '--cafile', orderer['ca']['certfile'],
-        '--keyfile', peer['tls']['clientKey'],
-        '--certfile', peer['tls']['clientCert']
-    ])
-
-    # clean env variables
-    clean_env_variables()
-
-
-def joinChannel(conf, peer, org):
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    channel_name = conf['misc']['channel_name']
-    print('Peer %(peer_host)s is attempting to join channel \'%(channel_name)s\' ...' % {
-        'peer_host': peer['host'],
-        'channel_name': channel_name
-    }, flush=True)
-
-    # peer channel join use signcerts not admincerts, we need to pass CORE_PEER_MSPCONFIGPATH to org admin.
-    # peer msp signcert is not an admin, a peer cannot join a channel with its own msp
-    container = client.containers.get(peer['host'])
-    container.exec_run('bash -c "export CORE_PEER_MSPCONFIGPATH=%s && peer channel join -b %s"' % (org_admin_msp_dir, conf['misc']['channel_block']))
-
-
-def peersJoinChannel(conf):
-    for org in conf['orgs']:
-        for peer in org['peers']:
-            joinChannel(conf, peer, org)
-
-
-# # the updater of the channel anchor transaction must have admin rights for one of the consortium orgs
-# Update the anchor peers
-def updateAnchorPeers(conf):
-    # :warning: for updating anchor peers make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
-
-    for org in conf['orgs']:
-        org_admin_home = org['users']['admin']['home']
-        org_admin_msp_dir = org_admin_home + '/msp'
-        orderer = conf['orderers'][0]
-
-        peer = org['peers'][0]
-        print('Updating anchor peers for %(peer_host)s ...' % {'peer_host': org['peers'][0]['host']}, flush=True)
-
-        # update config path for using right core.yaml and right msp dir
-        set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
-
-        call(['peer',
-              'channel', 'update',
-              '-c', conf['misc']['channel_name'],
-              '-f', org['anchor_tx_file'],
-              '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
-              '--tls',
-              '--clientauth',
-              '--cafile', orderer['ca']['certfile'],
-              # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-              '--keyfile', peer['tls']['clientKey'],
-              '--certfile', peer['tls']['clientCert']
-              ])
-
-        # clean env variables
-        clean_env_variables()
-
-
-def installChainCode(conf, org, peer):
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    chaincode_name = conf['misc']['chaincode_name']
-
-    print('Installing chaincode on %(peer_host)s ...' % {'peer_host': peer['host']}, flush=True)
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
-
-    call(['peer',
-          'chaincode', 'install',
-          '-n', chaincode_name,
-          '-v', '1.0',
-          '-p', 'github.com/hyperledger/chaincode/'])
-
-    # clean env variables
-    clean_env_variables()
-
-
-def installChainCodeOnPeers(conf):
-    for org in conf['orgs']:
-        for peer in org['peers']:
-            installChainCode(conf, org, peer)
-
-
-def waitForInstantiation(conf):
-    org = conf['orgs'][0]
-    peer = org['peers'][0]
-
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
-
-    print('Test if chaincode is instantiated on %(PEER_HOST)s ... (timeout 15 seconds)' % {'PEER_HOST': peer['host']},
-          flush=True)
-
-    starttime = int(time.time())
-    while int(time.time()) - starttime < 30:
-        call(['sleep', '1'])
-        output = subprocess.run(['peer',
-                                 '--logging-level', 'DEBUG',
-                                 'chaincode', 'list',
-                                 '-C', conf['misc']['channel_name'],
-                                 '--instantiated',
-                                 '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
-                                 '--tls',
-                                 '--clientauth',
-                                 '--cafile', orderer['tls']['certfile'],
-                                 # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-                                 '--keyfile', peer['tls']['clientKey'],
-                                 '--certfile', peer['tls']['clientCert']
-                                 ],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        data = output.stdout.decode('utf-8')
-        print(data, flush=True)
-        split_msg = 'Get instantiated chaincodes on channel mychannel:'
-        if split_msg in data and len(data.split(split_msg)[1].replace('\n', '')):
-            print(data, flush=True)
-            clean_env_variables()
-            return True
-        print('.', end='', flush=True)
-
-    clean_env_variables()
-    return False
-
-
-def makePolicy(conf):
-    policy = 'OR('
-
-    for index, org in enumerate(conf['orgs']):
-        if index != 0:
-            policy += ','
-        policy += '\'' + org['msp_id'] + '.member\''
-
-    policy += ')'
-    print('policy: %s' % policy, flush=True)
-
-    return policy
-
-
-def instanciateChainCode(conf, args, org, peer):
-    policy = makePolicy(conf)
-
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-    orderer = conf['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_admin_msp_dir)
-
-    print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
-
-    call(['peer',
-          'chaincode', 'instantiate',
-          '--logging-level', 'DEBUG',
-          '-C', conf['misc']['channel_name'],
-          '-n', conf['misc']['chaincode_name'],
-          '-v', '1.0',
-          '-c', args,
-          '-P', policy,
-          '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']},
-          '--tls',
-          '--clientauth',
-          '--cafile', orderer['ca']['certfile'],
-          # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--keyfile', peer['tls']['clientKey'],
-          '--certfile', peer['tls']['clientCert']
-          ])
-
-    # clean env variables
-    clean_env_variables()
-
-
-def instanciateChaincode(conf):
-    org = conf['orgs'][0]
-    peer = org['peers'][0]
-    instanciateChainCode(conf, '{"Args":["init"]}', org, peer)
-
-
-def chainCodeQueryWith(conf, arg, org, peer):
-    org_user_home = org['users']['user']['home']
-    org_user_msp_dir = org_user_home + '/msp'
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_user_msp_dir)
-
-    channel_name = conf['misc']['channel_name']
-    chaincode_name = conf['misc']['chaincode_name']
-
-    print('Querying chaincode in the channel \'%(channel_name)s\' on the peer \'%(peer_host)s\' ...' % {
-        'channel_name': channel_name,
-        'peer_host': peer['host']
-    }, flush=True)
-
-    try:
-        output = check_output(['peer', 'chaincode', 'query',
-                               '-C', channel_name,
-                               '-n', chaincode_name,
-                               '-c', arg]).decode()
-    except CalledProcessError as e:
-        output = e.output.decode()
-        print('Error:', flush=True)
-        print('Output: %s' % output, flush=True)
-        # clean env variables
-        clean_env_variables()
-    else:
-        try:
-            value = json.loads(output)
-        except:
-            value = output
-        else:
-            msg = 'Query of channel \'%(channel_name)s\' on peer \'%(peer_host)s\' was successful' % {
-                'channel_name': channel_name,
-                'peer_host': peer['host']
-            }
-            print(msg, flush=True)
-            print('Value: %s' % value, flush=True)
-
-        finally:
-            # clean env variables
-            clean_env_variables()
-            return value
-
-
-def queryChaincodeFromFirstPeerFirstOrg(conf):
-    org = conf['orgs'][0]
-    peer = org['peers'][0]
-
-    print('Try to query chaincode from first peer first org before invoke', flush=True)
-
-    starttime = int(time.time())
-    while int(time.time()) - starttime < 15:
-        call(['sleep', '1'])
-        data = chainCodeQueryWith(conf,
-                                  '{"Args":["queryObjectives"]}',
-                                  org,
-                                  peer)
-        # data should be null
-        print(data, flush=True)
-        if data is None:
-            print('Correctly initialized', flush=True)
-            return True
-
-        print('.', end='', flush=True)
-
-    print('\n/!\ Failed to query chaincode with initialized values', flush=True)
-    return False
-
-
-def run(conf):
-    res = True
-    org = conf['orgs'][0]
-    createChannel(conf, org, org['peers'][0])
+def add_org(conf, conf_externals, orderer):
+    generateChannelUpdate(conf, conf_externals, orderer)
     peersJoinChannel(conf)
-    updateAnchorPeers(conf)
+
+    new_chaincode_version = '%.1f' % (getChaincodeVersion(conf_externals[0], orderer) + 1.0)
 
     # Install chaincode on peer in each org
-    installChainCodeOnPeers(conf)
+    orgs_mspid = []
+    for conf_org in [conf] + conf_externals:
+        installChainCodeOnPeers(conf_org, new_chaincode_version)
+        orgs_mspid.append(conf_org['msp_id'])
+
+    upgradeChainCode(conf_externals[0], '{"Args":["init"]}', orderer, orgs_mspid, new_chaincode_version)
+
+    if queryChaincodeFromFirstPeerFirstOrg(conf):
+        print('Congratulations! Ledger has been correctly initialized.', flush=True)
+        call(['touch', conf['misc']['run_success_file']])
+    else:
+        print('Fail to initialize ledger.', flush=True)
+        call(['touch', conf['misc']['run_fail_file']])
+
+
+def add_org_with_channel(conf, conf_orderer):
+
+    res = True
+
+    generateChannelArtifacts(conf)
+    createSystemUpdateProposal(conf, conf_orderer)
+    signAndPushSystemUpdateProposal(conf_orderer)
+
+    createChannel(conf, conf_orderer)
+
+    peersJoinChannel(conf)
+    updateAnchorPeers(conf, conf_orderer)
+
+    # Install chaincode on peer in each org
+    installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
 
     # Instantiate chaincode on the 1st peer of the 2nd org
-    instanciateChaincode(conf)
+    instanciateChaincode(conf, conf_orderer)
 
     # Wait chaincode is correctly instantiated and initialized
-    res = res and waitForInstantiation(conf)
+    res = res and waitForInstantiation(conf, conf_orderer)
 
     # Query chaincode from the 1st peer of the 1st org
     res = res and queryChaincodeFromFirstPeerFirstOrg(conf)
@@ -327,8 +64,17 @@ def run(conf):
 
 
 if __name__ == "__main__":
-    conf_path = '/substra/conf/conf.json'
 
-    conf = json.load(open(conf_path, 'r'))
+    org_name = os.environ.get("ORG")
 
-    run(conf)
+    conf = json.load(open('/substra/conf/config/conf-%s.json' % org_name, 'r'))
+    conf_orderer = json.load(open('/substra/conf/config/conf-orderer.json', 'r'))
+
+    if os.path.exists(conf['misc']['channel_tx_file']):
+        files = glob.glob('/substra/conf/config/conf-*.json')
+        conf_externals = [json.load(open(file_path, 'r'))
+                          for file_path in files
+                          if 'orderer' not in file_path and org_name not in file_path]
+        add_org(conf, conf_externals, conf_orderer)
+    else:
+        add_org_with_channel(conf, conf_orderer)
