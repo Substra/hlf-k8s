@@ -111,7 +111,7 @@ def substra_orderer(orderer):
     start(orderer, orderer_docker_compose)
 
 
-def substra_org(org):
+def substra_org(org, orderer):
 
     org_name = org['service']['name']
 
@@ -133,7 +133,7 @@ def substra_org(org):
     #create_fabric_ca_peer_config(org['service'])
     #create_substrabac_config(org, orderer)
 
-    org_docker_compose = generate_docker_compose_org(org['service'], SUBSTRA_PATH, SUBSTRA_NETWORK)
+    org_docker_compose = generate_docker_compose_org(org['service'], orderer['service'], SUBSTRA_PATH, SUBSTRA_NETWORK)
     intern_stop(org_docker_compose['path'])
     start(org, org_docker_compose)
 
@@ -158,7 +158,7 @@ def substra_network(orgs):
     else:
         # Prepare each org
         for org in [x for x in orgs if 'peers' in x['service']]:
-            substra_org(org)
+            substra_org(org, orderer)
 
 def remove_all_docker():
 

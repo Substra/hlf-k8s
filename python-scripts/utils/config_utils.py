@@ -165,7 +165,7 @@ def create_orderer_config(org, genesis_bloc_file):
 
         # override template here
 
-        yaml_data['peer']['id'] = org['host']
+        yaml_data['peer']['id'] = orderer['host']
         yaml_data['peer']['address'] = f"{orderer['host']}:{orderer['port']['internal']}"
         yaml_data['peer']['localMspId'] = org['msp_id']
         yaml_data['peer']['mspConfigPath'] = org['users']['admin']['home'] + '/msp'

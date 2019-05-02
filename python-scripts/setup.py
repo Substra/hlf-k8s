@@ -71,7 +71,6 @@ def init_org(conf):
 def init_orderer(conf):
 
     service = conf['service']
-    admin = service['users']['admin']
 
     # remove ugly sample files defined here https://github.com/hyperledger/fabric/tree/master/sampleconfig
     # except orderer.yaml from binded volume
@@ -80,8 +79,8 @@ def init_orderer(conf):
     for orderer in service['orderers']:
         # Enroll to get orderer's TLS cert (using the "tls" profile)
         enrollment_url = 'https://%(name)s:%(pass)s@%(host)s:%(port)s' % {
-            'name': admin['name'],
-            'pass': admin['pass'],
+            'name': orderer['name'],
+            'pass': orderer['pass'],
             'host': service['ca']['host'],
             'port': service['ca']['port']['internal']
         }
@@ -119,11 +118,7 @@ def init_orderer(conf):
         # https://lists.hyperledger.org/g/fabric/topic/17549225#1250
         dst_admincerts_dir = setup_orderer_msp_dir + '/admincerts'
         create_directory(dst_admincerts_dir)
-        copyfile('%s/signcerts/cert.pem' % setup_orderer_msp_dir, '%s/%s-cert.pem' % (dst_admincerts_dir, admin['name']))
-
-    create_directory(service['broadcast_dir'])
-
-    generateGenesis(conf)
+        copyfile('%s/signcerts/cert.pem' % setup_orderer_msp_dir, '%s/%s-cert.pem' % (dst_admincerts_dir, orderer['name']))
 
 
 def init(conf):
@@ -131,6 +126,8 @@ def init(conf):
         init_org(conf)
     if 'orderers' in conf['service']:
         init_orderer(conf)
+        create_directory(conf['service']['broadcast_dir'])
+        generateGenesis(conf)
 
 
 if __name__ == '__main__':

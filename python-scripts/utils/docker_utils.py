@@ -4,7 +4,9 @@ import yaml
 HLF_VERSION = '1.4.1'
 
 
-def generate_docker_compose_org(org, substra_path, network):
+def generate_docker_compose_org(org, conf_orderer, substra_path, network):
+
+    orderer = conf_orderer['orderers'][0]
 
     FABRIC_CA_HOME = '/etc/hyperledger/fabric-ca-server'
     FABRIC_CFG_PATH = f'{substra_path}/data'
@@ -47,9 +49,8 @@ def generate_docker_compose_org(org, substra_path, network):
                                                             #f'{substra_path}/conf/{org["name"]}/:{substra_path}/conf/{org["name"]}',
                                                             f'{substra_path}/data/configtx-{org["name"]}.yaml:{FABRIC_CFG_PATH}/configtx.yaml',
 
-                                                            # TODO make it dynamic
                                                             # orderer core yaml for peer binary
-                                                            f'{substra_path}/conf/orderer/orderer1/:{substra_path}/conf/orderer/orderer1/',
+                                                            f'{substra_path}/conf/{conf_orderer["name"]}/{orderer["name"]}/:{substra_path}/conf/{conf_orderer["name"]}/{orderer["name"]}/',
 
                                                             '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode'
                                                             ],
@@ -100,10 +101,12 @@ def generate_docker_compose_org(org, substra_path, network):
                    # backup files
                    f'{substra_path}/backup/orgs/{org["name"]}/{peer["name"]}/:/var/hyperledger/production/',
 
-                   # tls server files
+                   # tls peer server files
                    f"{peer['tls']['dir']['external']}/{peer['tls']['server']['dir']}:{peer['tls']['dir']['internal']}",
-                   # tls client files
+                   # tls peer client files
                    f"{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}:{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}",
+                   # tls orderer client files
+                   f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
 
                    # msp
                    f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/msp',

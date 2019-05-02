@@ -3,11 +3,6 @@ from .users.admin import admin
 from orderer.orderers.orderer1 import orderer1
 
 orderer = {
-    'host': 'orderer1-orderer',
-    'port': {
-        'internal': 7050,
-        'external': 7050
-    },
     'name': 'orderer',
     'msp_id': 'ordererMSP',
     'broadcast_dir': '/substra/data/log/broadcast',
@@ -17,6 +12,7 @@ orderer = {
         # image, do not forget to remove these examples files in your
         # docker CMD overriding if naming the same way
         'certfile': '/substra/data/orgs/orderer/tls-ca-cert.pem',
+        'clientkey': ''
     },
     'ca': {
         'name': 'rca-orderer',
