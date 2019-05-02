@@ -32,11 +32,11 @@ def add_org(conf, conf_externals, orderer):
 
 def add_org_with_channel(conf, conf_orderer):
 
+    res = True
+
     generateChannelArtifacts(conf)
     createSystemUpdateProposal(conf, conf_orderer)
     signAndPushSystemUpdateProposal(conf_orderer)
-
-    res = True
 
     createChannel(conf, conf_orderer)
 

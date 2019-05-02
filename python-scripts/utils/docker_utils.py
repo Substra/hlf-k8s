@@ -72,7 +72,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                             # orderer core yaml for peer binary
                                                             f'{substra_path}/conf/{conf_orderer["name"]}/{orderer["name"]}/:{substra_path}/conf/{conf_orderer["name"]}/{orderer["name"]}/',
                                                             # ca file
-                                                            f"{org['ca']['certfile']}/:{org['ca']['certfile']}",
+                                                            f"{org['ca']['certfile']}:{org['ca']['certfile']}",
 
                                                             # tls
                                                             f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
@@ -139,11 +139,8 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                    f'{substra_path}/conf/{org["name"]}/{peer["name"]}/core.yaml:{org["core_dir"]["internal"]}/core.yaml',
 
                    # ca file
-                   f"{org['ca']['certfile']}/:{org['ca']['certfile']}",
-
-                   # anchors.tx
-                   f"{org['anchor_tx_file']}/:{org['anchor_tx_file']}",
-                    ],
+                   f"{org['ca']['certfile']}:{org['ca']['certfile']}",
+                ],
                'networks': [network],
                'depends_on': ['setup']}
 
@@ -255,7 +252,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
                    f"{substra_path}/conf/{org['name']}/{orderer['name']}/orderer.yaml:{org['core_dir']['internal']}/orderer.yaml",
 
                    # ca file
-                   f"{org['ca']['certfile']}/:{org['ca']['certfile']}",
+                   f"{org['ca']['certfile']}:{org['ca']['certfile']}",
                ],
                'networks': [network],
                'depends_on': ['setup']}
