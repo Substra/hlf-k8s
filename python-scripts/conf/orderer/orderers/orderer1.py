@@ -7,9 +7,6 @@ orderer1 = {
         'internal': 7050,
         'external': 7050
     },
-    'core_dir': {
-        'external': '/substra/data/orgs/orderer/orderer1',
-    },
     'tls': {
         'dir': {
             'external': '/substra/data/orgs/orderer/tls/orderer1',

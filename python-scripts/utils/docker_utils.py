@@ -105,7 +105,8 @@ def generate_docker_compose_org(org, substra_path, network):
                    # tls client files
                    f"{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}:{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}",
 
-                   f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/fabric/msp/:{org["core"]["docker"]["msp_config_path"]}',
+                   # msp
+                   f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/msp',
 
                    # conf files
                    f'{substra_path}/conf/{org["name"]}/{peer["name"]}/core.yaml:{FABRIC_CA_CLIENT_HOME}/core.yaml',
@@ -114,7 +115,7 @@ def generate_docker_compose_org(org, substra_path, network):
                'depends_on': ['setup']}
 
         docker_compose['substra_tools']['run']['depends_on'].append(peer['host'])
-        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/fabric/msp/:{org["core"]["docker"]["msp_config_path"]}/{peer["name"]}',)
+        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/{peer["name"]}/msp',)
         docker_compose['substra_services']['svc'].append((peer['host'], svc))
 
         # Create all services along to conf
@@ -198,11 +199,10 @@ def generate_docker_compose_orderer(org, substra_path, network, genesis_bloc_fil
                    # backup files
                    f"{substra_path}/backup/orgs/{org['name']}/{orderer['name']}:/var/hyperledger/production/orderer",
 
-                    # EDIT me to fail
-                   f"{substra_path}/data/orgs/{org['name']}/{orderer['name']}/fabric/msp/:{org['core_dir']['internal']}/msp",
+                   # msp
+                   f'{substra_path}/data/orgs/{org["name"]}/{orderer["name"]}/msp/:{org["core_dir"]["internal"]}/msp',
 
                    # tls server files
-
                    f"{orderer['tls']['dir']['external']}/{orderer['tls']['server']['dir']}:{orderer['tls']['dir'][ 'internal']}",
 
                    # conf files
@@ -213,7 +213,7 @@ def generate_docker_compose_orderer(org, substra_path, network, genesis_bloc_fil
                'networks': [network],
                'depends_on': ['setup']}
 
-        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{orderer["name"]}/fabric/msp/:{org["core_dir"]["internal"]}/msp/{orderer["name"]}', )
+        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{orderer["name"]}/msp/:{org["core_dir"]["internal"]}/{orderer["name"]}/msp', )
         docker_compose['substra_services']['svc'].append((orderer['host'], svc))
 
     # Create all services along to conf

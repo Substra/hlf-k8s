@@ -52,19 +52,20 @@ def init_org(conf):
                    enrollment_url)
 
         # Enroll the peer to get an enrollment certificate and set up the core's local MSP directory for starting peer
+        setup_peer_msp_dir = service['core_dir']['internal'] + '/' + peer['name'] + '/msp'
         call(['fabric-ca-client',
               'enroll', '-d',
               '-u', enrollment_url,
-              '-M', service['core']['docker']['msp_config_path'] + '/' + peer['name']])
+              '-M', setup_peer_msp_dir])
 
         # copy the admincerts from the admin user for being able to install chaincode
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
         # https://lists.hyperledger.org/g/fabric/topic/17549225#1250
         # https://github.com/hyperledger/fabric-sdk-go/blob/master/internal/github.com/hyperledger/fabric/msp/mspimpl.go#L460
         # https://jira.hyperledger.org/browse/FAB-3840
-        dst_ca_dir = service['core']['docker']['msp_config_path'] + '/' + peer['name'] + '/admincerts/'
-        create_directory(dst_ca_dir)
-        copyfile(org_admin_msp_dir + '/signcerts/cert.pem', dst_ca_dir + '%s-cert.pem' % admin['name'])
+        dst_admincerts_dir = setup_peer_msp_dir + '/admincerts'
+        create_directory(dst_admincerts_dir)
+        copyfile(org_admin_msp_dir + '/signcerts/cert.pem', '%s/%s-cert.pem' % (dst_admincerts_dir, admin['name']))
 
 
 def init_orderer(conf):
@@ -107,19 +108,18 @@ def init_orderer(conf):
                    enrollment_url)
 
         # Enroll again to get the orderer's enrollment certificate for getting signcert and being able to launch orderer
-        local_msp_dir = service['core']['docker'] + '/msp/'
+        setup_orderer_msp_dir = service['core_dir']['internal'] + '/' + orderer['name'] + '/msp'
         call(['fabric-ca-client',
               'enroll', '-d',
               '-u', enrollment_url,
-              '-M', local_msp_dir + orderer['name']])
+              '-M', setup_orderer_msp_dir])
 
         # copy the admincerts from the admin user for being able to launch orderer
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
         # https://lists.hyperledger.org/g/fabric/topic/17549225#1250
-
-        dst_ca_dir = '%s/%s/admincerts/' % (local_msp_dir, orderer['name'])
-        create_directory(dst_ca_dir)
-        copyfile('%s/%s/signcerts/cert.pem' % (local_msp_dir, orderer['name']), '%s/%s-cert.pem' % (dst_ca_dir, admin['name']))
+        dst_admincerts_dir = setup_orderer_msp_dir + '/admincerts'
+        create_directory(dst_admincerts_dir)
+        copyfile('%s/signcerts/cert.pem' % setup_orderer_msp_dir, '%s/%s-cert.pem' % (dst_admincerts_dir, admin['name']))
 
     create_directory(service['broadcast_dir'])
 

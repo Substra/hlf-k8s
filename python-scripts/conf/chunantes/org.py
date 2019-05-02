@@ -9,7 +9,8 @@ chunantes = {
     'msp_id': 'chu-nantesMSP',
     'anchor_tx_file': '/substra/data/orgs/chu-nantes/anchors.tx',
     'tls': {
-        # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in the docker image, do not forget to remove these examples files if naming the same way
+        # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in
+        # the docker image, do not forget to remove these examples files if naming the same way
         'certfile': '/substra/data/orgs/chu-nantes/tls-ca-cert.pem',
         'clientkey': ''
     },
@@ -37,14 +38,8 @@ chunantes = {
         # The "hosts" value is a list of the domain names which the certificate should be valid for.
         'hosts': ['rca-chu-nantes']
     },
-    'core': {
-        'docker': {
-            'msp_config_path': '/etc/hyperledger/fabric/msp',
-        }
-    },
     'core_dir': {
         'internal': '/etc/hyperledger/fabric',
-        'external': '/substra/data/orgs/chu-nantes'
     },
     'peers': [peer1, peer2]
 }
