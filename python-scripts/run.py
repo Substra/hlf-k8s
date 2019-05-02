@@ -5,9 +5,7 @@ from subprocess import call
 
 from utils.run_utils import (createChannel, peersJoinChannel, updateAnchorPeers, installChainCodeOnPeers, instanciateChaincode,
                              waitForInstantiation, queryChaincodeFromFirstPeerFirstOrg, generateChannelUpdate, upgradeChainCode,
-                             createSystemUpdateProposal, signAndPushSystemUpdateProposal, getChaincodeVersion)
-
-from utils.setup_utils import generateChannelArtifacts
+                             createSystemUpdateProposal, signAndPushSystemUpdateProposal, getChaincodeVersion, generateChannelArtifacts)
 
 
 def add_org(conf, conf_externals, orderer):
@@ -20,7 +18,7 @@ def add_org(conf, conf_externals, orderer):
     orgs_mspid = []
     for conf_org in [conf] + conf_externals:
         installChainCodeOnPeers(conf_org, new_chaincode_version)
-        orgs_mspid.append(conf_org['service']['msp_id'])
+        orgs_mspid.append(conf_org['msp_id'])
 
     upgradeChainCode(conf_externals[0], '{"Args":["init"]}', orderer, orgs_mspid, new_chaincode_version)
 
@@ -34,25 +32,25 @@ def add_org(conf, conf_externals, orderer):
 
 def add_org_with_channel(conf, conf_orderer):
 
+    res = True
+
     generateChannelArtifacts(conf)
     createSystemUpdateProposal(conf, conf_orderer)
     signAndPushSystemUpdateProposal(conf_orderer)
 
-    res = True
-
-    createChannel(conf, conf_orderer['service'])
+    createChannel(conf, conf_orderer)
 
     peersJoinChannel(conf)
-    updateAnchorPeers(conf, conf_orderer['service'])
+    updateAnchorPeers(conf, conf_orderer)
 
     # Install chaincode on peer in each org
     installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
 
     # Instantiate chaincode on the 1st peer of the 2nd org
-    instanciateChaincode(conf, conf_orderer['service'])
+    instanciateChaincode(conf, conf_orderer)
 
     # Wait chaincode is correctly instantiated and initialized
-    res = res and waitForInstantiation(conf, conf_orderer['service'])
+    res = res and waitForInstantiation(conf, conf_orderer)
 
     # Query chaincode from the 1st peer of the 1st org
     res = res and queryChaincodeFromFirstPeerFirstOrg(conf)
@@ -67,17 +65,16 @@ def add_org_with_channel(conf, conf_orderer):
 
 if __name__ == "__main__":
 
-    conf = json.load(open('/substra/conf.json', 'r'))
-    conf_orderer = json.load(open('/substra/conf/config/conf-orderer.json', 'r'))
+    org_name = os.environ.get("ORG")
 
-    org = conf['service']
-    org_name = org['name']
+    conf = json.load(open('/substra/conf/config/conf-%s.json' % org_name, 'r'))
+    conf_orderer = json.load(open('/substra/conf/config/conf-orderer.json', 'r'))
 
     if os.path.exists(conf['misc']['channel_tx_file']):
         files = glob.glob('/substra/conf/config/conf-*.json')
         conf_externals = [json.load(open(file_path, 'r'))
                           for file_path in files
                           if 'orderer' not in file_path and org_name not in file_path]
-        add_org(conf, conf_externals, conf_orderer['service'])
+        add_org(conf, conf_externals, conf_orderer)
     else:
         add_org_with_channel(conf, conf_orderer)

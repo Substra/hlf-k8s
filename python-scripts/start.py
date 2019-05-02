@@ -8,14 +8,41 @@ from yaml import load, FullLoader
 from subprocess import call
 
 from utils.common_utils import dowait, create_directory, remove_chaincode_docker_images, remove_chaincode_docker_containers
-from utils.config_utils import (create_configtx, create_ca_server_config, create_ca_client_config, create_core_peer_config,
-                                create_orderer_config, create_fabric_ca_peer_config, create_substrabac_config)
+from utils.config_utils import (create_configtx, create_ca_server_config, create_ca_client_config, create_peer_config,
+                                create_orderer_config, create_substrabac_config)
 from utils.docker_utils import generate_docker_compose_org, generate_docker_compose_orderer
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 SUBSTRA_PATH = '/substra'
 SUBSTRA_NETWORK = 'net_substra'
+
+
+def remove_all_docker():
+
+    # Stop all
+    docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
+
+    down_cmds = []
+
+    for docker_compose_path in docker_compose_paths:
+        with open(docker_compose_path) as dockercomposefile:
+            dockercomposeconf = load(dockercomposefile, Loader=FullLoader)
+            services = list(dockercomposeconf['services'].keys())
+
+            # Force removal (quicker)
+            if services:
+                call(['docker', 'rm', '-f'] + services)
+
+            down_cmds.append(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
+
+    for cmd in down_cmds:
+        call(cmd)
+
+    remove_chaincode_docker_containers()
+    remove_chaincode_docker_images()
+
+    call(['docker', 'network', 'remove', SUBSTRA_NETWORK])
 
 
 def intern_stop(docker_compose):
@@ -82,66 +109,43 @@ def start(conf, docker_compose):
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
 
 
-def substra_orderer(orderer):
-
-    orderer_name = orderer['service']['name']
-    # Orderer directories
-    print('Prepare Orderers : ', orderer_name)
-
-    create_directory(f"{SUBSTRA_PATH}/data/orgs/{orderer_name}")
-    create_directory(f"{SUBSTRA_PATH}/conf/{orderer_name}")
-
-    # CA files
-    create_ca_server_config(orderer['service'])
-    create_ca_client_config(orderer['service'])
-
-    # Configtx file
-    config_filepath = orderer['misc']['configtx-config-path']
-    create_configtx([orderer['service']], [], config_filepath)
-
-    # Orderer Config files
-    create_orderer_config(orderer['service'], orderer['misc']['genesis_bloc_file'])
-
-    # Docker-compose for orderer
-    orderer_docker_compose = generate_docker_compose_orderer(orderer['service'],
-                                                             SUBSTRA_PATH,
-                                                             SUBSTRA_NETWORK,
-                                                             orderer['misc']['genesis_bloc_file'])
-    intern_stop(orderer_docker_compose['path'])
-    start(orderer, orderer_docker_compose)
-
-
-def substra_org(org, orderer):
-
-    org_name = org['service']['name']
+def substra_org(org, orderer=None):
+    org_name = org['name']
 
     print(f'Prepare Node : {org_name}')
-    create_directory(f"{SUBSTRA_PATH}/dryrun/{org_name}")
     create_directory(f"{SUBSTRA_PATH}/data/orgs/{org_name}")
     create_directory(f"{SUBSTRA_PATH}/conf/{org_name}")
 
     # CA files
-    create_ca_server_config(org['service'])
-    create_ca_client_config(org['service'])
+    create_ca_server_config(org)
+    create_ca_client_config(org)
 
     # Configtx file
     config_filepath = org['misc']['configtx-config-path']
-    create_configtx([], [org['service']], config_filepath)
+    create_configtx(org, config_filepath)
 
     # Org Config files
-    create_core_peer_config(org['service'])
-    create_fabric_ca_peer_config(org['service'])
-    create_substrabac_config(org, orderer)
+    if 'peers' in org:
+        create_peer_config(org)
+        # create_fabric_ca_peer_config(org)
+        # Docker-compose for org
+        docker_compose = generate_docker_compose_org(org, orderer, SUBSTRA_PATH, SUBSTRA_NETWORK)
+        intern_stop(docker_compose['path'])
+        start(org, docker_compose)
 
-    org_docker_compose = generate_docker_compose_org(org['service'], SUBSTRA_PATH, SUBSTRA_NETWORK)
-    intern_stop(org_docker_compose['path'])
-    start(org, org_docker_compose)
+    # Orderer Config files
+    if 'orderers' in org:
+        create_orderer_config(org)
+        docker_compose = generate_docker_compose_orderer(org,
+                                                         SUBSTRA_PATH,
+                                                         SUBSTRA_NETWORK)
+        intern_stop(docker_compose['path'])
+        start(org, docker_compose)
 
 
-def substra_network(orderer, orgs):
+def substra_network(orgs):
 
     # Stop all
-    docker_compose_paths = os.path.join(SUBSTRA_PATH, 'dockerfiles')
     docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
 
     # Remove all
@@ -153,38 +157,15 @@ def substra_network(orderer, orgs):
     # Create Network
     call(['docker', 'network', 'create', SUBSTRA_NETWORK])
 
-    substra_orderer(orderer)
-
-    # Prepare each org
-    for org in orgs:
-        substra_org(org, orderer['service'])
-
-
-def remove_all_docker():
-
-    # Stop all
-    docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
-
-    down_cmds = []
-
-    for docker_compose_path in docker_compose_paths:
-        with open(docker_compose_path) as dockercomposefile:
-            dockercomposeconf = load(dockercomposefile, Loader=FullLoader)
-            services = list(dockercomposeconf['services'].keys())
-
-            # Force removal (quicker)
-            if services:
-                call(['docker', 'rm', '-f'] + services)
-
-            down_cmds.append(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
-
-    for cmd in down_cmds:
-        call(cmd)
-
-    remove_chaincode_docker_containers()
-    remove_chaincode_docker_images()
-
-    call(['docker', 'network', 'remove', SUBSTRA_NETWORK])
+    for orderer in [x for x in orgs if 'orderers' in x]:
+        substra_org(orderer)
+    else:
+        # Prepare each org
+        for org in [x for x in orgs if 'peers' in x]:
+            substra_org(org, orderer)
+            # substrabac
+            create_directory(f"{SUBSTRA_PATH}/dryrun/{org['name']}")
+            create_substrabac_config(org, orderer)
 
 
 if __name__ == '__main__':
@@ -219,21 +200,13 @@ if __name__ == '__main__':
     else:
         call(['python3', os.path.join(dir_path, 'conf/2orgs.py')])
 
-    orderer = json.load(open(f'{SUBSTRA_PATH}/conf/config/conf-orderer.json', 'r'))
-
     files = glob.glob(f'{SUBSTRA_PATH}/conf/config/conf-*.json')
     files.sort(key=os.path.getmtime)
-    orgs = [json.load(open(file_path, 'r'))
-            for file_path in files
-            if 'orderer' not in file_path]
-
-    print('Build substra-network for : ', flush=True)
-    print('  Orderer :')
-    print('   -', orderer['service']['name'], flush=True)
+    orgs = [json.load(open(file_path, 'r')) for file_path in files]
 
     print('  Organizations :', flush=True)
     for org in orgs:
-        print('   -', org['service']['name'], flush=True)
+        print('   -', org['name'], flush=True)
     print('', flush=True)
 
-    substra_network(orderer, orgs)
+    substra_network(orgs)

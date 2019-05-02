@@ -32,7 +32,7 @@ def configLocalMSP(org, user_name):
             'name': user['name'],
             'pass': user['pass'],
             'host': org['ca']['host'],
-            'port': org['ca']['port']
+            'port': org['ca']['port']['internal']
         }
 
         call(['fabric-ca-client',
@@ -52,14 +52,14 @@ def enrollCABootstrapAdmin(org):
              90,
              org['ca']['logfile'],
              org['ca']['host'],
-             org['ca']['port'])
+             org['ca']['port']['internal'])
     print('Enrolling with %(CA_NAME)s as bootstrap identity ...' % {'CA_NAME': org['ca']['name']}, flush=True)
 
     enrollment_url = 'https://%(name)s:%(pass)s@%(host)s:%(port)s' % {
         'name': org['users']['bootstrap_admin']['name'],
         'pass': org['users']['bootstrap_admin']['pass'],
         'host': org['ca']['host'],
-        'port': org['ca']['port']
+        'port': org['ca']['port']['internal']
     }
 
     call(['fabric-ca-client',
@@ -74,29 +74,30 @@ def enrollCABootstrapAdmin(org):
     # enrollment = caClient.enroll(org['bootstrap_admin']['name'], org['bootstrap_admin']['pass'])
 
 
-def registerOrdererIdentities(orderer):
-    enrollCABootstrapAdmin(orderer)
+def registerOrdererIdentities(org):
+    enrollCABootstrapAdmin(org)
 
-    print('Registering %(orderer_name)s with %(ca_name)s' % {'orderer_name': orderer['name'],
-                                                             'ca_name': orderer['ca']['name']},
-          flush=True)
+    for orderer in org['orderers']:
+        print('Registering %(orderer_name)s with %(ca_name)s' % {'orderer_name': orderer['name'],
+                                                                 'ca_name': org['ca']['name']},
+              flush=True)
 
-    call(['fabric-ca-client',
-          'register', '-d',
-          '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
-          '--id.name', orderer['users']['orderer']['name'],
-          '--id.secret', orderer['users']['orderer']['name'],
-          '--id.type', 'orderer'])
+        call(['fabric-ca-client',
+              'register', '-d',
+              '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
+              '--id.name', orderer['name'],
+              '--id.secret', orderer['pass'],
+              '--id.type', 'orderer'])
 
-    print('Registering admin identity with %(ca_name)s' % {'ca_name': orderer['ca']['name']}, flush=True)
+        print('Registering admin identity with %(ca_name)s' % {'ca_name': org['ca']['name']}, flush=True)
 
-    # The admin identity has the "admin" attribute which is added to ECert by default
-    call(['fabric-ca-client',
-          'register', '-d',
-          '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
-          '--id.name', orderer['users']['admin']['name'],
-          '--id.secret', orderer['users']['admin']['pass'],
-          '--id.attrs', 'admin=true:ecert'])
+        # The admin identity has the "admin" attribute which is added to ECert by default
+        call(['fabric-ca-client',
+              'register', '-d',
+              '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
+              '--id.name', org['users']['admin']['name'],
+              '--id.secret', org['users']['admin']['pass'],
+              '--id.attrs', 'admin=true:ecert'])
 
 
 def registerPeerIdentities(org):
@@ -131,18 +132,18 @@ def registerPeerIdentities(org):
 
 
 def registerIdentities(conf):
-    service = conf['service']
+    service = conf
 
     if 'peers' in service:
         registerPeerIdentities(service)
-    else:
+    if 'orderers' in service:
         registerOrdererIdentities(service)
 
 
 def registerUsers(conf):
     print('Getting CA certificates ...\n', flush=True)
 
-    service = conf['service']
+    service = conf
 
     if 'peers' in service:
         org_admin_msp_dir = service['users']['admin']['home'] + '/msp'
@@ -172,29 +173,6 @@ def registerUsers(conf):
         completeMSPSetup(org_admin_msp_dir)
 
 
-def generateChannelArtifacts(conf):
-
-    print('Generating channel configuration transaction at %(channel_tx_file)s' % {
-        'channel_tx_file': conf['misc']['channel_tx_file']}, flush=True)
-
-    call(['configtxgen',
-          '-profile', 'OrgsChannel',
-          '-outputCreateChannelTx', conf['misc']['channel_tx_file'],
-          '-channelID', conf['misc']['channel_name']])
-
-    org = conf['service']
-    print('Generating anchor peer update transaction for %(org_name)s at %(anchor_tx_file)s' % {
-        'org_name': org['name'],
-        'anchor_tx_file': org['anchor_tx_file']
-    }, flush=True)
-
-    call(['configtxgen',
-          '-profile', 'OrgsChannel',
-          '-outputAnchorPeersUpdate', org['anchor_tx_file'],
-          '-channelID', conf['misc']['channel_name'],
-          '-asOrg', org['name']])
-
-
 def generateGenesis(conf):
     print('Generating orderer genesis block at %(genesis_bloc_file)s' % {
         'genesis_bloc_file': conf['misc']['genesis_bloc_file']
@@ -203,7 +181,7 @@ def generateGenesis(conf):
     # Note: For some unknown reason (at least for now) the block file can't be
     # named orderer.genesis.block or the orderer will fail to launch
 
-    # configtxgen -profile OrgsOrdererGenesis -outputBlock /substra/data/genesis.block
+    # configtxgen -profile OrgsOrdererGenesis -channelID substrasystemchannel -outputBlock /substra/data/genesis.block
     call(['configtxgen',
           '-profile', 'OrgsOrdererGenesis',
           '-channelID', conf['misc']['system_channel_name'],

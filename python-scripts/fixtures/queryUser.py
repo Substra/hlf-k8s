@@ -2,12 +2,13 @@ import json
 import os
 import subprocess
 
-from conf2orgs import conf
+from conf.2orgs import conf
 
 org = conf['orgs'][0]
 org_user_home = org['users']['user']['home']
 org_user_msp_dir = org_user_home + '/msp'
 peer = org['peers'][0]
+peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
 args = '{"Args":["queryChallenges"]}'
 
 
@@ -22,7 +23,7 @@ def clean_env_variables():
 
 
 # update config path for using right core.yaml and right msp dir
-set_env_variables(peer['docker_core_dir'], org_user_msp_dir)
+set_env_variables(peer_core, org_user_msp_dir)
 
 channel_name = conf['misc']['channel_name']
 chaincode_name = conf['misc']['chaincode_name']
