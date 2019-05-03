@@ -194,11 +194,12 @@ if __name__ == '__main__':
     create_directory(f'{SUBSTRA_PATH}/dryrun/')
     create_directory(f'{SUBSTRA_PATH}/dockerfiles/')
 
-    # Global configuration
-    if args['config']:
-        call(['python3', args['config']])
-    else:
-        call(['python3', os.path.join(dir_path, 'conf/2orgs.py')])
+    if not glob.glob(f'{SUBSTRA_PATH}/conf/config/conf-*.json'):
+        # Global configuration
+        if args['config']:
+            call(['python3', args['config']])
+        else:
+            call(['python3', os.path.join(dir_path, 'conf/2orgs.py')])
 
     files = glob.glob(f'{SUBSTRA_PATH}/conf/config/conf-*.json')
     files.sort(key=os.path.getmtime)
