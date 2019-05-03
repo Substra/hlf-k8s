@@ -214,12 +214,12 @@ def create_substrabac_config(org, orderer_conf):
         'chaincode_name': org['misc']['chaincode_name'],
         'chaincode_version': org['misc']['chaincode_version'],
         'client': {
-            'name': org['service']['users']['user']['name'],
-            'org': org['service']['name'],
+            'name': org['users']['user']['name'],
+            'org': org['name'],
             'state_store': '/tmp/hfc-cvs',
-            'key_path': org['service']['users']['user']['home'] + '/msp/keystore/*',
-            'cert_path': org['service']['users']['user']['home'] + '/msp/signcerts/cert.pem',
-            'msp_id': org['service']['msp_id']
+            'key_path': org['users']['user']['home'] + '/msp/keystore/*',
+            'cert_path': org['users']['user']['home'] + '/msp/signcerts/cert.pem',
+            'msp_id': org['msp_id']
         },
         'peer': {
             'name': peer['name'],
