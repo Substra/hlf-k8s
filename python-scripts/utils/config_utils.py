@@ -54,7 +54,7 @@ def create_ca_client_config(org):
         f.write(dump(yaml_data, default_flow_style=False))
 
 
-def create_configtx(org, filename):
+def create_configtx(org, filename, raft=True):
 
     stream = open(os.path.join(dir_path, '../../templates/configtx.yaml'), 'r')
     yaml_data = load(stream, Loader=FullLoader)
@@ -70,6 +70,18 @@ def create_configtx(org, filename):
     if 'orderers' in org:
         yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = [f"{x['host']}:{x['port']['internal']}" for x in org['orderers']]
         yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Organizations'] = [configtx_org]
+
+        # Raft
+        yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['OrdererType'] = 'etcdraft'
+        yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['EtcdRaft'] = {'Consenters': [
+            {'Host': x['host'],
+             'Port': x['port']['internal'],
+             'ClientTLSCert':f"{x['tls']['dir']['external']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",
+             'ServerTLSCert': f"{x['tls']['dir']['external']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}
+
+            for x in org['orderers']]
+        }
+
     if 'peers' in org:
         configtx_org['AnchorPeers'] = [{
             'Host': peer['host'],
