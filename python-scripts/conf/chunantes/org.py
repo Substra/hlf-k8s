@@ -27,6 +27,9 @@ chunantes = {
         'logfile': '/substra/data/log/rca-chu-nantes.log',
         'server-config-path': '/substra/conf/chu-nantes/fabric-ca-server-config.yaml',
         'client-config-path': '/substra/conf/chu-nantes/fabric-ca-client-config.yaml',
+        'affiliations': {
+            'chu-nantes': ['nantes']
+        }
     },
     'users': {
         'bootstrap_admin': bootstrap_admin,
@@ -36,7 +39,14 @@ chunantes = {
     'csr': {
         'cn': 'rca-chu-nantes',
         # The "hosts" value is a list of the domain names which the certificate should be valid for.
-        'hosts': ['rca-chu-nantes']
+        'hosts': ['rca-chu-nantes'],
+        'names': [
+            {'C': 'FR',
+             'ST': 'Loire-Atlantique',
+             'L': 'Nantes',
+             'O': 'chu-nantes',
+             'OU': None}
+        ],
     },
     'core_dir': {
         'internal': '/etc/hyperledger/fabric',

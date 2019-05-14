@@ -27,6 +27,9 @@ orderer = {
         'logfile': '/substra/data/log/rca-orderer.log',
         'server-config-path': '/substra/conf/orderer/fabric-ca-server-config.yaml',
         'client-config-path': '/substra/conf/orderer/fabric-ca-client-config.yaml',
+        'affiliations': {
+            'owkin': ['paris']
+        }
     },
     'users': {
         'bootstrap_admin': bootstrap_admin,
@@ -35,7 +38,14 @@ orderer = {
     'csr': {
         'cn': 'rca-orderer',
         # The "hosts" value is a list of the domain names which the certificate should be valid for.
-        'hosts': ['rca-orderer']
+        'hosts': ['rca-orderer'],
+        'names': [
+            {'C': 'FR',
+             'ST': 'Ile-de-France',
+             'L': 'Paris',
+             'O': 'owkin',
+             'OU': None}
+        ],
     },
     'core_dir': {
         'internal': '/etc/hyperledger/fabric',
