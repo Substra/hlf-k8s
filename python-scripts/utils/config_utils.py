@@ -72,15 +72,16 @@ def create_configtx(org, filename, raft=True):
         yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Organizations'] = [configtx_org]
 
         # Raft
-        yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['OrdererType'] = 'etcdraft'
-        yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['EtcdRaft'] = {'Consenters': [
-            {'Host': x['host'],
-             'Port': x['port']['internal'],
-             'ClientTLSCert':f"{x['tls']['dir']['external']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",
-             'ServerTLSCert': f"{x['tls']['dir']['external']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}
+        if raft:
+            yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['OrdererType'] = 'etcdraft'
+            yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['EtcdRaft'] = {'Consenters': [
+                {'Host': x['host'],
+                 'Port': x['port']['internal'],
+                 'ClientTLSCert':f"{x['tls']['dir']['internal']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",
+                 'ServerTLSCert': f"{x['tls']['dir']['internal']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}
 
-            for x in org['orderers']]
-        }
+                for x in org['orderers']]
+            }
 
     if 'peers' in org:
         configtx_org['AnchorPeers'] = [{

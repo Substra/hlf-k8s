@@ -201,6 +201,9 @@ def generate_docker_compose_orderer(org, substra_path, network):
                                                               # TODO, remove
                                                               f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
 
+                                                              # for raft we have only one orderer
+                                                              f'{org["orderers"][0]["tls"]["dir"]["external"]}:{org["orderers"][0]["tls"]["dir"]["internal"]}',
+
                                                               f'{substra_path}/conf/{org["name"]}/fabric-ca-client-config.yaml:{FABRIC_CA_CLIENT_HOME}/fabric-ca-client-config.yaml',
                                                               ],
                                                   'networks': [network],
