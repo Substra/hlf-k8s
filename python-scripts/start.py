@@ -167,6 +167,8 @@ def substra_network(orgs):
             create_directory(f"{SUBSTRA_PATH}/dryrun/{org['name']}")
             create_substrabac_config(org, orderer)
 
+        exit()
+
 
 if __name__ == '__main__':
 

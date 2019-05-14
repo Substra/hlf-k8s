@@ -11,14 +11,23 @@ orderer = {
         # example file with this name is already present in the docker
         # image, do not forget to remove these examples files in your
         # docker CMD overriding if naming the same way
-        'certfile': '/substra/data/orgs/orderer/tls-ca-cert.pem',
+        'certfile': {
+            'external': '/substra/data/orgs/orderer/tls-ca-cert.pem',
+            'internal': '/etc/hyperledger/fabric/ca/tls-ca-cert.pem'
+        },
         'clientkey': ''
     },
     'ca': {
         'name': 'rca-orderer',
         'host': 'rca-orderer',
-        'certfile': '/substra/data/orgs/orderer/ca-cert.pem',
-        'keyfile': '/substra/data/orgs/orderer/ca-key.pem',
+        'certfile': {
+            'external': '/substra/data/orgs/orderer/ca-cert.pem',
+            'internal': '/etc/hyperledger/fabric/ca/ca-cert.pem'
+        },
+        'keyfile': {
+            'external': '/substra/data/orgs/orderer/ca-key.pem',
+            'internal': '/etc/hyperledger/fabric/ca/ca-key.pem'
+        },
         'port': {
             'internal': 7054,
             'external': 9054

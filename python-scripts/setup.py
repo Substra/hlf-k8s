@@ -15,8 +15,8 @@ def generateMSPandTLS(node, service):
     }
 
     # create external folder
-    tls_server_dir = node['tls']['dir']['external'] + '/' + node['tls']['server']['dir']
-    tls_client_dir = node['tls']['dir']['external'] + '/' + node['tls']['client']['dir']
+    tls_server_dir = service['core_dir']['internal'] + '/tls/' + node['name'] + '/' + node['tls']['server']['dir']
+    tls_client_dir = service['core_dir']['internal'] + '/tls/' + node['name'] + '/' + node['tls']['client']['dir']
     create_directory(tls_server_dir)
     create_directory(tls_client_dir)
 

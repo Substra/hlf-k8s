@@ -11,14 +11,23 @@ owkin = {
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in
         # the docker image, do not forget to remove these examples files in your docker CMD overriding if naming the same way
-        'certfile': '/substra/data/orgs/owkin/tls-ca-cert.pem',
+        'certfile': {
+            'external': '/substra/data/orgs/owkin/tls-ca-cert.pem',
+            'internal': '/etc/hyperledger/fabric/ca/tls-ca-cert.pem'
+        },
         'clientkey': ''
     },
     'ca': {
         'name': 'rca-owkin',
         'host': 'rca-owkin',
-        'certfile': '/substra/data/orgs/owkin/ca-cert.pem',
-        'keyfile': '/substra/data/orgs/owkin/ca-key.pem',
+        'certfile': {
+            'external': '/substra/data/orgs/owkin/ca-cert.pem',
+            'internal': '/etc/hyperledger/fabric/ca/ca-cert.pem'
+        },
+        'keyfile': {
+            'external': '/substra/data/orgs/owkin/ca-key.pem',
+            'internal': '/etc/hyperledger/fabric/ca/ca-key.pem'
+        },
         'port': {
             'internal': 7054,
             'external': 7054

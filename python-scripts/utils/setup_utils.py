@@ -18,7 +18,7 @@ def configLocalMSP(org, user_name):
         dowait('%(ca_name)s to start' % {'ca_name': org['ca']['name']},
                90,
                org['ca']['logfile'],
-               [org['ca']['certfile']])
+               [org['ca']['certfile']['internal']])
 
         msg = 'Enrolling user \'%(user_name)s\' for organization %(org)s with %(ca_host)s and home directory %(org_user_home)s...'
         print(msg % {
@@ -69,7 +69,7 @@ def enrollCABootstrapAdmin(org):
 
     # python sdk
     # caClient = ca_service(target=org['ca']['url'],
-    #                       ca_certs_path=org['ca']['certfile'],
+    #                       ca_certs_path=org['ca']['certfile']['internal'],
     #                       ca_name=org['ca']['name'])
     # enrollment = caClient.enroll(org['bootstrap_admin']['name'], org['bootstrap_admin']['pass'])
 

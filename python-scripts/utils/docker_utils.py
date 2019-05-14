@@ -10,7 +10,8 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
 
     FABRIC_CA_HOME = '/etc/hyperledger/fabric-ca-server'
     FABRIC_CFG_PATH = f'{substra_path}/data'
-    FABRIC_CA_CLIENT_HOME = '/etc/hyperledger/fabric'
+    FABRIC_ETC_HOME = '/etc/hyperledger/fabric'
+    FABRIC_CA_CLIENT_HOME = FABRIC_ETC_HOME
 
     # Docker compose config
     docker_compose = {'substra_services': {'rca': [],
@@ -24,18 +25,22 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                   'volumes': ['./python-scripts:/scripts',
                                                               f'{substra_path}/data/log:{substra_path}/data/log',
                                                               f'{substra_path}/conf/config/conf-{org["name"]}.json:/{substra_path}/conf.json',
+                                                              f'{substra_path}/conf/{org["name"]}/fabric-ca-client-config.yaml:{FABRIC_CA_CLIENT_HOME}/fabric-ca-client-config.yaml',
 
-                                                              # TODO, remove
-                                                              f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
+                                                              # Admin MSP
+                                                              f'{org["users"]["admin"]["home"]}:{org["users"]["admin"]["home"]}',
+                                                              # User MSP
+                                                              f'{org["users"]["user"]["home"]}:{org["users"]["user"]["home"]}',
 
-                                                              f'{substra_path}/conf/{org["name"]}/fabric-ca-client-config.yaml:{FABRIC_CA_CLIENT_HOME}/fabric-ca-client-config.yaml'],
+                                                              # CA
+                                                              f'{org["ca"]["certfile"]["external"]}:{org["ca"]["certfile"]["internal"]}'],
                                                   'networks': [network],
                                                   'depends_on': [],
                                                   },
 
                                         'run': {'container_name': f'run-{org["name"]}',
                                                 'image': 'substra/substra-ca-tools',
-                                                'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 | tee {substra_path}/data/log/run-{org["name"]}.log"',
+                                                'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 ; sleep 9999 | tee {substra_path}/data/log/run-{org["name"]}.log"',
                                                 'environment': ['GOPATH=/opt/gopath',
                                                                 f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
                                                                 f'ORG={org["name"]}'],
@@ -55,9 +60,8 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                             # channel
                                                             f'{substra_path}/data/channel/:{substra_path}/data/channel/',
 
-                                                            # TODO remove
+                                                            # TODO remove (will be difficult, multiple orgs data is needed)
                                                             f'{substra_path}/data/orgs/:{substra_path}/data/orgs/',
-
 
                                                             # msp
                                                             f'{org["users"]["admin"]["home"]}/msp:{org["users"]["admin"]["home"]}/msp',
@@ -72,9 +76,9 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                             # orderer core yaml for peer binary
                                                             f'{substra_path}/conf/{conf_orderer["name"]}/{orderer["name"]}/:{substra_path}/conf/{conf_orderer["name"]}/{orderer["name"]}/',
                                                             # ca file
-                                                            f"{org['ca']['certfile']}:{org['ca']['certfile']}",
+                                                            f"{org['ca']['certfile']['external']}:{org['ca']['certfile']['internal']}",
 
-                                                            # tls
+                                                            # tls external
                                                             f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
                                                 ],
                                                 'networks': [network],
@@ -82,6 +86,16 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                 }
                                         },
                       'path': os.path.join(substra_path, 'dockerfiles', f'docker-compose-{org["name"]}.yaml')}
+    # Extra dir for setup and run
+    for index, peer in enumerate(org['peers']):
+        # User MSP
+        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/{peer["name"]}/msp',)
+        # Client/Server TLS
+        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/tls/{peer["name"]}/:{org["core_dir"]["internal"]}/tls/{peer["name"]}')
+
+        # run override
+        docker_compose['substra_tools']['run']['volumes'].append(f"{peer['tls']['dir']['external']}:{peer['tls']['dir']['external']}", )
+        docker_compose['substra_tools']['run']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/{peer["name"]}/msp', )
 
     # RCA
     rca = {'container_name': org['ca']['host'],
@@ -92,7 +106,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
            'command': '/bin/bash -c "fabric-ca-server start 2>&1"',
            'environment': [f'FABRIC_CA_HOME={FABRIC_CA_HOME}'],
            'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
-           'volumes': [f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
+           'volumes': [f'{substra_path}/data/orgs/{org["name"]}:{FABRIC_ETC_HOME}/ca/',
                        f'{substra_path}/backup/orgs/{org["name"]}/rca:{FABRIC_CA_HOME}',
                        f'{substra_path}/conf/{org["name"]}/fabric-ca-server-config.yaml:{FABRIC_CA_HOME}/fabric-ca-server-config.yaml'
                        ],
@@ -109,7 +123,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                'command': '/bin/bash -c "peer node start 2>&1"',
                'environment': [# https://medium.com/@Alibaba_Cloud/hyperledger-fabric-deployment-on-alibaba-cloud-environment-sigsegv-problem-analysis-and-solutions-9a708313f1a4
                                'GODEBUG=netdns=go+1'],
-               'working_dir': '/etc/hyperledger/fabric',
+               'working_dir': FABRIC_ETC_HOME,
                'ports': [f'{peer["port"]["external"]}:{peer["port"]["internal"]}'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': [
@@ -123,9 +137,9 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                    f'{substra_path}/backup/orgs/{org["name"]}/{peer["name"]}/:/var/hyperledger/production/',
 
                    # tls peer server files
-                   f"{peer['tls']['dir']['external']}/{peer['tls']['server']['dir']}:{peer['tls']['dir']['internal']}",
+                   f"{peer['tls']['dir']['external']}/{peer['tls']['server']['dir']}:{peer['tls']['dir']['internal']}/{peer['tls']['server']['dir']}",
                    # tls peer client files
-                   f"{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}:{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}",
+                   f"{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}:{peer['tls']['dir']['internal']}/{peer['tls']['client']['dir']}",
                    # tls orderer client files
                    f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
 
@@ -139,20 +153,13 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                    f'{substra_path}/conf/{org["name"]}/{peer["name"]}/core.yaml:{org["core_dir"]["internal"]}/core.yaml',
 
                    # ca file
-                   f"{org['ca']['certfile']}:{org['ca']['certfile']}",
+                   f"{org['ca']['certfile']['external']}:{org['ca']['certfile']['internal']}",
                 ],
                'networks': [network],
                'depends_on': ['setup']}
 
         # run
         docker_compose['substra_tools']['run']['depends_on'].append(peer['host'])
-
-        # run override
-        docker_compose['substra_tools']['run']['volumes'].append(f"{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}:{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}", )
-        docker_compose['substra_tools']['run']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/{peer["name"]}/msp', )
-
-        # setup override
-        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/{peer["name"]}/msp',)
 
         docker_compose['substra_services']['svc'].append((peer['host'], svc))
 
@@ -181,7 +188,8 @@ def generate_docker_compose_orderer(org, substra_path, network):
 
     FABRIC_CA_HOME = '/etc/hyperledger/fabric-ca-server'
     FABRIC_CFG_PATH = f'{substra_path}/data'
-    FABRIC_CA_CLIENT_HOME = '/etc/hyperledger/fabric'
+    FABRIC_ETC_HOME = '/etc/hyperledger/fabric'
+    FABRIC_CA_CLIENT_HOME = FABRIC_ETC_HOME
 
     # Docker compose config
     docker_compose = {'substra_services': {'rca': [],
@@ -197,18 +205,24 @@ def generate_docker_compose_orderer(org, substra_path, network):
                                                               f'{substra_path}/data/genesis:{substra_path}/data/genesis',
                                                               f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
                                                               f'{substra_path}/data/configtx-{org["name"]}.yaml:{FABRIC_CFG_PATH}/configtx.yaml',
-
-                                                              # TODO, remove
-                                                              f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
-
-                                                              # for raft we have only one orderer
-                                                              f'{org["orderers"][0]["tls"]["dir"]["external"]}:{org["orderers"][0]["tls"]["dir"]["internal"]}',
-
                                                               f'{substra_path}/conf/{org["name"]}/fabric-ca-client-config.yaml:{FABRIC_CA_CLIENT_HOME}/fabric-ca-client-config.yaml',
+
+                                                              # Admin MSP
+                                                              f'{org["users"]["admin"]["home"]}:{org["users"]["admin"]["home"]}',
+                                                              # CA
+                                                              f'{org["ca"]["certfile"]["external"]}:{org["ca"]["certfile"]["internal"]}',
+
                                                               ],
                                                   'networks': [network],
                                                   'depends_on': []}},
                       'path': os.path.join(substra_path, 'dockerfiles', f'docker-compose-{org["name"]}.yaml')}
+
+    # Extra dir for setup
+    for index, orderer in enumerate(org['orderers']):
+        # User MSP
+        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{orderer["name"]}/:{org["core_dir"]["internal"]}/{orderer["name"]}/')
+        # Client/Server TLS
+        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/tls/{orderer["name"]}/:{org["core_dir"]["internal"]}/tls/{orderer["name"]}')
 
     # RCA
     rca = {'container_name': org['ca']['host'],
@@ -219,7 +233,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
            'command': '/bin/bash -c "fabric-ca-server start 2>&1"',
            'environment': [f'FABRIC_CA_HOME={FABRIC_CA_HOME}'],
            'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
-           'volumes': [f'{substra_path}/data/orgs/{org["name"]}:{substra_path}/data/orgs/{org["name"]}',
+           'volumes': [f'{substra_path}/data/orgs/{org["name"]}:{FABRIC_ETC_HOME}/ca/',
                        f"{substra_path}/backup/orgs/{org['name']}/rca:{FABRIC_CA_HOME}",
                        f"{substra_path}/conf/{org['name']}/fabric-ca-server-config.yaml:{FABRIC_CA_HOME}/fabric-ca-server-config.yaml"],
            'networks': [network]}
@@ -232,7 +246,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
         svc = {'container_name': orderer['host'],
                'image': f'hyperledger/fabric-orderer:{HLF_VERSION}',
                'restart': 'unless-stopped',
-               'working_dir': '/etc/hyperledger/fabric',
+               'working_dir': FABRIC_ETC_HOME,
                'command': '/bin/bash -c "orderer 2>&1"',
                'ports': [f"{orderer['port']['external']}:{orderer['port']['internal']}"],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
@@ -247,7 +261,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
                    f'{substra_path}/data/orgs/{org["name"]}/{orderer["name"]}/msp/:{org["core_dir"]["internal"]}/msp',
 
                    # tls server files
-                   f"{orderer['tls']['dir']['external']}/{orderer['tls']['server']['dir']}:{orderer['tls']['dir'][ 'internal']}",
+                   f"{orderer['tls']['dir']['external']}/{orderer['tls']['server']['dir']}:{orderer['tls']['dir'][ 'internal']}/{orderer['tls']['server']['dir']}",
 
                    # conf files
                    f"{substra_path}/data/configtx-{org['name']}.yaml:{org['core_dir']['internal']}/configtx.yaml",
@@ -255,12 +269,10 @@ def generate_docker_compose_orderer(org, substra_path, network):
                    f"{substra_path}/conf/{org['name']}/{orderer['name']}/orderer.yaml:{org['core_dir']['internal']}/orderer.yaml",
 
                    # ca file
-                   f"{org['ca']['certfile']}:{org['ca']['certfile']}",
-               ],
+                   f"{org['ca']['certfile']['external']}:{org['ca']['certfile']['internal']}",
+                ],
                'networks': [network],
                'depends_on': ['setup']}
-
-        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{orderer["name"]}/msp/:{org["core_dir"]["internal"]}/{orderer["name"]}/msp', )
         docker_compose['substra_services']['svc'].append((orderer['host'], svc))
 
     # Create all services along to conf
