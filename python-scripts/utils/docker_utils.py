@@ -40,7 +40,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
 
                                         'run': {'container_name': f'run-{org["name"]}',
                                                 'image': 'substra/substra-ca-tools',
-                                                'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 ; sleep 9999 | tee {substra_path}/data/log/run-{org["name"]}.log"',
+                                                'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 | tee {substra_path}/data/log/run-{org["name"]}.log"',
                                                 'environment': ['GOPATH=/opt/gopath',
                                                                 f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
                                                                 f'ORG={org["name"]}'],
@@ -60,13 +60,8 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                             # channel
                                                             f'{substra_path}/data/channel/:{substra_path}/data/channel/',
 
-                                                            # TODO remove (will be difficult, multiple orgs data is needed)
+                                                            # TODO remove (will be difficult, multiple orgs data is needed at run)
                                                             f'{substra_path}/data/orgs/:{substra_path}/data/orgs/',
-
-                                                            # msp
-                                                            f'{org["users"]["admin"]["home"]}/msp:{org["users"]["admin"]["home"]}/msp',
-                                                            f'{org["users"]["user"]["home"]}/msp:{org["users"]["user"]["home"]}/msp',
-                                                            f'{conf_orderer["users"]["admin"]["home"]}/msp:{conf_orderer["users"]["admin"]["home"]}/msp',
 
                                                             # conf files
                                                             f'{substra_path}/conf/:{substra_path}/conf/',
@@ -75,8 +70,6 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
 
                                                             # orderer core yaml for peer binary
                                                             f'{substra_path}/conf/{conf_orderer["name"]}/{orderer["name"]}/:{substra_path}/conf/{conf_orderer["name"]}/{orderer["name"]}/',
-                                                            # ca file
-                                                            f"{org['ca']['certfile']['external']}:{org['ca']['certfile']['internal']}",
 
                                                             # tls external
                                                             f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",

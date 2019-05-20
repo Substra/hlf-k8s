@@ -18,14 +18,6 @@ def set_env_variables(fabric_cfg_path, msp_dir, tls_dir):
     os.environ['FABRIC_LOGGING_SPEC'] = 'info'
     os.symlink(tls_dir['external'], tls_dir['internal'])
 
-    print('Set env variables and folder')
-    print('-' * 15)
-    print('FABRIC_CFG_PATH', fabric_cfg_path)
-    print('CORE_PEER_MSPCONFIGPATH', msp_dir)
-    print('FABRIC_LOGGING_SPEC', 'info')
-    print('Symlink', tls_dir['external'], tls_dir['internal'])
-    print('-' * 15)
-
 
 def clean_env_variables(tls_dir):
     del os.environ['FABRIC_CFG_PATH']
@@ -461,11 +453,6 @@ def getChaincodeVersion(conf, conf_orderer):
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)
     data = output.stdout.decode('utf-8')
-
-    print('>' * 100)
-    print(data)
-    print(output.stderr.decode('utf-8'))
-    print('>' * 100)
     clean_env_variables(peer_tls_dir)
     return float(data.split('Version: ')[-1].split(',')[0])
 

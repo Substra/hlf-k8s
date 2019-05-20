@@ -121,12 +121,15 @@ def create_core_config(org, peer):
     yaml_data['peer']['tls']['clientCert']['file'] = f"{tls_client_dir}/{peer['tls']['client']['cert']}"
     yaml_data['peer']['tls']['clientKey']['file'] = f"{tls_client_dir}/{peer['tls']['client']['key']}"
     yaml_data['peer']['tls']['enabled'] = 'true'
-    # the same as peer['tls']['serverCa'] but this one is inside the container
-    yaml_data['peer']['tls']['rootcert']['file'] = org['ca']['certfile']['internal']
+    # the same as peer['tls']['server']['ca'] but this one is inside the container
+    # yaml_data['peer']['tls']['rootcert']['file'] = org['ca']['certfile']['internal']
+    yaml_data['peer']['tls']['rootcert']['file'] = f"{tls_server_dir}/{peer['tls']['server']['ca']}"
+
     # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
     # from the py sdk if peer clientCert/clientKey is not set correctly
     yaml_data['peer']['tls']['clientAuthRequired'] = 'true'
-    yaml_data['peer']['tls']['clientRootCAs'] = [org['ca']['certfile']['internal']]
+    # yaml_data['peer']['tls']['clientRootCAs'] = [org['ca']['certfile']['internal']]
+    yaml_data['peer']['tls']['clientRootCAs'] = [f"{tls_client_dir}/{peer['tls']['client']['ca']}"]
 
     yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
     yaml_data['peer']['gossip']['orgLeader'] = 'false'
