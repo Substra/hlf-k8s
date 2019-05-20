@@ -205,6 +205,9 @@ def generate_docker_compose_orderer(org, substra_path, network):
                                                               # CA
                                                               f'{org["ca"]["certfile"]["external"]}:{org["ca"]["certfile"]["internal"]}',
 
+                                                              # broadcast dir
+                                                              f'{org["broadcast_dir"]}:{org["broadcast_dir"].replace(substra_path + "/data/log", org["core_dir"]["internal"])}',
+
                                                               ],
                                                   'networks': [network],
                                                   'depends_on': []}},
@@ -245,7 +248,10 @@ def generate_docker_compose_orderer(org, substra_path, network):
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': [
                    # genesis file
-                   f'{genesis_bloc_file}:{genesis_bloc_file}',
+                   f'{genesis_bloc_file}:{genesis_bloc_file.replace(substra_path + "/data", org["core_dir"]["internal"])}',
+
+                   # broadcast dir
+                   f'{org["broadcast_dir"]}:{org["broadcast_dir"].replace(substra_path + "/data/log", org["core_dir"]["internal"])}',
 
                    # backup files
                    f"{substra_path}/backup/orgs/{org['name']}/{orderer['name']}:/var/hyperledger/production/orderer",

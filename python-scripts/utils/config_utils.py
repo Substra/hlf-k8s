@@ -155,7 +155,9 @@ def create_orderer_config(orderer_conf):
 
     org = orderer_conf
 
-    genesis_bloc_file = orderer_conf['misc']['genesis_bloc_file']
+    genesis_bloc_file = orderer_conf['misc']['genesis_bloc_file'].replace('/substra/data',
+                                                                          org['core_dir']['internal'])
+
     stream = open(os.path.join(dir_path, '../../templates/orderer.yaml'), 'r')
     yaml_data = load(stream, Loader=FullLoader)
 
@@ -179,7 +181,8 @@ def create_orderer_config(orderer_conf):
         yaml_data['General']['LocalMSPID'] = org['msp_id']
         yaml_data['General']['LocalMSPDir'] = f"{org['core_dir']['internal']}/msp"
 
-        yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']
+        yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir'].replace('/substra/data/log',
+                                                                               org['core_dir']['internal'])
 
         dir = f'{SUBSTRA_PATH}/conf/{org["name"]}/{orderer["name"]}'
         create_directory(dir)
