@@ -123,9 +123,6 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                    # docker in docker chaincode
                    '/var/run/docker.sock:/host/var/run/docker.sock',
 
-                   # channel
-                   f'{substra_path}/data/channel/:{substra_path}/data/channel/',
-
                    # backup files
                    f'{substra_path}/backup/orgs/{org["name"]}/{peer["name"]}/:/var/hyperledger/production/',
 
@@ -135,9 +132,6 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                    f"{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}:{peer['tls']['dir']['internal']}/{peer['tls']['client']['dir']}",
                    # tls orderer client files
                    f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
-
-                   # TODO, remove
-                   f'{substra_path}/data/orgs/{org["name"]}/:{substra_path}/data/orgs/{org["name"]}/',
 
                    # msp
                    f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/msp',

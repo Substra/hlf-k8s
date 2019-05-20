@@ -1,4 +1,3 @@
-import docker
 import json
 import os
 import time
@@ -7,8 +6,6 @@ import subprocess
 from subprocess import call, check_output, CalledProcessError
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
-client = docker.from_env()
 
 
 def set_env_variables(fabric_cfg_path, msp_dir, tls_dir):
@@ -90,6 +87,9 @@ def createChannel(conf, conf_orderer):
 
 
 def joinChannel(conf, peer):
+    # peer channel join use signcerts not admincerts, we need to pass CORE_PEER_MSPCONFIGPATH to org admin.
+    # peer msp signcert is not an admin, a peer cannot join a channel with its own msp
+
     org_admin_home = conf['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
@@ -99,10 +99,21 @@ def joinChannel(conf, peer):
         'channel_name': channel_name
     }, flush=True)
 
-    # peer channel join use signcerts not admincerts, we need to pass CORE_PEER_MSPCONFIGPATH to org admin.
-    # peer msp signcert is not an admin, a peer cannot join a channel with its own msp
-    container = client.containers.get(peer['host'])
-    container.exec_run('bash -c "export CORE_PEER_MSPCONFIGPATH=%s && peer channel join -b %s"' % (org_admin_msp_dir, conf['misc']['channel_block']))
+    peer_core = '/substra/conf/%s/%s' % (conf['name'], peer['name'])
+    peer_tls_dir = peer['tls']['dir']
+
+    # update config path for using right core.yaml and right msp dir
+    set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+
+    call([
+        'peer',
+        'channel',
+        'join',
+        '-b', conf['misc']['channel_block']
+    ])
+
+    # clean env variables
+    clean_env_variables(peer_tls_dir)
 
 
 def peersJoinChannel(conf):
