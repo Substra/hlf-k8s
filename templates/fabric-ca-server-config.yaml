@@ -243,11 +243,11 @@ ldap:
 # which are always stored in lower case.
 #############################################################################
 affiliations:
-  owkin:
-     - paris
-     - nantes
-  chu-nantes:
-     - department1
+  org1:
+    - department1
+    - department2
+  org2:
+    - department1
 
 #############################################################################
 #  Signing section
