@@ -104,11 +104,11 @@ csr:
     size: 256
   serialnumber:
   names:
-    - C: FR
-      ST: "Loire-Atlantique"
-      L: Nantes
-      O: owkin
-      OU:
+    - C: US
+      ST: North Carolina
+      L:
+      O: Hyperledger
+      OU: Fabric
   hosts:
     - localhost
 

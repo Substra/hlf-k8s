@@ -27,6 +27,9 @@ owkin = {
         'logfile': '/substra/data/log/rca-owkin.log',
         'server-config-path': '/substra/conf/owkin/fabric-ca-server-config.yaml',
         'client-config-path': '/substra/conf/owkin/fabric-ca-client-config.yaml',
+        'affiliations': {
+            'owkin': ['paris', 'nantes']
+        }
     },
     'users': {
         'bootstrap_admin': bootstrap_admin,
@@ -36,7 +39,14 @@ owkin = {
     'csr': {
         'cn': 'rca-owkin',
         # The "hosts" value is a list of the domain names which the certificate should be valid for.
-        'hosts': ['rca-owkin']
+        'hosts': ['rca-owkin'],
+        'names': [
+            {'C': 'FR',
+             'ST': 'Loire-Atlantique',
+             'L': 'Nantes',
+             'O': 'owkin',
+             'OU': None}
+        ],
     },
     'core_dir': {
         'internal': '/etc/hyperledger/fabric',
