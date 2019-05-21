@@ -213,20 +213,37 @@ def create_substrabac_config(org, orderer_conf):
         'channel_name': org['misc']['channel_name'],
         'chaincode_name': org['misc']['chaincode_name'],
         'chaincode_version': org['misc']['chaincode_version'],
+        'client': {
+            'name': org['users']['user']['name'],
+            'org': org['name'],
+            'state_store': '/tmp/hfc-cvs',
+            'key_path': org['users']['user']['home'] + '/msp/keystore/*',
+            'cert_path': org['users']['user']['home'] + '/msp/signcerts/cert.pem',
+            'msp_id': org['msp_id']
+        },
         'peer': {
             'name': peer['name'],
             'host': peer['host'],
             'port': peer['port']['external'],
             'docker_port': peer['port']['internal'],
             'docker_core_dir': peer_core,
+            'tlsCACerts': tls_peer_client_dir + '/' + peer['tls']['client']['ca'],
             'clientCert': tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
             'clientKey': tls_peer_client_dir + '/' + peer['tls']['client']['key'],
+            'grpcOptions': {
+                'grpc-max-send-message-length': 15,
+                'grpc.ssl_target_name_override': peer['host']
+            }
         },
         'orderer': {
             'name': orderer['name'],
             'host': orderer['host'],
             'port': orderer['port']['external'],
             'ca': tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
+            'grpcOptions': {
+                'grpc-max-send-message-length': 15,
+                'grpc.ssl_target_name_override': orderer['host']
+            }
         }
     }
     json.dump(res, open(filename, 'w+'), indent=4)
