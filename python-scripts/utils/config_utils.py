@@ -80,8 +80,8 @@ def create_configtx(org, filename, raft=True):
             yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['EtcdRaft'] = {'Consenters': [
                 {'Host': x['host'],
                  'Port': x['port']['internal'],
-                 'ClientTLSCert':f"{x['tls']['dir']['internal']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",
-                 'ServerTLSCert': f"{x['tls']['dir']['internal']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}
+                 'ClientTLSCert':f"{x['tls']['dir']['external']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",
+                 'ServerTLSCert': f"{x['tls']['dir']['external']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}
 
                 for x in org['orderers']]
             }

@@ -15,7 +15,7 @@ def generateMSPandTLS(node, service):
     }
 
     # Node peer/orderer mounted volume, see docker_utils 'Client/Server TLS' binded volume.
-    tls_setup_dir = service['core_dir']['internal'] + '/tls/' + node['name']
+    tls_setup_dir = node['tls']['dir']['external']
 
     # create external folders (client and server)
     tls_server_dir = tls_setup_dir + '/' + node['tls']['server']['dir']

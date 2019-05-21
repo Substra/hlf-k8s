@@ -82,13 +82,11 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
     # Extra dir for setup and run
     for index, peer in enumerate(org['peers']):
         # User MSP
-        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/{peer["name"]}/msp',)
+        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/{peer["name"]}/msp')
+        docker_compose['substra_tools']['run']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/{peer["name"]}/msp')
         # Client/Server TLS
-        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/tls/{peer["name"]}/:{org["core_dir"]["internal"]}/tls/{peer["name"]}')
-
-        # run override
+        docker_compose['substra_tools']['setup']['volumes'].append(f'{peer["tls"]["dir"]["external"]}/:{peer["tls"]["dir"]["external"]}')
         docker_compose['substra_tools']['run']['volumes'].append(f"{peer['tls']['dir']['external']}:{peer['tls']['dir']['external']}", )
-        docker_compose['substra_tools']['run']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{peer["name"]}/msp/:{org["core_dir"]["internal"]}/{peer["name"]}/msp', )
 
     # RCA
     rca = {'container_name': org['ca']['host'],
@@ -202,9 +200,6 @@ def generate_docker_compose_orderer(org, substra_path, network):
                                                               # broadcast dir
                                                               f'{org["broadcast_dir"]["external"]}:{org["broadcast_dir"]["internal"]}',
 
-                                                              # We have only one orderer for now
-                                                              f'{org["orderers"][0]["tls"]["dir"]["external"]}/:{org["orderers"][0]["tls"]["dir"]["internal"]}'
-
                                                               ],
                                                   'networks': [network],
                                                   'depends_on': []}},
@@ -215,7 +210,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
         # User MSP
         docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/{orderer["name"]}/:{org["core_dir"]["internal"]}/{orderer["name"]}/')
         # Client/Server TLS
-        docker_compose['substra_tools']['setup']['volumes'].append(f'{substra_path}/data/orgs/{org["name"]}/tls/{orderer["name"]}/:{org["core_dir"]["internal"]}/tls/{orderer["name"]}')
+        docker_compose['substra_tools']['setup']['volumes'].append(f'{orderer["tls"]["dir"]["external"]}/:{orderer["tls"]["dir"]["external"]}')
 
     # RCA
     rca = {'container_name': org['ca']['host'],
