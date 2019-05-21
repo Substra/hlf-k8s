@@ -72,9 +72,16 @@ if __name__ == "__main__":
 
     if os.path.exists(conf['misc']['channel_tx_file']):
         files = glob.glob('/substra/conf/config/conf-*.json')
-        conf_externals = [json.load(open(file_path, 'r'))
-                          for file_path in files
-                          if 'orderer' not in file_path and org_name not in file_path]
+
+        # Hack to get running org
+        runs = glob.glob('/substra/data/log/run-*.successful')
+        successful_orgs = [file_path.split('/substra/data/log/run-')[-1].split('.successful')[0] for file_path in runs]
+
+        files = [file_path for file_path in files
+                 if file_path.split('/substra/conf/config/conf-')[-1].split('.json')[0] in successful_orgs]
+
+        conf_externals = [json.load(open(file_path, 'r')) for file_path in files]
+
         add_org(conf, conf_externals, conf_orderer)
     else:
         add_org_with_channel(conf, conf_orderer)
