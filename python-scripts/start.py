@@ -61,14 +61,15 @@ def start(conf, docker_compose):
     print('Start Root Certificate Authority', flush=True)
     services = [name for name, _ in docker_compose['substra_services']['rca']]
     call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d'] + services)
-    call(['docker', 'ps', '-a'])
+
+    call(['docker', 'ps', '-a', '--format', 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'])
 
     # Setup
     print(conf['misc']['setup_success_file'])
     if not os.path.exists(conf['misc']['setup_success_file']):
         print('Launch setup')
         call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d', 'setup'])
-        call(['docker', 'ps', '-a'])
+        call(['docker', 'ps', '-a', '--format', 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'])
         # Wait for the setup container to complete
         dowait('the \'setup\' container to finish registering identities and other artifacts',
                90,
