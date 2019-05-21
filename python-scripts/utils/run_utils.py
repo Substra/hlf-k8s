@@ -13,14 +13,26 @@ def set_env_variables(fabric_cfg_path, msp_dir, tls_dir):
     os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
     os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
     os.environ['FABRIC_LOGGING_SPEC'] = 'info'
-    os.symlink(tls_dir['external'], tls_dir['internal'])
+
+    os.environ['CORE_PEER_TLS_CERT_FILE'] = tls_dir['external'] + '/server/server.crt'
+    os.environ['CORE_PEER_TLS_KEY_FILE'] = tls_dir['external'] + '/server/server.key'
+    os.environ['CORE_PEER_TLS_ROOTCERT_FILE'] = tls_dir['external'] + '/server/server.pem'
+    os.environ['CORE_PEER_TLS_CLIENTCERT_FILE'] = tls_dir['external'] + '/client/client.crt'
+    os.environ['CORE_PEER_TLS_CLIENTKEY_FILE'] = tls_dir['external'] + '/client/client.key'
+    os.environ['CORE_PEER_TLS_CLIENTROOTCAS_FILES'] = tls_dir['external'] + '/client/client.pem'
 
 
-def clean_env_variables(tls_dir):
+def clean_env_variables():
     del os.environ['FABRIC_CFG_PATH']
     del os.environ['CORE_PEER_MSPCONFIGPATH']
     del os.environ['FABRIC_LOGGING_SPEC']
-    os.unlink(tls_dir['internal'])
+
+    del os.environ['CORE_PEER_TLS_CERT_FILE']
+    del os.environ['CORE_PEER_TLS_KEY_FILE']
+    del os.environ['CORE_PEER_TLS_ROOTCERT_FILE']
+    del os.environ['CORE_PEER_TLS_CLIENTCERT_FILE']
+    del os.environ['CORE_PEER_TLS_CLIENTKEY_FILE']
+    del os.environ['CORE_PEER_TLS_CLIENTROOTCAS_FILES']
 
 
 def generateChannelArtifacts(conf):
@@ -83,7 +95,7 @@ def createChannel(conf, conf_orderer):
     ])
 
     # clean env variables
-    clean_env_variables(peer_tls_dir)
+    clean_env_variables()
 
 
 def joinChannel(conf, peer):
@@ -113,7 +125,7 @@ def joinChannel(conf, peer):
     ])
 
     # clean env variables
-    clean_env_variables(peer_tls_dir)
+    clean_env_variables()
 
 
 def peersJoinChannel(conf):
@@ -155,7 +167,7 @@ def getChannelConfigBlockWithPeer(org, conf_orderer):
     ])
 
     # clean env variables
-    clean_env_variables(peer_tls_dir)
+    clean_env_variables()
 
 
 def createChannelConfig(org, with_anchor=True):
@@ -265,7 +277,7 @@ def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
               ])
 
         # clean env variables
-        clean_env_variables(peer_tls_dir)
+        clean_env_variables()
     else:
         # Push
         org_admin_home = org['users']['admin']['home']
@@ -296,7 +308,7 @@ def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
               ])
 
         # clean env variables
-        clean_env_variables(peer_tls_dir)
+        clean_env_variables()
 
 
 def generateChannelUpdate(conf, conf_externals, orderer):
@@ -346,7 +358,7 @@ def updateAnchorPeers(conf, conf_orderer):
           ])
 
     # clean env variables
-    clean_env_variables(peer_tls_dir)
+    clean_env_variables()
 
 
 def installChainCode(conf, peer, chaincode_version):
@@ -370,7 +382,7 @@ def installChainCode(conf, peer, chaincode_version):
           '-p', 'github.com/hyperledger/chaincode/'])
 
     # clean env variables
-    clean_env_variables(peer_tls_dir)
+    clean_env_variables()
 
 
 def installChainCodeOnPeers(conf, chaincode_version):
@@ -423,11 +435,11 @@ def waitForInstantiation(conf, conf_orderer):
         split_msg = 'Get instantiated chaincodes on channel %s:' % channel_name
         if split_msg in data and len(data.split(split_msg)[1].replace('\n', '')):
             print(data, flush=True)
-            clean_env_variables(peer_tls_dir)
+            clean_env_variables()
             return True
         print('.', end='', flush=True)
 
-    clean_env_variables(peer_tls_dir)
+    clean_env_variables()
     return False
 
 
@@ -464,7 +476,7 @@ def getChaincodeVersion(conf, conf_orderer):
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)
     data = output.stdout.decode('utf-8')
-    clean_env_variables(peer_tls_dir)
+    clean_env_variables()
     return float(data.split('Version: ')[-1].split(',')[0])
 
 
@@ -519,7 +531,7 @@ def instanciateChainCode(conf, conf_orderer, args):
           ])
 
     # clean env variables
-    clean_env_variables(peer_tls_dir)
+    clean_env_variables()
 
 
 def instanciateChaincode(conf, orderer):
@@ -565,7 +577,7 @@ def upgradeChainCode(conf, args, conf_orderer, orgs_mspid, chaincode_version):
           ])
 
     # clean env variables
-    clean_env_variables(peer_tls_dir)
+    clean_env_variables()
 
 
 def chainCodeQueryWith(conf, arg, org, peer):
@@ -596,7 +608,7 @@ def chainCodeQueryWith(conf, arg, org, peer):
         print('Error:', flush=True)
         print('Output: %s' % output, flush=True)
         # clean env variables
-        clean_env_variables(peer_tls_dir)
+        clean_env_variables()
     else:
         try:
             value = json.loads(output)
@@ -612,7 +624,7 @@ def chainCodeQueryWith(conf, arg, org, peer):
 
         finally:
             # clean env variables
-            clean_env_variables(peer_tls_dir)
+            clean_env_variables()
             return value
 
 
@@ -739,7 +751,7 @@ def getChannelConfigBlockWithOrderer(org, channel_name, block_name):
     ])
 
     # clean env variables
-    clean_env_variables(orderer_tls_dir)
+    clean_env_variables()
 
 
 def signAndPushSystemUpdateProposal(conf):
@@ -772,4 +784,4 @@ def signAndPushSystemUpdateProposal(conf):
           ])
 
     # clean env variables
-    clean_env_variables(orderer_tls_dir)
+    clean_env_variables()

@@ -200,7 +200,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
                                                               f'{org["ca"]["certfile"]["external"]}:{org["ca"]["certfile"]["internal"]}',
 
                                                               # broadcast dir
-                                                              f'{org["broadcast_dir"]}:{org["broadcast_dir"].replace(substra_path + "/data/log", org["core_dir"]["internal"])}',
+                                                              f'{org["broadcast_dir"]["external"]}:{org["broadcast_dir"]["internal"]}',
 
                                                               # We have only one orderer for now
                                                               f'{org["orderers"][0]["tls"]["dir"]["external"]}/:{org["orderers"][0]["tls"]["dir"]["internal"]}'
@@ -245,10 +245,10 @@ def generate_docker_compose_orderer(org, substra_path, network):
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': [
                    # genesis file
-                   f'{genesis_bloc_file}:{genesis_bloc_file.replace(substra_path + "/data", org["core_dir"]["internal"])}',
+                   f'{genesis_bloc_file["external"]}:{genesis_bloc_file["internal"]}',
 
                    # broadcast dir
-                   f'{org["broadcast_dir"]}:{org["broadcast_dir"].replace(substra_path + "/data/log", org["core_dir"]["internal"])}',
+                   f'{org["broadcast_dir"]["external"]}:{org["broadcast_dir"]["internal"]}',
 
                    # backup files
                    f"{substra_path}/backup/orgs/{org['name']}/{orderer['name']}:/var/hyperledger/production/orderer",

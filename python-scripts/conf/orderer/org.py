@@ -5,7 +5,10 @@ from orderer.orderers.orderer1 import orderer1
 orderer = {
     'name': 'orderer',
     'msp_id': 'ordererMSP',
-    'broadcast_dir': '/substra/data/log/broadcast',
+    'broadcast_dir': {
+            'external': '/substra/data/log/broadcast',
+            'internal': '/etc/hyperledger/fabric/broadcast'
+    },
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a
         # example file with this name is already present in the docker

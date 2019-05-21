@@ -175,14 +175,14 @@ def registerUsers(conf):
 
 def generateGenesis(conf):
     print('Generating orderer genesis block at %(genesis_bloc_file)s' % {
-        'genesis_bloc_file': conf['misc']['genesis_bloc_file']
+        'genesis_bloc_file': conf['misc']['genesis_bloc_file']['external']
     }, flush=True)
 
     # Note: For some unknown reason (at least for now) the block file can't be
     # named orderer.genesis.block or the orderer will fail to launch
 
-    # configtxgen -profile OrgsOrdererGenesis -channelID substrasystemchannel -outputBlock /substra/data/genesis.block
+    # configtxgen -profile OrgsOrdererGenesis -channelID substrasystemchannel -outputBlock /substra/data/genesis/genesis.block
     call(['configtxgen',
           '-profile', 'OrgsOrdererGenesis',
           '-channelID', conf['misc']['system_channel_name'],
-          '-outputBlock', conf['misc']['genesis_bloc_file']])
+          '-outputBlock', conf['misc']['genesis_bloc_file']['external']])
