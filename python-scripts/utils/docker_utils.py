@@ -202,6 +202,9 @@ def generate_docker_compose_orderer(org, substra_path, network):
                                                               # broadcast dir
                                                               f'{org["broadcast_dir"]}:{org["broadcast_dir"].replace(substra_path + "/data/log", org["core_dir"]["internal"])}',
 
+                                                              # We have only one orderer for now
+                                                              f'{org["orderers"][0]["tls"]["dir"]["external"]}/:{org["orderers"][0]["tls"]["dir"]["internal"]}'
+
                                                               ],
                                                   'networks': [network],
                                                   'depends_on': []}},
