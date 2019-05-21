@@ -27,6 +27,9 @@ clb = {
         'logfile': '/substra/data/log/rca-clb.log',
         'server-config-path': '/substra/conf/clb/fabric-ca-server-config.yaml',
         'client-config-path': '/substra/conf/clb/fabric-ca-client-config.yaml',
+        'affiliations': {
+            'clb': ['lyon']
+        }
     },
     'users': {
         'bootstrap_admin': bootstrap_admin,
@@ -36,7 +39,14 @@ clb = {
     'csr': {
         'cn': 'rca-clb',
         # The "hosts" value is a list of the domain names which the certificate should be valid for.
-        'hosts': ['rca-clb']
+        'hosts': ['rca-clb'],
+        'names': [
+            {'C': 'FR',
+             'ST': 'Rhone',
+             'L': 'Lyon',
+             'O': 'clb',
+             'OU': None}
+        ],
     },
     'core_dir': {
         'internal': '/etc/hyperledger/fabric',
