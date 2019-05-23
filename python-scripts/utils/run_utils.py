@@ -8,18 +8,24 @@ from subprocess import call, check_output, CalledProcessError
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
-def set_env_variables(fabric_cfg_path, msp_dir, tls_dir):
+def set_env_variables(fabric_cfg_path, msp_dir, node):
 
     os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
     os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
     os.environ['FABRIC_LOGGING_SPEC'] = 'info'
 
-    os.environ['CORE_PEER_TLS_CERT_FILE'] = tls_dir['external'] + '/server/server.crt'
-    os.environ['CORE_PEER_TLS_KEY_FILE'] = tls_dir['external'] + '/server/server.key'
-    os.environ['CORE_PEER_TLS_ROOTCERT_FILE'] = tls_dir['external'] + '/server/server.pem'
-    os.environ['CORE_PEER_TLS_CLIENTCERT_FILE'] = tls_dir['external'] + '/client/client.crt'
-    os.environ['CORE_PEER_TLS_CLIENTKEY_FILE'] = tls_dir['external'] + '/client/client.key'
-    os.environ['CORE_PEER_TLS_CLIENTROOTCAS_FILES'] = tls_dir['external'] + '/client/client.pem'
+    # Needed for channel join and chaincode install
+    tls_dir = node['tls']['dir']['external']
+    tls_server_dir = tls_dir + '/' + node['tls']['server']['dir']
+    tls_client_dir = tls_dir + '/' + node['tls']['client']['dir']
+
+    os.environ['CORE_PEER_TLS_CERT_FILE'] = tls_server_dir + '/' + node['tls']['server']['cert']
+    os.environ['CORE_PEER_TLS_KEY_FILE'] = tls_server_dir + '/' + node['tls']['server']['key']
+    os.environ['CORE_PEER_TLS_ROOTCERT_FILE'] = tls_server_dir + '/' + node['tls']['server']['ca']
+
+    os.environ['CORE_PEER_TLS_CLIENTCERT_FILE'] = tls_client_dir + '/' + node['tls']['client']['cert']
+    os.environ['CORE_PEER_TLS_CLIENTKEY_FILE'] = tls_client_dir + '/' + node['tls']['client']['key']
+    os.environ['CORE_PEER_TLS_CLIENTROOTCAS_FILES'] = tls_client_dir + '/' + node['tls']['client']['ca']
 
 
 def clean_env_variables():
@@ -71,10 +77,9 @@ def createChannel(conf, conf_orderer):
 
     peer = org['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-    peer_tls_dir = peer['tls']['dir']
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+    set_env_variables(peer_core, org_admin_msp_dir, peer)
 
     tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
     tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
@@ -99,8 +104,8 @@ def createChannel(conf, conf_orderer):
 
 
 def joinChannel(conf, peer):
-    # peer channel join use signcerts not admincerts, we need to pass CORE_PEER_MSPCONFIGPATH to org admin.
-    # peer msp signcert is not an admin, a peer cannot join a channel with its own msp
+    # peer channel join use signcerts not admincerts, we need at least org admin signcerts because
+    # a peer cannot join a channel with its user signcerts in the user msp
 
     org_admin_home = conf['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
@@ -112,10 +117,9 @@ def joinChannel(conf, peer):
     }, flush=True)
 
     peer_core = '/substra/conf/%s/%s' % (conf['name'], peer['name'])
-    peer_tls_dir = peer['tls']['dir']
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+    set_env_variables(peer_core, org_admin_msp_dir, peer)
 
     call([
         'peer',
@@ -141,12 +145,11 @@ def getChannelConfigBlockWithPeer(org, conf_orderer):
 
     peer = org['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-    peer_tls_dir = peer['tls']['dir']
 
     orderer = conf_orderer['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+    set_env_variables(peer_core, org_admin_msp_dir, peer)
 
     tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
     tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
@@ -255,9 +258,8 @@ def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
 
         peer = org['peers'][0]
         peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-        peer_tls_dir = peer['tls']['dir']
 
-        set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+        set_env_variables(peer_core, org_admin_msp_dir, peer)
 
         tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
         tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
@@ -285,9 +287,8 @@ def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
 
         peer = org['peers'][0]
         peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-        peer_tls_dir = peer['tls']['dir']
 
-        set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+        set_env_variables(peer_core, org_admin_msp_dir, peer)
 
         tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
         tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
@@ -332,14 +333,13 @@ def updateAnchorPeers(conf, conf_orderer):
 
     peer = org['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-    peer_tls_dir = peer['tls']['dir']
 
     orderer = conf_orderer['orderers'][0]
 
     print('Updating anchor peers for %(peer_host)s ...' % {'peer_host': org['peers'][0]['host']}, flush=True)
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+    set_env_variables(peer_core, org_admin_msp_dir, peer)
 
     tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
     tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
@@ -370,10 +370,9 @@ def installChainCode(conf, peer, chaincode_version):
     print('Installing chaincode on %(peer_host)s ...' % {'peer_host': peer['host']}, flush=True)
 
     peer_core = '/substra/conf/%s/%s' % (conf['name'], peer['name'])
-    peer_tls_dir = peer['tls']['dir']
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+    set_env_variables(peer_core, org_admin_msp_dir, peer)
 
     call(['peer',
           'chaincode', 'install',
@@ -397,7 +396,6 @@ def waitForInstantiation(conf, conf_orderer):
 
     peer = org['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-    peer_tls_dir = peer['tls']['dir']
 
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
@@ -405,7 +403,7 @@ def waitForInstantiation(conf, conf_orderer):
     orderer = conf_orderer['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+    set_env_variables(peer_core, org_admin_msp_dir, peer)
 
     tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
     tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
@@ -448,7 +446,6 @@ def getChaincodeVersion(conf, conf_orderer):
 
     peer = org['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-    peer_tls_dir = peer['tls']['dir']
 
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
@@ -456,7 +453,7 @@ def getChaincodeVersion(conf, conf_orderer):
     orderer = conf_orderer['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+    set_env_variables(peer_core, org_admin_msp_dir, peer)
 
     tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
     tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
@@ -502,12 +499,11 @@ def instanciateChainCode(conf, conf_orderer, args):
 
     peer = conf['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (conf['name'], peer['name'])
-    peer_tls_dir = peer['tls']['dir']
 
     orderer = conf_orderer['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+    set_env_variables(peer_core, org_admin_msp_dir, peer)
 
     print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
@@ -545,7 +541,6 @@ def upgradeChainCode(conf, args, conf_orderer, orgs_mspid, chaincode_version):
 
     peer = org['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-    peer_tls_dir = peer['tls']['dir']
 
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
@@ -553,7 +548,7 @@ def upgradeChainCode(conf, args, conf_orderer, orgs_mspid, chaincode_version):
     orderer = conf_orderer['orderers'][0]
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir, peer_tls_dir)
+    set_env_variables(peer_core, org_admin_msp_dir, peer)
 
     print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
@@ -585,10 +580,9 @@ def chainCodeQueryWith(conf, arg, org, peer):
     org_user_msp_dir = org_user_home + '/msp'
 
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-    peer_tls_dir = peer['tls']['dir']
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_user_msp_dir, peer_tls_dir)
+    set_env_variables(peer_core, org_user_msp_dir, peer)
 
     channel_name = conf['misc']['channel_name']
     chaincode_name = conf['misc']['chaincode_name']
@@ -728,9 +722,8 @@ def getChannelConfigBlockWithOrderer(org, channel_name, block_name):
 
     orderer = org['orderers'][0]
     orderer_core = '/substra/conf/%s/%s' % (org['name'], orderer['name'])
-    orderer_tls_dir = orderer['tls']['dir']
 
-    set_env_variables(orderer_core, orderer_admin_msp_dir, orderer_tls_dir)
+    set_env_variables(orderer_core, orderer_admin_msp_dir, orderer)
 
     tls_peer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
     tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
@@ -763,9 +756,8 @@ def signAndPushSystemUpdateProposal(conf):
 
     orderer = org['orderers'][0]
     orderer_core = '/substra/conf/%s/%s' % (org['name'], orderer['name'])
-    orderer_tls_dir = orderer['tls']['dir']
 
-    set_env_variables(orderer_core, orderer_admin_msp_dir, orderer_tls_dir)
+    set_env_variables(orderer_core, orderer_admin_msp_dir, orderer)
 
     tls_peer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
     tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']

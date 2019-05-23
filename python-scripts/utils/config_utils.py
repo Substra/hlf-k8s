@@ -80,6 +80,7 @@ def create_configtx(org, filename, raft=True):
             yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['EtcdRaft'] = {'Consenters': [
                 {'Host': x['host'],
                  'Port': x['port']['internal'],
+                 # As we launch configtx.yaml in the setup.py we use external tls paths
                  'ClientTLSCert':f"{x['tls']['dir']['external']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",
                  'ServerTLSCert': f"{x['tls']['dir']['external']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}
 
