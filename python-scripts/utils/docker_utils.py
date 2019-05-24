@@ -3,6 +3,8 @@ import yaml
 
 HLF_VERSION = '1.4.1'
 
+fabric_base_directory = '/etc/hyperledger/fabric'
+
 
 def generate_docker_compose_org(org, conf_orderer, substra_path, network):
 
@@ -10,8 +12,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
 
     FABRIC_CA_HOME = '/etc/hyperledger/fabric-ca-server'
     FABRIC_CFG_PATH = f'{substra_path}/data'
-    FABRIC_ETC_HOME = '/etc/hyperledger/fabric'
-    FABRIC_CA_CLIENT_HOME = FABRIC_ETC_HOME
+    FABRIC_CA_CLIENT_HOME = fabric_base_directory
 
     # Docker compose config
     docker_compose = {'substra_services': {'rca': [],
@@ -97,7 +98,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
            'command': '/bin/bash -c "fabric-ca-server start 2>&1"',
            'environment': [f'FABRIC_CA_HOME={FABRIC_CA_HOME}'],
            'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
-           'volumes': [f'{substra_path}/data/orgs/{org["name"]}:{FABRIC_ETC_HOME}/ca/',
+           'volumes': [f'{substra_path}/data/orgs/{org["name"]}:{fabric_base_directory}/ca/',
                        f'{substra_path}/backup/orgs/{org["name"]}/rca:{FABRIC_CA_HOME}',
                        f'{substra_path}/conf/{org["name"]}/fabric-ca-server-config.yaml:{FABRIC_CA_HOME}/fabric-ca-server-config.yaml'
                        ],
@@ -114,7 +115,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                'command': '/bin/bash -c "peer node start 2>&1"',
                'environment': [# https://medium.com/@Alibaba_Cloud/hyperledger-fabric-deployment-on-alibaba-cloud-environment-sigsegv-problem-analysis-and-solutions-9a708313f1a4
                                'GODEBUG=netdns=go+1'],
-               'working_dir': FABRIC_ETC_HOME,
+               'working_dir': fabric_base_directory,
                'ports': [f'{peer["port"]["external"]}:{peer["port"]["internal"]}'],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
                'volumes': [
@@ -173,8 +174,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
 
     FABRIC_CA_HOME = '/etc/hyperledger/fabric-ca-server'
     FABRIC_CFG_PATH = f'{substra_path}/data'
-    FABRIC_ETC_HOME = '/etc/hyperledger/fabric'
-    FABRIC_CA_CLIENT_HOME = FABRIC_ETC_HOME
+    FABRIC_CA_CLIENT_HOME = fabric_base_directory
 
     # Docker compose config
     docker_compose = {'substra_services': {'rca': [],
@@ -221,7 +221,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
            'command': '/bin/bash -c "fabric-ca-server start 2>&1"',
            'environment': [f'FABRIC_CA_HOME={FABRIC_CA_HOME}'],
            'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
-           'volumes': [f'{substra_path}/data/orgs/{org["name"]}:{FABRIC_ETC_HOME}/ca/',
+           'volumes': [f'{substra_path}/data/orgs/{org["name"]}:{fabric_base_directory}/ca/',
                        f"{substra_path}/backup/orgs/{org['name']}/rca:{FABRIC_CA_HOME}",
                        f"{substra_path}/conf/{org['name']}/fabric-ca-server-config.yaml:{FABRIC_CA_HOME}/fabric-ca-server-config.yaml"],
            'networks': [network]}
@@ -234,7 +234,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
         svc = {'container_name': orderer['host'],
                'image': f'hyperledger/fabric-orderer:{HLF_VERSION}',
                'restart': 'unless-stopped',
-               'working_dir': FABRIC_ETC_HOME,
+               'working_dir': fabric_base_directory,
                'command': '/bin/bash -c "orderer 2>&1"',
                'ports': [f"{orderer['port']['external']}:{orderer['port']['internal']}"],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
