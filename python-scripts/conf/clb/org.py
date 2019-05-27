@@ -4,31 +4,31 @@ from .users.admin import admin
 from .users.bootstrap_admin import bootstrap_admin
 from .users.user import user
 
-owkin = {
-    'name': 'owkin',
-    'msp_id': 'owkinMSP',
-    'anchor_tx_file': '/substra/data/orgs/owkin/anchors.tx',
+clb = {
+    'name': 'clb',
+    'msp_id': 'clbMSP',
+    'anchor_tx_file': '/substra/data/orgs/clb/anchors.tx',
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in
         # the docker image, do not forget to remove these examples files in your docker CMD overriding if naming the same way
-        'certfile': '/substra/data/orgs/owkin/tls-ca-cert.pem',
+        'certfile': '/substra/data/orgs/clb/tls-ca-cert.pem',
         'clientkey': ''
     },
     'ca': {
-        'name': 'rca-owkin',
-        'host': 'rca-owkin',
-        'certfile': '/substra/data/orgs/owkin/ca-cert.pem',
-        'keyfile': '/substra/data/orgs/owkin/ca-key.pem',
+        'name': 'rca-clb',
+        'host': 'rca-clb',
+        'certfile': '/substra/data/orgs/clb/ca-cert.pem',
+        'keyfile': '/substra/data/orgs/clb/ca-key.pem',
         'port': {
             'internal': 7054,
-            'external': 7054
+            'external': 10054
         },
-        'url': 'https://rca-owkin:7054',
-        'logfile': '/substra/data/log/rca-owkin.log',
-        'server-config-path': '/substra/conf/owkin/fabric-ca-server-config.yaml',
-        'client-config-path': '/substra/conf/owkin/fabric-ca-client-config.yaml',
+        'url': 'https://rca-clb:7054',
+        'logfile': '/substra/data/log/rca-clb.log',
+        'server-config-path': '/substra/conf/clb/fabric-ca-server-config.yaml',
+        'client-config-path': '/substra/conf/clb/fabric-ca-client-config.yaml',
         'affiliations': {
-            'owkin': ['paris', 'nantes']
+            'clb': ['lyon']
         }
     },
     'users': {
@@ -37,14 +37,14 @@ owkin = {
         'user': user,
     },
     'csr': {
-        'cn': 'rca-owkin',
+        'cn': 'rca-clb',
         # The "hosts" value is a list of the domain names which the certificate should be valid for.
-        'hosts': ['rca-owkin'],
+        'hosts': ['rca-clb'],
         'names': [
             {'C': 'FR',
-             'ST': 'Loire-Atlantique',
-             'L': 'Nantes',
-             'O': 'owkin',
+             'ST': 'Rhone',
+             'L': 'Lyon',
+             'O': 'clb',
              'OU': None}
         ],
     },

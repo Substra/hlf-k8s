@@ -6,6 +6,7 @@ import subprocess
 from conf2orgs import conf
 from subprocess import call, check_output, CalledProcessError
 
+
 def set_env_variables(fabric_cfg_path, msp_dir):
     os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
     os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
@@ -20,8 +21,10 @@ def chainCodeQueryWith(arg, org, peer):
     org_user_home = org['users']['user']['home']
     org_user_msp_dir = org_user_home + '/msp'
 
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_user_msp_dir)
+    set_env_variables(peer_core, org_user_msp_dir)
 
     channel_name = conf['misc']['channel_name']
     chaincode_name = conf['misc']['chaincode_name']
@@ -93,11 +96,15 @@ def invokeChainCode(args, org, peer):
     channel_name = conf['misc']['channel_name']
     chaincode_name = conf['misc']['chaincode_name']
 
+    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer['docker_core_dir'], org_user_msp_dir)
+    set_env_variables(peer_core, org_user_msp_dir)
 
     print('Sending invoke transaction (with waitForEvent) to %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']},
           flush=True)
+
+    tls_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
 
     output = subprocess.run(['peer',
                              'chaincode', 'invoke',
@@ -108,8 +115,8 @@ def invokeChainCode(args, org, peer):
                              '--tls',
                              '--clientauth',
                              '--cafile', orderer['ca']['certfile'],
-                             '--keyfile', peer['tls']['clientKey'],
-                             '--certfile', peer['tls']['clientCert'],
+                             '--certfile', tls_client_dir + '/' + peer['tls']['client']['cert'],
+                             '--keyfile', tls_client_dir + '/' + peer['tls']['client']['key']
                              '--waitForEvent'
                              ],
                             stdout=subprocess.PIPE,

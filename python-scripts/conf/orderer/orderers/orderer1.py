@@ -1,15 +1,14 @@
-peer2 = {
-    'name': 'peer2',
-    'pass': 'peer2pw',
-    'host': 'peer2-owkin',
+orderer1 = {
+    'name': 'orderer1',
+    'pass': 'ordererpw',
+    'host': 'orderer1-orderer',
     'port': {
-        'internal': 7051,
-        'external': 8051
+        'internal': 7050,
+        'external': 7050
     },
-    'anchor': False,
     'tls': {
         'dir': {
-            'external': '/substra/data/orgs/owkin/tls/peer2',
+            'external': '/substra/data/orgs/orderer/tls/orderer1',
             'internal': '/etc/hyperledger/fabric/tls'
         },
         'client': {
@@ -22,9 +21,6 @@ peer2 = {
             'dir': 'server',
             'cert': 'server.crt',
             'key': 'server.key',
-            #  paradoxically, this will not be a tls certificate,
-            #  but will be put by fabric-ca inside tlscacerts directory
-            # it will be equal to org['ca']['certfile']
             'ca': 'server.pem'
         },
     }

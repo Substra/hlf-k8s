@@ -3,9 +3,11 @@ import json
 from misc import misc
 from orderer import orderer
 from owkin import owkin
+from chunantes import chunantes
+from clb import clb
 
 misc.update({
-    'fixtures_path': 'fixtures1orgs.py'
+    'fixtures_path': 'fixtures2orgs.py'
 })
 
 
@@ -25,7 +27,7 @@ def main():
     with open(f'/substra/conf/config/conf-{service_name}.json', 'w+') as write_file:
         json.dump(orderer, write_file, indent=4)
 
-    for org in [owkin]:
+    for org in [owkin, chunantes, clb]:
         org.update({
             'misc': dict(misc),
         })

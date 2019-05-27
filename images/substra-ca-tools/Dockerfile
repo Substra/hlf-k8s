@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-FROM hyperledger/fabric-tools:1.3.0
+FROM hyperledger/fabric-tools:1.4.1
 
 RUN apt-get update
 RUN apt-get install -y curl netcat
@@ -20,5 +20,4 @@ COPY requirements.txt /requirements.txt
 RUN pip3 install -r requirements.txt
 
 # install fabric-sdk-py and make hfc package available globally
-RUN git clone https://github.com/hyperledger/fabric-sdk-py.git && cd fabric-sdk-py && make install
-ENV PYTHONPATH=$PYTHONPATH:/fabric-sdk-py
+RUN pip3 install fabric-sdk-py

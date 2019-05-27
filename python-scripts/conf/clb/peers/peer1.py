@@ -1,15 +1,15 @@
-peer2 = {
-    'name': 'peer2',
-    'pass': 'peer2pw',
-    'host': 'peer2-owkin',
+peer1 = {
+    'name': 'peer1',
+    'pass': 'peer1pw',
+    'host': 'peer1-clb',
     'port': {
         'internal': 7051,
-        'external': 8051
+        'external': 11051
     },
-    'anchor': False,
+    'anchor': True,
     'tls': {
         'dir': {
-            'external': '/substra/data/orgs/owkin/tls/peer2',
+            'external': '/substra/data/orgs/clb/tls/peer1',
             'internal': '/etc/hyperledger/fabric/tls'
         },
         'client': {
