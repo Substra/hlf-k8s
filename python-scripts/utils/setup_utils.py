@@ -4,7 +4,7 @@ from shutil import copytree
 
 from hfc.fabric_ca.caservice import ca_service
 
-from .common_utils import waitPort, completeMSPSetup, dowait
+from .common_utils import waitPort, completeMSPSetup, dowait, enrollWithFiles, writeFile
 
 
 def configLocalMSP(org, user_name):
@@ -30,31 +30,13 @@ def configLocalMSP(org, user_name):
             'org_user_home': org_user_home
         }, flush=True)
 
-        # enrollment_url = 'https://%(name)s:%(pass)s@%(host)s:%(port)s' % {
-        #     'name': user['name'],
-        #     'pass': user['pass'],
-        #     'host': org['ca']['host'],
-        #     'port': org['ca']['port']['internal']
-        # }
-
-        target = "https://%s:%s" % (org['ca']['host'], org['ca']['port']['internal'])
-        cacli = ca_service(target=target,
-                           ca_certs_path=org['ca']['certfile'],
-                           ca_name=org['ca']['name'])
-        user = cacli.enroll( user['name'], user['pass'])
-        print(user._cert)
-        print(user._private_key)
-
-
-        # call(['fabric-ca-client',
-        #       'enroll', '-d',
-        #       '-c', '/etc/hyperledger/fabric/fabric-ca-client-config.yaml',
-        #       '-u', enrollment_url,
-        #       '-M', org_user_msp_dir])  # :warning: override msp dir
+        enrollment = enrollWithFiles(user, org, org_user_msp_dir)
 
         # admincerts is required for configtxgen binary
         # will copy cert.pem from <user>/msp/signcerts to <user>/msp/admincerts
-        copytree(org_user_msp_dir + '/signcerts/', org_user_msp_dir + '/admincerts')
+        # admincerts
+        filename = os.path.join(org_user_msp_dir, 'admincerts', 'cert.pem')
+        writeFile(filename, enrollment._cert)
 
 
 # create ca-cert.pem file
@@ -71,8 +53,6 @@ def enrollCABootstrapAdmin(org):
                        ca_certs_path=org['ca']['certfile']['internal'],
                        ca_name=org['ca']['name'])
     bootstrap_admin = cacli.enroll(org['users']['bootstrap_admin']['name'], org['users']['bootstrap_admin']['pass'])
-    print(bootstrap_admin)
-    # TODO create cert file?
     return bootstrap_admin
 
 
@@ -84,14 +64,10 @@ def registerOrdererIdentities(org):
                                                                  'ca_name': org['ca']['name']},
               flush=True)
 
-        orderer = badmin.register(orderer['name'], orderer['pass'], 'orderer')
-        print(orderer)
+        badmin.register(orderer['name'], orderer['pass'], 'orderer', maxEnrollments=-1)
 
         print('Registering admin identity with %(ca_name)s' % {'ca_name': org['ca']['name']}, flush=True)
-
-        user = badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'],
-                               attrs=[{'admin': 'true:ecert'}])
-        print(user)
+        badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=[{'admin': 'true:ecert'}])
 
 
 def registerPeerIdentities(org):
@@ -99,25 +75,22 @@ def registerPeerIdentities(org):
     for peer in org['peers']:
         print('Registering %(peer_name)s with %(ca_name)s\n' % {'peer_name': peer['name'],
                                                                 'ca_name': org['ca']['name']}, flush=True)
-
-        badmin.register(peer['name'], peer['pass'], 'peer')
+        badmin.register(peer['name'], peer['pass'], 'peer', maxEnrollments=-1)
 
     print('Registering admin identity with %(ca_name)s' % {'ca_name': org['ca']['name']}, flush=True)
-
     # The admin identity has the "admin" attribute which is added to ECert by default
-    attrs = [{'hf.Registrar.Roles': 'client'},
-             {'hf.Registrar.Attributess': '*'},
-             {'hf.Revoker': 'true'},
-             {'hf.GenCRL': 'true'},
-             {'admin': 'true:ecert'},
-             {'abac.init': 'true:ecert'}
-             ]
-    admin = badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], attrs=attrs)
-    print(admin)
+    attrs = [
+        {'hf.Registrar.Roles': 'client'},
+        {'hf.Registrar.Attributess': '*'},
+        {'hf.Revoker': 'true'},
+        {'hf.GenCRL': 'true'},
+        {'admin': 'true:ecert'},
+        {'abac.init': 'true:ecert'}
+    ]
+    badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=attrs)
 
     print('Registering user identity with %(ca_name)s\n' % {'ca_name': org['ca']['name']}, flush=True)
-    user = admin.register(org['users']['user']['name'], org['users']['user']['pass'])
-    print(user)
+    badmin.register(org['users']['user']['name'], org['users']['user']['pass'], maxEnrollments=-1)
 
 
 def registerIdentities(conf):
