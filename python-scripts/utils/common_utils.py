@@ -21,7 +21,7 @@ def writeFile(filename, content):
         f.write(content)
 
 
-def saveMSP(msp_dir, enrollment):
+def saveMSP(msp_dir, enrollment, admincerts=False):
     # cert
     filename = os.path.join(msp_dir, 'signcerts', 'cert.pem')
     writeFile(filename, enrollment._cert)
@@ -38,15 +38,19 @@ def saveMSP(msp_dir, enrollment):
     filename = os.path.join(msp_dir, 'cacerts', 'ca.pem')
     writeFile(filename, enrollment._caCert)
 
+    if admincerts:
+        filename = os.path.join(msp_dir, 'admincerts', 'cert.pem')
+        writeFile(filename, enrollment._cert)
 
-def enrollWithFiles(user, org, msp_dir, csr=None, profile='', attr_reqs=None):
+
+def enrollWithFiles(user, org, msp_dir, csr=None, profile='', attr_reqs=None, admincerts=False):
     target = "https://%s:%s" % (org['ca']['host'], org['ca']['port']['internal'])
     cacli = ca_service(target=target,
                        ca_certs_path=org['ca']['certfile'],
                        ca_name=org['ca']['name'])
     enrollment = cacli.enroll(user['name'], user['pass'], csr=csr, profile=profile, attr_reqs=attr_reqs)
 
-    saveMSP(msp_dir, enrollment)
+    saveMSP(msp_dir, enrollment, admincerts=admincerts)
 
     return enrollment
 
