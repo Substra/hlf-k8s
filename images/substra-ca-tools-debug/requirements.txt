@@ -1,9 +1,12 @@
+docker == 3.5.0
+requests == 2.20.0
+
+aiogrpc >= 1.6
 cryptography >= 1.9
 grpcio >= 1.0.1
 hkdf >= 0.0.3
 pycryptodomex >= 3.4.2
-pycurl
 pysha3 == 1.0b1
-requests == 2.20.0
 rx >= 1.5.3
 six >= 1.4.0
+protobuf >= 3.6.0

@@ -15,7 +15,7 @@ from .common_utils import waitPort, dowait
 
 
 def removeIntermediateCerts(intermediatecerts_dir):
-    print('Delete intermediate certs in ' + intermediatecerts_dir, flush=True)
+    print(f'Delete intermediate certs in {intermediatecerts_dir}', flush=True)
     if os.path.exists(intermediatecerts_dir):
         for file in os.listdir(intermediatecerts_dir):
             file_path = os.path.join(intermediatecerts_dir, file)
@@ -24,16 +24,16 @@ def removeIntermediateCerts(intermediatecerts_dir):
 
 
 def completeMSPSetup(org_msp_dir):
-    src = org_msp_dir + '/cacerts/'
-    dst = org_msp_dir + '/tlscacerts'
+    src = os.path.join(org_msp_dir, 'cacerts')
+    dst = os.path.join(org_msp_dir, 'tlscacerts')
 
     if not os.path.exists(dst):
         copytree(src, dst)
 
     # intermediate cacert management
-    if os.path.exists(org_msp_dir + '/intermediatecerts'):
+    if os.path.exists(os.path.join(org_msp_dir, 'intermediatecerts')):
         # no intermediate cert in this config, delete generated files for not seeing warning
-        removeIntermediateCerts(org_msp_dir + '/intermediatecerts/')
+        removeIntermediateCerts(os.path.join(org_msp_dir, 'intermediatecerts'))
 
         # uncomment if using intermediate certs
         # copytree(org_msp_dir + '/intermediatecerts/', org_msp_dir + '/tlsintermediatecerts/')
@@ -42,25 +42,20 @@ def completeMSPSetup(org_msp_dir):
 def configLocalMSP(org, user_name):
     user = org['users'][user_name]
     org_user_home = user['home']
-    org_user_msp_dir = org_user_home + '/msp'
+    org_user_msp_dir = os.path.join(org_user_home, 'msp')
 
     # if local admin msp does not exist, create it by enrolling user
     if not os.path.exists(org_user_msp_dir):
         print('Enroll user and copy in admincert for configtxgen', flush=True)
 
         # wait ca certfile exists before enrolling
-        dowait('%(ca_name)s to start' % {'ca_name': org['ca']['name']},
+        dowait(f"{org['ca']['name']} to start",
                90,
                org['ca']['logfile'],
                [org['ca']['certfile']['internal']])
 
-        msg = 'Enrolling user \'%(user_name)s\' for organization %(org)s with %(ca_host)s and home directory %(org_user_home)s...'
-        print(msg % {
-            'user_name': user['name'],
-            'org': org['name'],
-            'ca_host': org['ca']['host'],
-            'org_user_home': org_user_home
-        }, flush=True)
+        msg = f"Enrolling user '{user['name']}' for organization {org['name']} with {org['ca']['host']} and home directory {org_user_home}..."
+        print(msg, flush=True)
 
         # admincerts is required for configtxgen binary
         return enrollWithFiles(user, org, org_user_msp_dir, admincerts=True)
@@ -68,15 +63,15 @@ def configLocalMSP(org, user_name):
 
 def enrollCABootstrapAdmin(org):
 
-    waitPort('%(CA_NAME)s to start' % {'CA_NAME': org['ca']['name']},
+    waitPort(f"{org['ca']['name']} to start",
              90,
              org['ca']['logfile'],
              org['ca']['host'],
              org['ca']['port']['internal'])
-    print('Enrolling with %(CA_NAME)s as bootstrap identity ...' % {'CA_NAME': org['ca']['name']}, flush=True)
+    print(f"Enrolling with {org['ca']['name']} as bootstrap identity ...", flush=True)
 
     # create ca-cert.pem file
-    target = "https://%s:%s" % (org['ca']['host'], org['ca']['port']['internal'])
+    target = f"https://{org['ca']['host']}:{org['ca']['port']['internal']}"
     cacli = ca_service(target=target,
                        ca_certs_path=org['ca']['certfile']['internal'],
                        ca_name=org['ca']['name'])
@@ -88,24 +83,21 @@ def registerOrdererIdentities(org):
     badmin = enrollCABootstrapAdmin(org)
 
     for orderer in org['orderers']:
-        print('Registering %(orderer_name)s with %(ca_name)s' % {'orderer_name': orderer['name'],
-                                                                 'ca_name': org['ca']['name']},
-              flush=True)
-
+        print(f"Registering {orderer['name']} with {org['ca']['name']}", flush=True)
         badmin.register(orderer['name'], orderer['pass'], 'orderer', maxEnrollments=-1)
 
-    print('Registering admin identity with %(ca_name)s' % {'ca_name': org['ca']['name']}, flush=True)
-    badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=[{'admin': 'true:ecert'}])
+    print(f"Registering admin identity with {org['ca']['name']}", flush=True)
+    badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'],
+                    maxEnrollments=-1, attrs=[{'admin': 'true:ecert'}])
 
 
 def registerPeerIdentities(org):
     badmin = enrollCABootstrapAdmin(org)
     for peer in org['peers']:
-        print('Registering %(peer_name)s with %(ca_name)s\n' % {'peer_name': peer['name'],
-                                                                'ca_name': org['ca']['name']}, flush=True)
+        print(f"Registering {peer['name']} with {org['ca']['name']}\n", flush=True)
         badmin.register(peer['name'], peer['pass'], 'peer', maxEnrollments=-1)
 
-    print('Registering admin identity with %(ca_name)s' % {'ca_name': org['ca']['name']}, flush=True)
+    print(f"Registering admin identity with {org['ca']['name']}", flush=True)
     # The admin identity has the "admin" attribute which is added to ECert by default
     attrs = [
         {'hf.Registrar.Roles': 'client'},
@@ -117,7 +109,7 @@ def registerPeerIdentities(org):
     ]
     badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=attrs)
 
-    print('Registering user identity with %(ca_name)s\n' % {'ca_name': org['ca']['name']}, flush=True)
+    print(f"Registering user identity with {org['ca']['name']}\n", flush=True)
     badmin.register(org['users']['user']['name'], org['users']['user']['pass'], maxEnrollments=-1)
 
 
@@ -131,9 +123,9 @@ def registerIdentities(conf):
 def registerUsers(conf):
     print('Getting CA certificates ...\n', flush=True)
 
-    if 'peers' in conf:
-        org_admin_msp_dir = conf['users']['admin']['home'] + '/msp'
+    org_admin_msp_dir = os.path.join(conf['users']['admin']['home'], 'msp')
 
+    if 'peers' in conf:
         # will create admin and user folder with an msp folder and populate it. Populate admincerts for configtxgen to work
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
@@ -146,8 +138,6 @@ def registerUsers(conf):
         # enroll user and create admincerts
         configLocalMSP(conf, 'user')
     else:
-        org_admin_msp_dir = conf['users']['admin']['home'] + '/msp'
-
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
         # will create admincerts for configtxgen to work
@@ -189,7 +179,7 @@ def saveMSP(msp_dir, enrollment, admincerts=False):
 
 
 def enrollWithFiles(user, org, msp_dir, csr=None, profile='', attr_reqs=None, admincerts=False):
-    target = "https://%s:%s" % (org['ca']['host'], org['ca']['port']['internal'])
+    target = f"https://{org['ca']['host']}:{org['ca']['port']['internal']}"
     cacli = ca_service(target=target,
                        ca_certs_path=org['ca']['certfile'],
                        ca_name=org['ca']['name'])
@@ -208,11 +198,12 @@ def genTLSCert(node, host_name, org, cert_file, key_file, ca_file):
         backend=default_backend())
 
     # Generate a CSR
+    # TODO replace by real args
     csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
         # Provide various details about who we are.
         x509.NameAttribute(NameOID.COUNTRY_NAME, u"FR"),
         x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u"Loire Atlantique"),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, u"NAntes"),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, u"Nantes"),
         x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"owkin"),
         x509.NameAttribute(NameOID.COMMON_NAME, node['name']),
     ])).add_extension(
@@ -224,7 +215,7 @@ def genTLSCert(node, host_name, org, cert_file, key_file, ca_file):
         # Sign the CSR with our private key.
     ).sign(pkey, hashes.SHA256(), default_backend())
 
-    target = "https://%s:%s" % (org['ca']['host'], org['ca']['port']['internal'])
+    target = f"https://{org['ca']['host']}:{org['ca']['port']['internal']}"
     cacli = ca_service(target=target,
                        ca_certs_path=org['ca']['certfile'],
                        ca_name=org['ca']['name'])
@@ -244,9 +235,7 @@ def genTLSCert(node, host_name, org, cert_file, key_file, ca_file):
 
 
 def generateGenesis(conf):
-    print('Generating orderer genesis block at %(genesis_bloc_file)s' % {
-        'genesis_bloc_file': conf['misc']['genesis_bloc_file']['external']
-    }, flush=True)
+    print(f"Generating orderer genesis block at {conf['misc']['genesis_bloc_file']['external']}", flush=True)
 
     # Note: For some unknown reason (at least for now) the block file can't be
     # named orderer.genesis.block or the orderer will fail to launch
