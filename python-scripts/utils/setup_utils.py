@@ -29,15 +29,8 @@ def configLocalMSP(org, user_name):
             'org_user_home': org_user_home
         }, flush=True)
 
-        enrollment = enrollWithFiles(user, org, org_user_msp_dir)
-
         # admincerts is required for configtxgen binary
-        # will copy cert.pem from <user>/msp/signcerts to <user>/msp/admincerts
-        # admincerts
-        filename = os.path.join(org_user_msp_dir, 'admincerts', 'cert.pem')
-        writeFile(filename, enrollment._cert)
-
-        return enrollment
+        return enrollWithFiles(user, org, org_user_msp_dir, admincerts=True)
 
 
 # create ca-cert.pem file
@@ -69,7 +62,6 @@ def registerOrdererIdentities(org):
 
     print('Registering admin identity with %(ca_name)s' % {'ca_name': org['ca']['name']}, flush=True)
     badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=[{'admin': 'true:ecert'}])
-
 
 
 def registerPeerIdentities(org):

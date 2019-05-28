@@ -6,7 +6,7 @@ from utils.setup_utils import registerIdentities, registerUsers, generateGenesis
 from utils.common_utils import genTLSCert, create_directory, writeFile
 
 
-def generateMSPandTLS(node, org, msp_dir):
+def generateMSPandTLS(node, org, msp_dir, admincerts=False):
     ##################################################################################################################
     # Although a peer may use the same TLS key and certificate file for both inbound and outbound TLS,               #
     # we generate a different key and certificate for inbound and outbound TLS simply to show that it is permissible #
@@ -35,14 +35,14 @@ def generateMSPandTLS(node, org, msp_dir):
                ca_file='%s/%s' % (tls_client_dir, node['tls']['client']['ca']))
 
     # Enroll the node to get an enrollment certificate and set up the core's local MSP directory for starting node
-    return enrollWithFiles(node, org, msp_dir)
+    enrollWithFiles(node, org, msp_dir, admincerts=admincerts)
 
 
 def init_org(conf, enrollmentAdmin):
 
     for peer in conf['peers']:
-        setup_peer_msp_dir = conf['core_dir']['internal'] + '/' + peer['name'] + '/msp'
-        generateMSPandTLS(peer, conf, setup_peer_msp_dir)
+        setup_peer_msp_dir = os.path.join(conf['core_dir']['internal'], peer['name'], 'msp')
+        generateMSPandTLS(peer, conf, setup_peer_msp_dir, admincerts=False)
 
         # copy the admincerts from the admin user for being able to install chaincode
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
@@ -56,15 +56,9 @@ def init_org(conf, enrollmentAdmin):
 
 def init_orderer(conf):
     for orderer in conf['orderers']:
-        setup_orderer_msp_dir = conf['core_dir']['internal'] + '/' + orderer['name'] + '/msp'
-        enrollment = generateMSPandTLS(orderer, conf, setup_orderer_msp_dir)
-
+        setup_orderer_msp_dir = os.path.join(conf['core_dir']['internal'], orderer['name'], 'msp')
         # copy the admincerts from the user for being able to launch orderer
-        # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
-        # https://lists.hyperledger.org/g/fabric/topic/17549225#1250
-        # add admincerts
-        filename = os.path.join(setup_orderer_msp_dir, 'admincerts', '%s-cert.pem' % orderer['name'])
-        writeFile(filename, enrollment._cert)
+        generateMSPandTLS(orderer, conf, setup_orderer_msp_dir, admincerts=True)
 
 
 def init(conf, enrollmentAdmin):
