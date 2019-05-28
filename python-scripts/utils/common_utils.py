@@ -51,59 +51,6 @@ def enrollWithFiles(user, org, msp_dir, csr=None, profile='', attr_reqs=None):
     return enrollment
 
 
-def copy_last_file_ext(ext, src, dst):
-    files = glob.iglob(os.path.join(src, ext))
-    for file in files:
-        if os.path.isfile(file):
-            copy2(file, dst)
-
-
-def create_directory(directory):
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-
-# Wait for a process to begin to listen on a particular host and port
-# Usage: waitPort <what> <timeoutInSecs> <errorLogFile> <host> <port>
-def waitPort(what, secs, logFile, host, port):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex((host, port))
-
-    if result != 0:
-        print('Waiting for %s ...' % what, flush=True)
-        starttime = int(time.time())
-
-        while True:
-            call(['sleep', '1'])
-            result = sock.connect_ex((host, port))
-            if result == 0:
-                break
-
-            if int(time.time()) - starttime > secs:
-                print('Failed waiting for %(what)s; see %(logFile)s' % {'what': what, 'logFile': logFile}, flush=True)
-                break
-
-            print('.', end='', flush=True)
-
-
-# Wait for one or more files to exist
-def dowait(what, secs, logFile, files):
-    logit = True
-    starttime = int(time.time())
-
-    for file in files:
-        while not os.path.exists(file):
-            if logit:
-                print('Waiting for %s ...\n' % what, flush=True)
-                logit = False
-            call(['sleep', '1'])
-            if int(time.time()) - starttime > secs:
-                print('Failed waiting for %(what)s; see %(logFile)s\n' % {'what': what, 'logFile': logFile}, flush=True)
-                break
-            print('.', end='', flush=True)
-    print('')
-
-
 def removeIntermediateCerts(intermediatecerts_dir):
     print('Delete intermediate certs in ' + intermediatecerts_dir, flush=True)
     if os.path.exists(intermediatecerts_dir):
@@ -171,6 +118,51 @@ def genTLSCert(node, host_name, org, cert_file, key_file, ca_file):
     # ca
     writeFile(ca_file, enrollment._caCert)
 
+
+def create_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+
+# Wait for a process to begin to listen on a particular host and port
+# Usage: waitPort <what> <timeoutInSecs> <errorLogFile> <host> <port>
+def waitPort(what, secs, logFile, host, port):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex((host, port))
+
+    if result != 0:
+        print('Waiting for %s ...' % what, flush=True)
+        starttime = int(time.time())
+
+        while True:
+            call(['sleep', '1'])
+            result = sock.connect_ex((host, port))
+            if result == 0:
+                break
+
+            if int(time.time()) - starttime > secs:
+                print('Failed waiting for %(what)s; see %(logFile)s' % {'what': what, 'logFile': logFile}, flush=True)
+                break
+
+            print('.', end='', flush=True)
+
+
+# Wait for one or more files to exist
+def dowait(what, secs, logFile, files):
+    logit = True
+    starttime = int(time.time())
+
+    for file in files:
+        while not os.path.exists(file):
+            if logit:
+                print('Waiting for %s ...\n' % what, flush=True)
+                logit = False
+            call(['sleep', '1'])
+            if int(time.time()) - starttime > secs:
+                print('Failed waiting for %(what)s; see %(logFile)s\n' % {'what': what, 'logFile': logFile}, flush=True)
+                break
+            print('.', end='', flush=True)
+    print('')
 
 # Remove chaincode docker images
 def remove_chaincode_docker_images():

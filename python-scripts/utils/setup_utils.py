@@ -1,6 +1,5 @@
 import os
 from subprocess import call
-from shutil import copytree
 
 from hfc.fabric_ca.caservice import ca_service
 
@@ -38,6 +37,8 @@ def configLocalMSP(org, user_name):
         filename = os.path.join(org_user_msp_dir, 'admincerts', 'cert.pem')
         writeFile(filename, enrollment._cert)
 
+        return enrollment
+
 
 # create ca-cert.pem file
 def enrollCABootstrapAdmin(org):
@@ -66,8 +67,9 @@ def registerOrdererIdentities(org):
 
         badmin.register(orderer['name'], orderer['pass'], 'orderer', maxEnrollments=-1)
 
-        print('Registering admin identity with %(ca_name)s' % {'ca_name': org['ca']['name']}, flush=True)
-        badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=[{'admin': 'true:ecert'}])
+    print('Registering admin identity with %(ca_name)s' % {'ca_name': org['ca']['name']}, flush=True)
+    badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=[{'admin': 'true:ecert'}])
+
 
 
 def registerPeerIdentities(org):
@@ -94,45 +96,42 @@ def registerPeerIdentities(org):
 
 
 def registerIdentities(conf):
-    service = conf
-
-    if 'peers' in service:
-        registerPeerIdentities(service)
-    if 'orderers' in service:
-        registerOrdererIdentities(service)
+    if 'peers' in conf:
+        registerPeerIdentities(conf)
+    if 'orderers' in conf:
+        registerOrdererIdentities(conf)
 
 
 def registerUsers(conf):
     print('Getting CA certificates ...\n', flush=True)
 
-    service = conf
-
-    if 'peers' in service:
-        org_admin_msp_dir = service['users']['admin']['home'] + '/msp'
+    if 'peers' in conf:
+        org_admin_msp_dir = conf['users']['admin']['home'] + '/msp'
 
         # will create admin and user folder with an msp folder and populate it. Populate admincerts for configtxgen to work
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
 
-        # register admin and create admincerts
-        configLocalMSP(service, 'admin')
+        # enroll admin and create admincerts
+        enrollmentAdmin = configLocalMSP(conf, 'admin')
         # needed for tls communication for create channel from peer for example, copy tlscacerts from cacerts
         completeMSPSetup(org_admin_msp_dir)
 
-        # register user and create admincerts
-        configLocalMSP(service, 'user')
-
+        # enroll user and create admincerts
+        configLocalMSP(conf, 'user')
     else:
-        org_admin_msp_dir = service['users']['admin']['home'] + '/msp'
+        org_admin_msp_dir = conf['users']['admin']['home'] + '/msp'
 
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
         # will create admincerts for configtxgen to work
 
-        # register admin and create admincerts
-        configLocalMSP(service, 'admin')
+        # enroll admin and create admincerts
+        enrollmentAdmin = configLocalMSP(conf, 'admin')
         # create tlscacerts directory and remove intermediatecerts if exists
         completeMSPSetup(org_admin_msp_dir)
+
+    return enrollmentAdmin
 
 
 def generateGenesis(conf):
