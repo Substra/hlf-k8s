@@ -6,6 +6,50 @@ import time
 from shutil import copytree, copy2
 from subprocess import call, check_output
 
+from hfc.fabric_ca.caservice import ca_service
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes
+
+
+def writeFile(filename, content):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, 'wb') as f:
+        f.write(content)
+
+
+def saveMSP(msp_dir, enrollment):
+    # cert
+    filename = os.path.join(msp_dir, 'signcerts', 'cert.pem')
+    writeFile(filename, enrollment._cert)
+
+    # private key
+    if enrollment._private_key:
+        private_key = enrollment._private_key.private_bytes(encoding=serialization.Encoding.PEM,
+                                                            format=serialization.PrivateFormat.PKCS8,
+                                                            encryption_algorithm=serialization.NoEncryption())
+        filename = os.path.join(msp_dir, 'keystore', 'key.pem')
+        writeFile(filename, private_key)
+
+    # ca
+    filename = os.path.join(msp_dir, 'cacerts', 'ca.pem')
+    writeFile(filename, enrollment._caCert)
+
+
+def enrollWithFiles(user, org, msp_dir, csr=None, profile='', attr_reqs=None):
+    target = "https://%s:%s" % (org['ca']['host'], org['ca']['port']['internal'])
+    cacli = ca_service(target=target,
+                       ca_certs_path=org['ca']['certfile'],
+                       ca_name=org['ca']['name'])
+    enrollment = cacli.enroll(user['name'], user['pass'], csr=csr, profile=profile, attr_reqs=attr_reqs)
+
+    saveMSP(msp_dir, enrollment)
+
+    return enrollment
+
 
 def copy_last_file_ext(ext, src, dst):
     files = glob.iglob(os.path.join(src, ext))
@@ -70,7 +114,6 @@ def removeIntermediateCerts(intermediatecerts_dir):
 
 
 def completeMSPSetup(org_msp_dir):
-
     src = org_msp_dir + '/cacerts/'
     dst = org_msp_dir + '/tlscacerts'
 
@@ -86,18 +129,47 @@ def completeMSPSetup(org_msp_dir):
         # copytree(org_msp_dir + '/intermediatecerts/', org_msp_dir + '/tlsintermediatecerts/')
 
 
-def genTLSCert(host_name, cert_file, key_file, ca_file, enrollment_url):
-    call(['fabric-ca-client',
-          'enroll', '-d',
-          '--enrollment.profile', 'tls',
-          '-u', enrollment_url,
-          '-M', '/tmp/tls',
-          '--csr.hosts', host_name])
+def genTLSCert(node, host_name, org, cert_file, key_file, ca_file):
+    # Generate our key
+    pkey = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend())
 
-    copy2('/tmp/tls/signcerts/cert.pem', cert_file)
-    copy_last_file_ext('*_sk', '/tmp/tls/keystore/', key_file)
-    copy_last_file_ext('*.pem', '/tmp/tls/tlscacerts/', ca_file)
-    call(['rm', '-rf', '/tmp/tls'])
+    # Generate a CSR
+    csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
+        # Provide various details about who we are.
+        x509.NameAttribute(NameOID.COUNTRY_NAME, u"FR"),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u"Loire Atlantique"),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, u"NAntes"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"owkin"),
+        x509.NameAttribute(NameOID.COMMON_NAME, node['name']),
+    ])).add_extension(
+        x509.SubjectAlternativeName([
+            # Describe what sites we want this certificate for.
+            x509.DNSName(host_name),
+        ]),
+        critical=False,
+        # Sign the CSR with our private key.
+    ).sign(pkey, hashes.SHA256(), default_backend())
+
+    target = "https://%s:%s" % (org['ca']['host'], org['ca']['port']['internal'])
+    cacli = ca_service(target=target,
+                       ca_certs_path=org['ca']['certfile'],
+                       ca_name=org['ca']['name'])
+    enrollment = cacli.enroll(node['name'], node['pass'], csr=csr, profile='tls')
+
+    # cert
+    writeFile(cert_file, enrollment._cert)
+
+    # private key
+    private_key = pkey.private_bytes(encoding=serialization.Encoding.PEM,
+                                     format=serialization.PrivateFormat.PKCS8,
+                                     encryption_algorithm=serialization.NoEncryption())
+    writeFile(key_file, private_key)
+
+    # ca
+    writeFile(ca_file, enrollment._caCert)
 
 
 # Remove chaincode docker images
