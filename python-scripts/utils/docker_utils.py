@@ -40,7 +40,9 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                   },
 
                                         'run': {'container_name': f'run-{org["name"]}',
-                                                'image': 'substra/substra-ca-tools',
+                                                #'image': 'substra/substra-ca-tools',
+                                                # debug version of fabric-sdk-py
+                                                'image': 'substra/substra-ca-tools-debug',
                                                 'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 | tee {substra_path}/data/log/run-{org["name"]}.log"',
                                                 'environment': ['GOPATH=/opt/gopath',
                                                                 f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
@@ -74,6 +76,9 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
 
                                                             # tls external
                                                             f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
+
+                                                            # debug fabric-sdk-py, replace with your own debug path
+                                                            "/home/guillaume/Projects/fabric/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
                                                 ],
                                                 'networks': [network],
                                                 'depends_on': [],

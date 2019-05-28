@@ -1,3 +1,5 @@
+import asyncio
+
 import json
 import os
 import time
@@ -6,6 +8,12 @@ import glob
 from shutil import copyfile
 
 from subprocess import call, check_output, CalledProcessError
+from hfc.fabric import Client
+from hfc.fabric.orderer import Orderer
+from hfc.fabric.user import create_user
+from hfc.util.keyvaluestore import FileKeyValueStore
+
+cli = Client()
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -52,7 +60,6 @@ def clean_tls_env_variables():
 
 
 def generateChannelArtifacts(conf):
-
     print('Generating channel configuration transaction at %(channel_tx_file)s' % {
         'channel_tx_file': conf['misc']['channel_tx_file']}, flush=True)
 
@@ -77,40 +84,65 @@ def generateChannelArtifacts(conf):
 # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
 # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
 def createChannel(conf, conf_orderer):
-
     org = conf
 
     orderer = conf_orderer['orderers'][0]
+
+    org_admin = org['users']['admin']
 
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
     peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+    #peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
 
     # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
+    #set_env_variables(peer_core, org_admin_msp_dir)
 
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
+    tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
+    tls_orderer_client_dir = os.path.join(orderer['tls']['dir']['external'], orderer['tls']['client']['dir'])
 
-    call([
-        'peer',
-        'channel',
-        'create',
-        '-c', conf['misc']['channel_name'],
-        '--outputBlock', conf['misc']['channel_block'],
-        '-f', conf['misc']['channel_tx_file'],
-        '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-        '--tls',
-        '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-        '--clientauth',
-        '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-        '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-    ])
+    admin_cert_path = os.path.join(org_admin_msp_dir, 'signcerts', 'cert.pem')
+    admin_key_path = os.path.join(org_admin_msp_dir, 'keystore', 'key.pem')
+    admin = create_user(name=org_admin['name'],
+                        org=org['name'],
+                        state_store=FileKeyValueStore('/tmp/kvs/'),
+                        msp_id=org['msp_id'],
+                        cert_path=admin_cert_path,
+                        key_path=admin_key_path)
+
+    orderer = Orderer(name=orderer['name'],
+                      endpoint=f"{orderer['host']}:{orderer['port']['internal']}",
+                      tls_ca_cert_file=os.path.join(tls_orderer_client_dir, orderer['tls']['client']['ca']),
+                      client_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
+                      client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
+
+    loop = asyncio.get_event_loop()
+    response = loop.run_until_complete(cli.channel_create(
+        orderer,
+        conf['misc']['channel_name'],
+        admin,
+        config_tx=conf['misc']['channel_tx_file']))
+
+    print('channel: ', response)
+
+    # call([
+    #     'peer',
+    #     'channel',
+    #     'create',
+    #     '-c', conf['misc']['channel_name'],
+    #     '--outputBlock', conf['misc']['channel_block'],
+    #     '-f', conf['misc']['channel_tx_file'],
+    #     '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
+    #     '--tls',
+    #     '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
+    #     '--clientauth',
+    #     '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
+    #     '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
+    # ])
 
     # clean env variables
-    clean_env_variables()
+    #clean_env_variables()
 
 
 def joinChannel(conf, peer):
@@ -186,7 +218,6 @@ def getChannelConfigBlockWithPeer(org, conf_orderer):
 
 
 def createChannelConfig(org, with_anchor=True):
-
     org_config = check_output(['configtxgen',
                                '-printOrg', org['name']])
 
@@ -355,7 +386,6 @@ def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
 
 
 def generateChannelUpdate(conf, conf_externals, orderer):
-
     org_channel_config = createChannelConfig(conf)
     getChannelConfigBlockWithOrderer(orderer, conf['misc']['channel_name'], 'mychannelconfig.block')
 
@@ -463,13 +493,14 @@ def waitForInstantiation(conf, conf_orderer):
                                  'chaincode', 'list',
                                  '-C', conf['misc']['channel_name'],
                                  '--instantiated',
-                                 '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
+                                 '-o',
+                                 '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
                                  '--tls',
                                  '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
                                  # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
                                  '--clientauth',
-                                  '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-                                  '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
+                                 '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
+                                 '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
                                  ],
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
@@ -707,7 +738,6 @@ def queryChaincodeFromFirstPeerFirstOrg(conf):
 
 
 def createSystemUpdateProposal(org, conf_orderer):
-
     # https://console.bluemix.net/docs/services/blockchain/howto/orderer_operate.html?locale=en#orderer-operate
 
     channel_name = org['misc']['system_channel_name']
@@ -733,7 +763,8 @@ def createSystemUpdateProposal(org, conf_orderer):
           '--output', 'systemchannelold.block'])
 
     # Update useful part
-    system_channel_config['channel_group']['groups']['Consortiums']['groups']['SampleConsortium']['groups'][org['name']] = org_config
+    system_channel_config['channel_group']['groups']['Consortiums']['groups']['SampleConsortium']['groups'][
+        org['name']] = org_config
     json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
     call(['configtxlator',
           'proto_encode',

@@ -16,23 +16,23 @@ def generateMSPandTLS(node, org, msp_dir, admincerts=False):
     tls_setup_dir = node['tls']['dir']['external']
 
     # create external folders (client and server)
-    tls_server_dir = tls_setup_dir + '/' + node['tls']['server']['dir']
-    tls_client_dir = tls_setup_dir + '/' + node['tls']['client']['dir']
+    tls_server_dir = os.path.join(node['tls']['dir']['external'], node['tls']['server']['dir'])
+    tls_client_dir = os.path.join(node['tls']['dir']['external'], node['tls']['client']['dir'])
     create_directory(tls_server_dir)
     create_directory(tls_client_dir)
 
     # Generate server TLS cert and key pair in container
     genTLSCert(node, node['host'], org,
-               cert_file='%s/%s' % (tls_server_dir, node['tls']['server']['cert']),
-               key_file='%s/%s' % (tls_server_dir, node['tls']['server']['key']),
-               ca_file='%s/%s' % (tls_server_dir, node['tls']['server']['ca']))
+               cert_file=os.path.join(tls_server_dir, node['tls']['server']['cert']),
+               key_file=os.path.join(tls_server_dir, node['tls']['server']['key']),
+               ca_file=os.path.join(tls_server_dir, node['tls']['server']['ca']))
 
     # Generate client TLS cert and key pair for the peer CLI (will be used by external tools)
     # in a binded volume
     genTLSCert(node, node['name'], org,
-               cert_file='%s/%s' % (tls_client_dir, node['tls']['client']['cert']),
-               key_file='%s/%s' % (tls_client_dir, node['tls']['client']['key']),
-               ca_file='%s/%s' % (tls_client_dir, node['tls']['client']['ca']))
+               cert_file=os.path.join(tls_client_dir, node['tls']['client']['cert']),
+               key_file=os.path.join(tls_client_dir, node['tls']['client']['key']),
+               ca_file=os.path.join(tls_client_dir, node['tls']['client']['ca']))
 
     # Enroll the node to get an enrollment certificate and set up the core's local MSP directory for starting node
     enrollWithFiles(node, org, msp_dir, admincerts=admincerts)
