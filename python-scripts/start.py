@@ -54,7 +54,7 @@ def intern_stop(docker_compose):
 
 def start(conf, docker_compose):
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'True'
-    project_directory = os.path.join(dir_path, '../')
+    project_directory = os.path.join(dir_path, os.pardir)
     print('Start docker-compose', flush=True)
 
     # RCA
