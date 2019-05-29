@@ -6,7 +6,7 @@ from .users.user import user
 
 owkin = {
     'name': 'owkin',
-    'msp_id': 'owkinMSP',
+    'mspid': 'owkinMSP',
     'anchor_tx_file': '/substra/data/orgs/owkin/anchors.tx',
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in

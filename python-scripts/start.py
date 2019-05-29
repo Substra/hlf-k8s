@@ -123,7 +123,7 @@ def substra_org(org, orderer=None):
 
     # Configtx file
     config_filepath = org['misc']['configtx-config-path']
-    create_configtx(org, config_filepath)
+    create_configtx(org, config_filepath, raft=False)
 
     # Org Config files
     if 'peers' in org:

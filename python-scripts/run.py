@@ -19,7 +19,7 @@ def add_org(conf, conf_externals, orderer):
     orgs_mspid = []
     for conf_org in [conf] + conf_externals:
         installChainCodeOnPeers(conf_org, new_chaincode_version)
-        orgs_mspid.append(conf_org['msp_id'])
+        orgs_mspid.append(conf_org['mspid'])
 
     upgradeChainCode(conf_externals[0], '{"Args":["init"]}', orderer, orgs_mspid, new_chaincode_version)
 
@@ -41,7 +41,7 @@ def add_org_with_channel(conf, conf_orderer):
 
     createChannel(conf, conf_orderer)
 
-    peersJoinChannel(conf)
+    peersJoinChannel(conf, conf_orderer)
     updateAnchorPeers(conf, conf_orderer)
 
     # Install chaincode on peer in each org

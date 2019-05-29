@@ -6,7 +6,7 @@ from .users.user import user
 
 chunantes = {
     'name': 'chu-nantes',
-    'msp_id': 'chu-nantesMSP',
+    'mspid': 'chu-nantesMSP',
     'anchor_tx_file': '/substra/data/orgs/chu-nantes/anchors.tx',
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in
