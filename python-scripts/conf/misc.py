@@ -8,6 +8,7 @@ misc = {
 
     'chaincode_name': 'substracc',
     'chaincode_version': '1.0',
+    'chaincode_path': 'github.com/hyperledger/chaincode/',
 
     'genesis_bloc_file': {
         'external': '/substra/data/genesis/genesis.block',
