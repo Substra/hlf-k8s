@@ -10,6 +10,8 @@ from shutil import copyfile
 from subprocess import call, check_output, CalledProcessError
 from hfc.fabric import Client
 from hfc.fabric.orderer import Orderer
+from hfc.fabric.organization import create_org
+from hfc.fabric.peer import Peer
 from hfc.fabric.user import create_user
 from hfc.util.keyvaluestore import FileKeyValueStore
 
@@ -86,100 +88,93 @@ def generateChannelArtifacts(conf):
 def createChannel(conf, conf_orderer):
     org = conf
 
-    orderer = conf_orderer['orderers'][0]
+    orderer1 = conf_orderer['orderers'][0]
 
     org_admin = org['users']['admin']
 
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
-    peer = org['peers'][0]
-    #peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+    tls_orderer_client_dir = os.path.join(orderer1['tls']['dir']['external'], orderer1['tls']['client']['dir'])
 
-    # update config path for using right core.yaml and right msp dir
-    #set_env_variables(peer_core, org_admin_msp_dir)
+    state_store = FileKeyValueStore('/tmp/kvs/')
+    # save org in cli
+    cli._organizations.update({org['name']: create_org(org['name'], org, state_store)})
 
-    tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
-    tls_orderer_client_dir = os.path.join(orderer['tls']['dir']['external'], orderer['tls']['client']['dir'])
-
+    # register admin in client
     admin_cert_path = os.path.join(org_admin_msp_dir, 'signcerts', 'cert.pem')
     admin_key_path = os.path.join(org_admin_msp_dir, 'keystore', 'key.pem')
     admin = create_user(name=org_admin['name'],
                         org=org['name'],
-                        state_store=FileKeyValueStore('/tmp/kvs/'),
-                        msp_id=org['msp_id'],
+                        state_store=state_store,
+                        msp_id=org['mspid'],
                         cert_path=admin_cert_path,
                         key_path=admin_key_path)
+    cli._organizations[org['name']]._users.update({org_admin['name']: admin})
 
-    orderer = Orderer(name=orderer['name'],
-                      endpoint=f"{orderer['host']}:{orderer['port']['internal']}",
-                      tls_ca_cert_file=os.path.join(tls_orderer_client_dir, orderer['tls']['client']['ca']),
-                      client_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
-                      client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
+    orderer = Orderer(orderer1['name'],
+                      endpoint=f"{orderer1['host']}:{orderer1['port']['internal']}",
+                      tls_ca_cert_file=os.path.join(tls_orderer_client_dir, orderer1['tls']['client']['ca']),
+                      client_cert_file=os.path.join(tls_orderer_client_dir, orderer1['tls']['client']['cert']),
+                      client_key_file=os.path.join(tls_orderer_client_dir, orderer1['tls']['client']['key']),
+                      #opts=(('grpc.ssl_target_name_override', orderer1['host']),)
+                      )
+
+    cli._orderers.update({orderer1['name']: orderer})
 
     loop = asyncio.get_event_loop()
-    response = loop.run_until_complete(cli.channel_create(
+    loop.run_until_complete(cli.channel_create(
         orderer,
         conf['misc']['channel_name'],
         admin,
         config_tx=conf['misc']['channel_tx_file']))
 
-    print('channel: ', response)
 
-    # call([
-    #     'peer',
-    #     'channel',
-    #     'create',
-    #     '-c', conf['misc']['channel_name'],
-    #     '--outputBlock', conf['misc']['channel_block'],
-    #     '-f', conf['misc']['channel_tx_file'],
-    #     '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-    #     '--tls',
-    #     '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-    #     '--clientauth',
-    #     '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-    #     '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-    # ])
-
-    # clean env variables
-    #clean_env_variables()
-
-
-def joinChannel(conf, peer):
-    # peer channel join use signcerts not admincerts, we need at least org admin signcerts because
-    # a peer cannot join a channel with its user signcerts in the user msp
-
-    org_admin_home = conf['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    channel_name = conf['misc']['channel_name']
-    print('Peer %(peer_host)s is attempting to join channel \'%(channel_name)s\' ...' % {
-        'peer_host': peer['host'],
-        'channel_name': channel_name
-    }, flush=True)
-
-    peer_core = '/substra/conf/%s/%s' % (conf['name'], peer['name'])
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-    set_tls_env_variables(peer)
-
-    call([
-        'peer',
-        'channel',
-        'join',
-        '-b', conf['misc']['channel_block']
-    ])
-
-    # clean env variables
-    clean_tls_env_variables()
-    clean_env_variables()
-
-
-def peersJoinChannel(conf):
+def peersJoinChannel(conf, conf_orderer):
     for peer in conf['peers']:
-        joinChannel(conf, peer)
+        tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
 
+        # add peer in cli
+        p = Peer(endpoint=f"{peer['host']}:{peer['port']['internal']}",
+                 tls_ca_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
+                 client_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
+                 client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
+        cli._peers.update({peer['name']: p})
+
+    org_admin = conf['users']['admin']
+
+    orderer_org_admin = conf_orderer['users']['admin']
+    orderer_org_admin_home = orderer_org_admin['home']
+    orderer_org_admin_msp_dir = os.path.join(orderer_org_admin_home, 'msp')
+
+    requestor = cli.get_user(conf['name'], org_admin['name'])
+
+    state_store = FileKeyValueStore('/tmp/kvs/')
+
+    cli._organizations.update({conf_orderer['name']: create_org(conf_orderer['name'], conf_orderer, state_store)})
+
+    # register orderer admin in client
+    orderer_admin_cert_path = os.path.join(orderer_org_admin_msp_dir, 'signcerts', 'cert.pem')
+    orderer_admin_key_path = os.path.join(orderer_org_admin_msp_dir, 'keystore', 'key.pem')
+    orderer_admin = create_user(name=orderer_org_admin['name'],
+                                org=conf_orderer['name'],
+                                state_store=state_store,
+                                msp_id=conf_orderer['mspid'],
+                                cert_path=orderer_admin_cert_path,
+                                key_path=orderer_admin_key_path)
+    cli._organizations[conf_orderer['name']]._users.update({orderer_org_admin['name']: orderer_admin})
+
+    orderer1 = conf_orderer['orderers'][0]
+    orderer = cli.get_orderer(orderer1['name'])
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(cli.channel_join(
+        requestor=requestor,
+        channel_name=conf['misc']['channel_name'],
+        peers=[x['name'] for x in conf['peers']],
+        orderer=orderer,
+        orderer_admin=orderer_admin
+    ))
 
 def getChannelConfigBlockWithPeer(org, conf_orderer):
     # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
@@ -575,7 +570,7 @@ def makePolicy(orgs_mspid):
 
 
 def instanciateChainCode(conf, conf_orderer, args):
-    policy = makePolicy([conf['msp_id']])
+    policy = makePolicy([conf['mspid']])
 
     org_admin_home = conf['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'

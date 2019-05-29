@@ -66,7 +66,7 @@ def create_configtx(org, filename, raft=True):
 
     configtx_org = {
         'Name': org['name'],
-        'ID': org['msp_id'],
+        'ID': org['mspid'],
         'MSPDir': f"{org['users']['admin']['home']}/msp",
     }
 
@@ -113,7 +113,7 @@ def create_core_config(org, peer):
 
     yaml_data['peer']['id'] = peer['host']
     yaml_data['peer']['address'] = f"{peer['host']}:{peer['port']['internal']}"
-    yaml_data['peer']['localMspId'] = org['msp_id']
+    yaml_data['peer']['localMspId'] = org['mspid']
 
     yaml_data['peer']['mspConfigPath'] = f'{org["core_dir"]["internal"]}/msp'
 
@@ -178,7 +178,7 @@ def create_orderer_config(orderer_conf):
         yaml_data['General']['ListenAddress'] = '0.0.0.0'
         yaml_data['General']['GenesisMethod'] = 'file'
         yaml_data['General']['GenesisFile'] = genesis_bloc_file
-        yaml_data['General']['LocalMSPID'] = org['msp_id']
+        yaml_data['General']['LocalMSPID'] = org['mspid']
         yaml_data['General']['LocalMSPDir'] = f"{org['core_dir']['internal']}/msp"
 
         yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']['internal']
@@ -224,7 +224,7 @@ def create_substrabac_config(org, orderer_conf):
             'state_store': '/tmp/hfc-cvs',
             'key_path': org['users']['user']['home'] + '/msp/keystore/*',
             'cert_path': org['users']['user']['home'] + '/msp/signcerts/cert.pem',
-            'msp_id': org['msp_id']
+            'msp_id': org['mspid']
         },
         'peer': {
             'name': peer['name'],

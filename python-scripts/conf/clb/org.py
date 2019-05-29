@@ -6,7 +6,7 @@ from .users.user import user
 
 clb = {
     'name': 'clb',
-    'msp_id': 'clbMSP',
+    'mspid': 'clbMSP',
     'anchor_tx_file': '/substra/data/orgs/clb/anchors.tx',
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in

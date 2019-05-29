@@ -4,7 +4,7 @@ from orderer.orderers.orderer1 import orderer1
 
 orderer = {
     'name': 'orderer',
-    'msp_id': 'ordererMSP',
+    'mspid': 'ordererMSP',
     'broadcast_dir': {
             'external': '/substra/data/log/broadcast',
             'internal': '/etc/hyperledger/fabric/broadcast'

@@ -70,13 +70,20 @@ def enrollCABootstrapAdmin(org):
              org['ca']['port']['internal'])
     print(f"Enrolling with {org['ca']['name']} as bootstrap identity ...", flush=True)
 
-    # create ca-cert.pem file
-    target = f"https://{org['ca']['host']}:{org['ca']['port']['internal']}"
-    cacli = ca_service(target=target,
-                       ca_certs_path=org['ca']['certfile']['internal'],
-                       ca_name=org['ca']['name'])
-    bootstrap_admin = cacli.enroll(org['users']['bootstrap_admin']['name'], org['users']['bootstrap_admin']['pass'])
+    org_user_msp_dir = os.path.join(org['users']['bootstrap_admin']['home'], 'msp')
+    bootstrap_admin = enrollWithFiles(org['users']['bootstrap_admin'], org, org_user_msp_dir, admincerts=False)
     return bootstrap_admin
+
+    # following commented code is better, but it is easier to save bootstrap_admin cert/key for not working with fabric-sdk-py.
+    # TODO: deplace bootstrap_admin outside the users dict of the organization
+
+    # # create ca-cert.pem file
+    # target = f"https://{org['ca']['host']}:{org['ca']['port']['internal']}"
+    # cacli = ca_service(target=target,
+    #                    ca_certs_path=org['ca']['certfile'],
+    #                    ca_name=org['ca']['name'])
+    # bootstrap_admin = cacli.enroll(org['users']['bootstrap_admin']['name'], org['users']['bootstrap_admin']['pass'])
+    # return bootstrap_admin
 
 
 def registerOrdererIdentities(org):
@@ -181,7 +188,7 @@ def saveMSP(msp_dir, enrollment, admincerts=False):
 def enrollWithFiles(user, org, msp_dir, csr=None, profile='', attr_reqs=None, admincerts=False):
     target = f"https://{org['ca']['host']}:{org['ca']['port']['internal']}"
     cacli = ca_service(target=target,
-                       ca_certs_path=org['ca']['certfile'],
+                       ca_certs_path=org['ca']['certfile']['internal'],
                        ca_name=org['ca']['name'])
     enrollment = cacli.enroll(user['name'], user['pass'], csr=csr, profile=profile, attr_reqs=attr_reqs)
 
