@@ -10,7 +10,7 @@ from utils.run_utils import (createChannel, peersJoinChannel, updateAnchorPeers,
 
 def add_org(conf, conf_externals, orderer):
     generateChannelUpdate(conf, conf_externals, orderer)
-    peersJoinChannel(conf)
+    peersJoinChannel(conf, conf_orderer)
 
     chaincode_version = getChaincodeVersion(conf_externals[0], orderer)
     new_chaincode_version = '%.1f' % (chaincode_version + 1.0)
