@@ -166,8 +166,8 @@ def create_orderer_config(orderer_conf):
         tls_client_dir = f"{orderer['tls']['dir']['internal']}/{orderer['tls']['client']['dir']}"
 
         # override template here
-        yaml_data['General']['TLS']['Certificate'] = f"{tls_server_dir}/{orderer['tls']['server']['cert']}"
-        yaml_data['General']['TLS']['PrivateKey'] = f"{tls_server_dir}/{orderer['tls']['server']['key']}"
+        yaml_data['General']['TLS']['Certificate'] = os.path.join(tls_server_dir, orderer['tls']['server']['cert'])
+        yaml_data['General']['TLS']['PrivateKey'] = os.path.join(tls_server_dir, orderer['tls']['server']['key'])
         yaml_data['General']['TLS']['Enabled'] = 'true'
         # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
         # from the py sdk if peer clientCert/clientKey is not set correctly
@@ -179,13 +179,13 @@ def create_orderer_config(orderer_conf):
         yaml_data['General']['GenesisMethod'] = 'file'
         yaml_data['General']['GenesisFile'] = genesis_bloc_file
         yaml_data['General']['LocalMSPID'] = org['mspid']
-        yaml_data['General']['LocalMSPDir'] = f"{org['core_dir']['internal']}/msp"
+        yaml_data['General']['LocalMSPDir'] = os.path.join(org['core_dir']['internal'], 'msp')
 
         yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']['internal']
 
-        dir = f'{SUBSTRA_PATH}/conf/{org["name"]}/{orderer["name"]}'
+        dir = os.path.join(SUBSTRA_PATH, 'conf', org['name'], orderer['name'])
         create_directory(dir)
-        filename = f"{dir}/orderer.yaml"
+        filename = os.path.join(dir, 'orderer.yaml')
         with open(filename, 'w+') as f:
             f.write(dump(yaml_data, default_flow_style=False))
 
