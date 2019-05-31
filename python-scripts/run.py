@@ -4,7 +4,7 @@ import json
 from subprocess import call
 
 from utils.run_utils import (createChannel, peersJoinChannel, updateAnchorPeers, installChainCodeOnPeers, instanciateChaincode,
-                             waitForInstantiation, queryChaincodeFromFirstPeerFirstOrg, generateChannelUpdate, upgradeChainCode,
+                             queryChaincodeFromFirstPeerFirstOrg, generateChannelUpdate, upgradeChainCode,
                              createSystemUpdateProposal, signAndPushSystemUpdateProposal, getChaincodeVersion, generateChannelArtifacts)
 
 
@@ -47,14 +47,11 @@ def add_org_with_channel(conf, conf_orderer):
     # Install chaincode on peer in each org
     installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
 
-    # Instantiate chaincode on the 1st peer of the 2nd org
-    instanciateChaincode(conf, conf_orderer)
-
-    # Wait chaincode is correctly instantiated and initialized
-    res = res and waitForInstantiation(conf, conf_orderer)
+    # Instantiate chaincode on the 1st peer of the 1st org
+    instanciateChaincode(conf)
 
     # Query chaincode from the 1st peer of the 1st org
-    res = res and queryChaincodeFromFirstPeerFirstOrg(conf)
+    res = res and queryChaincodeFromFirstPeerFirstOrg(conf) == 'null'
 
     if res:
         print('Congratulations! Ledger has been correctly initialized.', flush=True)

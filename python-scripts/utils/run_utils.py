@@ -95,8 +95,6 @@ def createChannel(conf, conf_orderer):
     org_admin_home = org['users']['admin']['home']
     org_admin_msp_dir = os.path.join(org_admin_home, 'msp')
 
-
-
     state_store = FileKeyValueStore('/tmp/kvs/')
     # save org in cli
     cli._organizations.update({org['name']: create_org(org['name'], org, state_store)})
@@ -437,7 +435,7 @@ def updateAnchorPeers(conf, conf_orderer):
 
     org = conf
     org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
+    org_admin_msp_dir = os.path.join(org_admin_home, 'msp')
 
     peer = org['peers'][0]
     peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
@@ -488,7 +486,7 @@ def installChainCodeOnPeers(org, chaincode_version):
     chaincode_path = org['misc']['chaincode_path']
 
     org_admin = org['users']['admin']
-    org_admin_home = org['users']['admin']['home']
+    org_admin_home = org_admin['home']
     org_admin_msp_dir = os.path.join(org_admin_home, 'msp')
 
     state_store = FileKeyValueStore('/tmp/kvs/')
@@ -518,63 +516,6 @@ def installChainCodeOnPeers(org, chaincode_version):
         cc_version=chaincode_version
     ))
     print(response)
-
-
-def waitForInstantiation(conf, conf_orderer):
-    org = conf
-
-    channel_name = conf['misc']['channel_name']
-
-    peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    orderer = conf_orderer['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-    set_tls_env_variables(peer)
-
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    print('Test if chaincode is instantiated on %(PEER_HOST)s ... (timeout 30 seconds)' % {'PEER_HOST': peer['host']},
-          flush=True)
-
-    starttime = int(time.time())
-    while int(time.time()) - starttime < 30:
-        call(['sleep', '1'])
-        output = subprocess.run(['peer',
-                                 'chaincode', 'list',
-                                 '-C', conf['misc']['channel_name'],
-                                 '--instantiated',
-                                 '-o',
-                                 '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-                                 '--tls',
-                                 '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-                                 # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-                                 '--clientauth',
-                                 '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-                                 '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-                                 ],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        data = output.stdout.decode('utf-8')
-        if not data:
-            data = output.stderr.decode('utf-8')
-        print(data, flush=True)
-        split_msg = 'Get instantiated chaincodes on channel %s:' % channel_name
-        if split_msg in data and len(data.split(split_msg)[1].replace('\n', '')):
-            print(data, flush=True)
-            clean_env_variables()
-            return True
-        print('.', end='', flush=True)
-
-    clean_tls_env_variables()
-    clean_env_variables()
-    return False
 
 
 def getChaincodeVersion(conf, conf_orderer):
@@ -631,49 +572,29 @@ def makePolicy(orgs_mspid):
     return policy
 
 
-def instanciateChainCode(conf, conf_orderer, args):
+def instanciateChaincode(conf, args=None):
+
     policy = makePolicy([conf['mspid']])
 
-    org_admin_home = conf['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
+    org_admin = conf['users']['admin']
 
-    peer = conf['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (conf['name'], peer['name'])
+    channel_name = conf['misc']['channel_name']
+    chaincode_name = conf['misc']['chaincode_name']
+    chaincode_version = conf['misc']['chaincode_version']
 
-    orderer = conf_orderer['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-    set_tls_env_variables(peer)
-
-    print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
-
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    call(['peer',
-          'chaincode', 'instantiate',
-          '-C', conf['misc']['channel_name'],
-          '-n', conf['misc']['chaincode_name'],
-          '-v', conf['misc']['chaincode_version'],
-          '-c', args,
-          '-P', policy,
-          '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-          '--tls',
-          '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-          # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--clientauth',
-          '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-          '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-          ])
-
-    # clean env variables
-    clean_tls_env_variables()
-    clean_env_variables()
-
-
-def instanciateChaincode(conf, orderer):
-    instanciateChainCode(conf, orderer, '{"Args":["init"]}')
+    requestor = cli.get_user(conf['name'], org_admin['name'])
+    loop = asyncio.get_event_loop()
+    response = loop.run_until_complete(cli.chaincode_instantiate(
+        requestor=requestor,
+        channel_name=channel_name,
+        peers=[x['name'] for x in conf['peers']],
+        args=args,
+        cc_name=chaincode_name,
+        cc_version=chaincode_version,
+        cc_endorsement_policy=policy,
+        wait_for_event=True
+    ))
+    print(response)
 
 
 def upgradeChainCode(conf, args, conf_orderer, orgs_mspid, chaincode_version):
@@ -719,79 +640,29 @@ def upgradeChainCode(conf, args, conf_orderer, orgs_mspid, chaincode_version):
     clean_env_variables()
 
 
-def chainCodeQueryWith(conf, arg, org, peer):
-    org_user_home = org['users']['user']['home']
-    org_user_msp_dir = org_user_home + '/msp'
-
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_user_msp_dir)
-    set_tls_env_variables(peer)
-
-    channel_name = conf['misc']['channel_name']
-    chaincode_name = conf['misc']['chaincode_name']
-
-    print('Querying chaincode in the channel \'%(channel_name)s\' on the peer \'%(peer_host)s\' ...' % {
-        'channel_name': channel_name,
-        'peer_host': peer['host']
-    }, flush=True)
-
-    try:
-        output = check_output(['peer', 'chaincode', 'query',
-                               '-C', channel_name,
-                               '-n', chaincode_name,
-                               '-c', arg]).decode()
-    except CalledProcessError as e:
-        output = e.output.decode()
-        print('Error:', flush=True)
-        print('Output: %s' % output, flush=True)
-        # clean env variables
-        clean_tls_env_variables()
-        clean_env_variables()
-    else:
-        try:
-            value = json.loads(output)
-        except:
-            value = output
-        else:
-            msg = 'Query of channel \'%(channel_name)s\' on peer \'%(peer_host)s\' was successful' % {
-                'channel_name': channel_name,
-                'peer_host': peer['host']
-            }
-            print(msg, flush=True)
-            print('Value: %s' % value, flush=True)
-
-        finally:
-            # clean env variables
-            clean_tls_env_variables()
-            clean_env_variables()
-            return value
-
-
 def queryChaincodeFromFirstPeerFirstOrg(conf):
     org = conf
+    org_admin = conf['users']['admin']
     peer = org['peers'][0]
 
     print('Try to query chaincode from first peer first org before invoke', flush=True)
 
-    starttime = int(time.time())
-    while int(time.time()) - starttime < 15:
-        call(['sleep', '1'])
-        data = chainCodeQueryWith(conf,
-                                  '{"Args":["queryObjectives"]}',
-                                  org,
-                                  peer)
-        # data should be null
-        print(data, flush=True)
-        if data == []:
-            print('Correctly initialized', flush=True)
-            return True
+    channel_name = conf['misc']['channel_name']
+    chaincode_name = conf['misc']['chaincode_name']
 
-        print('.', end='', flush=True)
+    requestor = cli.get_user(conf['name'], org_admin['name'])
 
-    print('\n/!\ Failed to query chaincode with initialized values', flush=True)
-    return False
+    loop = asyncio.get_event_loop()
+    response = loop.run_until_complete(cli.chaincode_query(
+        requestor=requestor,
+        channel_name=channel_name,
+        peers=[peer['name']],
+        fcn='queryObjectives',
+        args=None,
+        cc_name=chaincode_name,
+    ))
+
+    return response
 
 
 def createSystemUpdateProposal(org, conf_orderer):
