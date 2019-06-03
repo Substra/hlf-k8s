@@ -5,6 +5,7 @@ from .users.bootstrap_admin import bootstrap_admin
 from .users.user import user
 
 owkin = {
+    'type': 'client',
     'name': 'owkin',
     'mspid': 'owkinMSP',
     'anchor_tx_file': '/substra/data/orgs/owkin/anchors.tx',

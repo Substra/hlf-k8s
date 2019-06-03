@@ -23,7 +23,7 @@ def add_org(conf, conf_externals, orderer):
 
     upgradeChainCode(conf_externals[0], '{"Args":["init"]}', orderer, orgs_mspid, new_chaincode_version)
 
-    if queryChaincodeFromFirstPeerFirstOrg(conf):
+    if queryChaincodeFromFirstPeerFirstOrg(conf, new_chaincode_version):
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
         call(['touch', conf['misc']['run_success_file']])
     else:
@@ -36,8 +36,8 @@ def add_org_with_channel(conf, conf_orderer):
     res = True
 
     generateChannelArtifacts(conf)
-    createSystemUpdateProposal(conf, conf_orderer)
-    signAndPushSystemUpdateProposal(conf_orderer)
+    config_tx_file = createSystemUpdateProposal(conf, conf_orderer)
+    signAndPushSystemUpdateProposal(conf_orderer, config_tx_file)
 
     createChannel(conf, conf_orderer)
 
@@ -81,6 +81,6 @@ if __name__ == "__main__":
 
         conf_externals = [json.load(open(file_path, 'r')) for file_path in files]
 
-        add_org(conf, conf_externals, conf_orderer)
+        #add_org(conf, conf_externals, conf_orderer)
     else:
         add_org_with_channel(conf, conf_orderer)

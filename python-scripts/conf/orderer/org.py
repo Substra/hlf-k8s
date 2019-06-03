@@ -1,8 +1,10 @@
 from .users.bootstrap_admin import bootstrap_admin
 from .users.admin import admin
+from .peers.peer1 import peer1
 from orderer.orderers.orderer1 import orderer1
 
 orderer = {
+    'type': 'orderer',
     'name': 'orderer',
     'mspid': 'ordererMSP',
     'broadcast_dir': {
@@ -62,5 +64,6 @@ orderer = {
     'core_dir': {
         'internal': '/etc/hyperledger/fabric',
     },
+    'peers': [peer1],
     'orderers': [orderer1],
 }

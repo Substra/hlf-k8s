@@ -61,25 +61,20 @@ def clean_tls_env_variables():
 
 
 def generateChannelArtifacts(conf):
-    print('Generating channel configuration transaction at %(channel_tx_file)s' % {
-        'channel_tx_file': conf['misc']['channel_tx_file']}, flush=True)
+    print(f"Generating channel configuration transaction at {conf['misc']['channel_tx_file']}", flush=True)
 
     call(['configtxgen',
           '-profile', 'OrgsChannel',
           '-outputCreateChannelTx', conf['misc']['channel_tx_file'],
           '-channelID', conf['misc']['channel_name']])
 
-    org = conf
-    print('Generating anchor peer update transaction for %(org_name)s at %(anchor_tx_file)s' % {
-        'org_name': org['name'],
-        'anchor_tx_file': org['anchor_tx_file']
-    }, flush=True)
+    print(f"Generating anchor peer update transaction for {conf['name']} at {conf['anchor_tx_file']}", flush=True)
 
     call(['configtxgen',
           '-profile', 'OrgsChannel',
-          '-outputAnchorPeersUpdate', org['anchor_tx_file'],
+          '-outputAnchorPeersUpdate', conf['anchor_tx_file'],
           '-channelID', conf['misc']['channel_name'],
-          '-asOrg', org['name']])
+          '-asOrg', conf['name']])
 
 
 # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
@@ -171,7 +166,8 @@ def peersJoinChannel(conf, conf_orderer):
         cli._organizations[conf['name']]._users.update({org_admin['name']: requestor})
 
     # add orderer organization
-    cli._organizations.update({conf_orderer['name']: create_org(conf_orderer['name'], conf_orderer, state_store)})
+    if conf_orderer['name'] not in cli.organizations:
+        cli._organizations.update({conf_orderer['name']: create_org(conf_orderer['name'], conf_orderer, state_store)})
 
     # add orderer admin
     orderer_org_admin = conf_orderer['users']['admin']
@@ -639,7 +635,7 @@ def upgradeChainCode(conf, args, conf_orderer, orgs_mspid, chaincode_version):
     clean_env_variables()
 
 
-def queryChaincodeFromFirstPeerFirstOrg(conf):
+def queryChaincodeFromFirstPeerFirstOrg(conf, chaincode_version=None):
     org = conf
     org_admin = conf['users']['admin']
     peer = org['peers'][0]
@@ -670,18 +666,19 @@ def createSystemUpdateProposal(org, conf_orderer):
     channel_name = org['misc']['system_channel_name']
     channel_block = org['misc']['system_channel_block']
     org_config = createChannelConfig(org, False)
+    system_channel_config_envelope = getSystemChannelConfigBlock(conf_orderer, channel_block)
+    system_channel_config = system_channel_config_envelope['config']
 
-    getSystemChannelConfigBlock(conf_orderer, channel_block)
-
-    call(['configtxlator',
-          'proto_decode',
-          '--input', channel_block,
-          '--type', 'common.Block',
-          '--output', 'system_channelconfig.json'])
-    system_channel_config = json.load(open('system_channelconfig.json', 'r'))
+    # call(['configtxlator',
+    #       'proto_decode',
+    #       '--input', channel_block,
+    #       '--type', 'common.Block',
+    #       '--output', 'system_channelconfig.json'])
+    #system_channel_config = json.load(open('system_channelconfig.json', 'r'))
 
     # Keep useful part
-    system_channel_config = system_channel_config['data']['data'][0]['payload']['data']['config']
+    #system_channel_config = system_channel_config['data']['data'][0]['payload']['data']['config']
+
     json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
     call(['configtxlator',
           'proto_encode',
@@ -714,83 +711,169 @@ def createSystemUpdateProposal(org, conf_orderer):
     # Prepare proposal
     update = json.load(open('compute_update.json', 'r'))
 
-    # print(json.dumps(update, indent=4))
     proposal = {'payload': {'header': {'channel_header': {'channel_id': channel_name,
                                                           'type': 2}},
                             'data': {'config_update': update}}}
 
     json.dump(proposal, open('proposal.json', 'w'))
+
+    config_tx_file = 'proposal.pb'
+
     call(['configtxlator',
           'proto_encode',
           '--input', 'proposal.json',
           '--type', 'common.Envelope',
-          '--output', 'proposal.pb'])
+          '--output', config_tx_file])
+
+    return config_tx_file
 
 
-def getSystemChannelConfigBlock(conf, block_name):
-    getChannelConfigBlockWithOrderer(conf, conf['misc']['system_channel_name'], block_name)
+def getSystemChannelConfigBlock(conf_orderer, block_name):
+    reutrn getChannelConfigBlockWithOrderer(conf_orderer, conf_orderer['misc']['system_channel_name'], block_name)
 
 
-def getChannelConfigBlockWithOrderer(org, channel_name, block_name):
-    # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
+def getChannelConfigBlockWithOrderer(conf, channel_name, block_name):
+    print('Will getChannelConfigBlockWithOrderer', flush=True)
 
-    orderer_admin_home = org['users']['admin']['home']
-    orderer_admin_msp_dir = orderer_admin_home + '/msp'
+    state_store = FileKeyValueStore('/tmp/kvs/')
 
-    orderer = org['orderers'][0]
-    orderer_core = '/substra/conf/%s/%s' % (org['name'], orderer['name'])
+    # add channel on cli
+    if not cli.get_channel(channel_name):
+        cli._channels.update({channel_name: cli.new_channel(channel_name)})
+    # create peer and make orderer a peer too for fetching config
+    for peer in conf['peers']:
+        if not cli.get_peer(peer['name']):
+            tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
+            # add peer in cli
+            p = Peer(endpoint=f"{peer['host']}:{peer['port']['internal']}",
+                     tls_ca_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
+                     client_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
+                     client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
+            cli._peers.update({peer['name']: p})
 
-    set_env_variables(orderer_core, orderer_admin_msp_dir)
+    # add orderer organization
+    if conf['name'] not in cli.organizations:
+        cli._organizations.update({conf['name']: create_org(conf['name'], conf, state_store)})
 
-    tls_peer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
+    # # add orderer admin
+    orderer_org_admin = conf['users']['admin']
+    orderer_org_admin_home = orderer_org_admin['home']
+    orderer_org_admin_msp_dir = os.path.join(orderer_org_admin_home, 'msp')
+    orderer_admin_cert_path = os.path.join(orderer_org_admin_msp_dir, 'signcerts', 'cert.pem')
+    orderer_admin_key_path = os.path.join(orderer_org_admin_msp_dir, 'keystore', 'key.pem')
+    orderer_admin = create_user(name=orderer_org_admin['name'],
+                                org=conf['name'],
+                                state_store=state_store,
+                                msp_id=conf['mspid'],
+                                cert_path=orderer_admin_cert_path,
+                                key_path=orderer_admin_key_path)
+    cli._organizations[conf['name']]._users.update({orderer_org_admin['name']: orderer_admin})
 
-    call([
-        'peer',
-        'channel',
-        'fetch',
-        'config',
-        block_name,
-        '-c', channel_name,
-        '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-        '--tls',
-        '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-        '--clientauth',
-        '--certfile', tls_peer_client_dir + '/' + orderer['tls']['client']['cert'],
-        '--keyfile', tls_peer_client_dir + '/' + orderer['tls']['client']['key']
-    ])
+    # add real orderer from orderer organization
+    for o in conf['orderers']:
+        orderer = cli.get_orderer(o['name'])
+        if not orderer:
+            tls_orderer_client_dir = os.path.join(o['tls']['dir']['external'], o['tls']['client']['dir'])
+            orderer = Orderer(o['name'],
+                              endpoint=f"{o['host']}:{o['port']['internal']}",
+                              tls_ca_cert_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['ca']),
+                              client_cert_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['cert']),
+                              client_key_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['key']),
+                              )
 
-    # clean env variables
-    clean_env_variables()
+            cli._orderers.update({o['name']: orderer})
 
 
-def signAndPushSystemUpdateProposal(conf):
-    org = conf
-    channel_name = conf['misc']['system_channel_name']
+    orderer = conf['orderers'][0]
+    #orderer_core = os.path.join('/substra/conf', conf['name'], orderer['name'])
 
-    org_admin_home = org['users']['admin']['home']
-    orderer_admin_msp_dir = org_admin_home + '/msp'
+    peer = conf['peers'][0]
+    peer_core = os.path.join('/substra/conf', conf['name'], peer['name'])
 
-    orderer = org['orderers'][0]
-    orderer_core = '/substra/conf/%s/%s' % (org['name'], orderer['name'])
+    loop = asyncio.get_event_loop()
+    config_envelope = loop.run_until_complete(cli.get_channel_config_with_orderer(
+        orderer=cli.get_orderer(orderer['name']),
+        requestor=orderer_admin,
+        channel_name=channel_name
+    ))
 
-    set_env_variables(orderer_core, orderer_admin_msp_dir)
+    print('got ChannelConfigBlockWithOrderer', flush=True)
 
-    tls_peer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
+    return config_envelope
 
-    call(['peer',
-          'channel', 'update',
-          '-f', 'proposal.pb',
-          '-c', channel_name,
-          '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-          '--tls',
-          '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-          # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--clientauth',
-          '--certfile', tls_peer_client_dir + '/' + orderer['tls']['client']['cert'],
-          '--keyfile', tls_peer_client_dir + '/' + orderer['tls']['client']['key']
-          ])
+    # set_env_variables(peer_core, orderer_org_admin_msp_dir)
+    #
+    # #tls_orderer_client_dir = os.path.join(orderer['tls']['dir']['external'], orderer['tls']['client']['dir'])
+    # tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
+    #
+    # call([
+    #     'peer',
+    #     'channel',
+    #     'fetch',
+    #     'config',
+    #     block_name,
+    #     '-c', channel_name,
+    #     '-o', f"{orderer['host']}:{orderer['port']['internal']}",
+    #     '--tls',
+    #     '--clientauth',
+    #     '--cafile', os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
+    #     '--certfile', os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
+    #     '--keyfile', os.path.join(tls_peer_client_dir, peer['tls']['client']['key'])
+    # ])
+    #
+    # call(['cat', block_name])
+    #
+    # # clean env variables
+    # clean_env_variables()
 
-    # clean env variables
-    clean_env_variables()
+
+def signAndPushSystemUpdateProposal(org, config_tx_file):
+    print('signAndPushSystemUpdateProposal')
+
+    channel_name = org['misc']['system_channel_name']
+
+    state_store = FileKeyValueStore('/tmp/kvs/')
+
+    # add channel on cli
+    if not cli.get_channel(channel_name):
+        cli._channels.update({channel_name: cli.new_channel(channel_name)})
+
+    # add orderer organization
+    if org['name'] not in cli.organizations:
+        cli._organizations.update({org['name']: create_org(org['name'], org, state_store)})
+
+    # add orderer admin
+    orderer_org_admin = org['users']['admin']
+    orderer_org_admin_home = orderer_org_admin['home']
+    orderer_org_admin_msp_dir = os.path.join(orderer_org_admin_home, 'msp')
+    orderer_admin_cert_path = os.path.join(orderer_org_admin_msp_dir, 'signcerts', 'cert.pem')
+    orderer_admin_key_path = os.path.join(orderer_org_admin_msp_dir, 'keystore', 'key.pem')
+    orderer_admin = create_user(name=orderer_org_admin['name'],
+                                org=org['name'],
+                                state_store=state_store,
+                                msp_id=org['mspid'],
+                                cert_path=orderer_admin_cert_path,
+                                key_path=orderer_admin_key_path)
+    cli._organizations[org['name']]._users.update({orderer_org_admin['name']: orderer_admin})
+
+    # add real orderer from orderer organization
+    for o in org['orderers']:
+        orderer = cli.get_orderer(o['name'])
+        if not orderer:
+            tls_orderer_client_dir = os.path.join(o['tls']['dir']['external'], o['tls']['client']['dir'])
+            orderer = Orderer(o['name'],
+                              endpoint=f"{o['host']}:{o['port']['internal']}",
+                              tls_ca_cert_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['ca']),
+                              client_cert_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['cert']),
+                              client_key_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['key']),
+                              # opts=(('grpc.ssl_target_name_override', o['host']),)
+                              )
+
+            cli._orderers.update({o['name']: orderer})
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(cli.channel_update(
+        orderer,
+        channel_name,
+        orderer_admin,
+        config_tx=config_tx_file))

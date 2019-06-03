@@ -5,6 +5,7 @@ from .users.bootstrap_admin import bootstrap_admin
 from .users.user import user
 
 chunantes = {
+    'type': 'client',
     'name': 'chu-nantes',
     'mspid': 'chu-nantesMSP',
     'anchor_tx_file': '/substra/data/orgs/chu-nantes/anchors.tx',
