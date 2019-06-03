@@ -93,9 +93,13 @@ def registerOrdererIdentities(org):
         print(f"Registering {orderer['name']} with {org['ca']['name']}", flush=True)
         badmin.register(orderer['name'], orderer['pass'], 'orderer', maxEnrollments=-1)
 
+    for peer in org['peers']:
+        print(f"Registering {peer['name']} with {org['ca']['name']}\n", flush=True)
+        badmin.register(peer['name'], peer['pass'], 'peer', maxEnrollments=-1)
+
     print(f"Registering admin identity with {org['ca']['name']}", flush=True)
-    badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'],
-                    maxEnrollments=-1, attrs=[{'admin': 'true:ecert'}])
+    attrs = [{'admin': 'true:ecert'}]
+    badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=attrs)
 
 
 def registerPeerIdentities(org):
@@ -108,7 +112,7 @@ def registerPeerIdentities(org):
     # The admin identity has the "admin" attribute which is added to ECert by default
     attrs = [
         {'hf.Registrar.Roles': 'client'},
-        {'hf.Registrar.Attributess': '*'},
+        {'hf.Registrar.Attributes': '*'},
         {'hf.Revoker': 'true'},
         {'hf.GenCRL': 'true'},
         {'admin': 'true:ecert'},
@@ -117,13 +121,14 @@ def registerPeerIdentities(org):
     badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=attrs)
 
     print(f"Registering user identity with {org['ca']['name']}\n", flush=True)
-    badmin.register(org['users']['user']['name'], org['users']['user']['pass'], maxEnrollments=-1)
+    if 'user' in org['users']:
+        badmin.register(org['users']['user']['name'], org['users']['user']['pass'], maxEnrollments=-1)
 
 
 def registerIdentities(conf):
-    if 'peers' in conf:
+    if conf['type'] == 'client':
         registerPeerIdentities(conf)
-    if 'orderers' in conf:
+    if conf['type'] == 'orderer':
         registerOrdererIdentities(conf)
 
 
@@ -132,7 +137,7 @@ def registerUsers(conf):
 
     org_admin_msp_dir = os.path.join(conf['users']['admin']['home'], 'msp')
 
-    if 'peers' in conf:
+    if conf['type'] == 'client':
         # will create admin and user folder with an msp folder and populate it. Populate admincerts for configtxgen to work
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
@@ -144,7 +149,7 @@ def registerUsers(conf):
 
         # enroll user and create admincerts
         configLocalMSP(conf, 'user')
-    else:
+    if conf['type'] == 'orderer':
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
         # will create admincerts for configtxgen to work

@@ -126,7 +126,7 @@ def substra_org(org, orderer=None):
     create_configtx(org, config_filepath, raft=False)
 
     # Org Config files
-    if 'peers' in org:
+    if org['type'] == 'client':
         create_peer_config(org)
         # create_fabric_ca_peer_config(org)
         # Docker-compose for org
@@ -135,7 +135,8 @@ def substra_org(org, orderer=None):
         start(org, docker_compose)
 
     # Orderer Config files
-    if 'orderers' in org:
+    if org['type'] == 'orderer':
+        create_peer_config(org)
         create_orderer_config(org)
         docker_compose = generate_docker_compose_orderer(org,
                                                          SUBSTRA_PATH,
@@ -158,11 +159,11 @@ def substra_network(orgs):
     # Create Network
     call(['docker', 'network', 'create', SUBSTRA_NETWORK])
 
-    for orderer in [x for x in orgs if 'orderers' in x]:
+    for orderer in [x for x in orgs if x['type'] == 'orderer']:
         substra_org(orderer)
     else:
         # Prepare each org
-        for org in [x for x in orgs if 'peers' in x]:
+        for org in [x for x in orgs if x['type'] == 'client']:
             substra_org(org, orderer)
             # substrabac
             create_directory(f"{SUBSTRA_PATH}/dryrun/{org['name']}")
