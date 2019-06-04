@@ -260,17 +260,9 @@ def createChannelConfig(org, with_anchor=True):
     return org_config
 
 
-def createUpdateProposal(conf, org__channel_config, input_block, channel_name):
-    call(['configtxlator',
-          'proto_decode',
-          '--input', input_block,
-          '--type', 'common.Block',
-          '--output', 'mychannelconfig.json'])
-
-    my_channel_config = json.load(open('mychannelconfig.json', 'r'))
+def createUpdateProposal(conf, org__channel_config, my_channel_config, channel_name):
 
     # Keep useful part
-    my_channel_config = my_channel_config['data']['data'][0]['payload']['data']['config']
     json.dump(my_channel_config, open('mychannelconfig.json', 'w'))
 
     # Add org
@@ -413,9 +405,11 @@ def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
 
 def generateChannelUpdate(conf, conf_externals, orderer):
     org_channel_config = createChannelConfig(conf)
-    getChannelConfigBlockWithOrderer(orderer, conf['misc']['channel_name'], 'mychannelconfig.block')
 
-    createUpdateProposal(conf, org_channel_config, 'mychannelconfig.block', conf['misc']['channel_name'])
+    my_channel_config_envelope = getChannelConfigBlockWithOrderer(orderer, conf['misc']['channel_name'])
+    my_channel_config = my_channel_config_envelope['config']
+
+    createUpdateProposal(conf, org_channel_config, my_channel_config, conf['misc']['channel_name'])
     external_orgs = [conf_org for conf_org in conf_externals]
     signAndPushUpdateProposal(external_orgs, orderer, conf['misc']['channel_name'])
 
@@ -664,20 +658,9 @@ def createSystemUpdateProposal(org, conf_orderer):
     # https://console.bluemix.net/docs/services/blockchain/howto/orderer_operate.html?locale=en#orderer-operate
 
     channel_name = org['misc']['system_channel_name']
-    channel_block = org['misc']['system_channel_block']
     org_config = createChannelConfig(org, False)
-    system_channel_config_envelope = getSystemChannelConfigBlock(conf_orderer, channel_block)
+    system_channel_config_envelope = getSystemChannelConfigBlock(conf_orderer)
     system_channel_config = system_channel_config_envelope['config']
-
-    # call(['configtxlator',
-    #       'proto_decode',
-    #       '--input', channel_block,
-    #       '--type', 'common.Block',
-    #       '--output', 'system_channelconfig.json'])
-    #system_channel_config = json.load(open('system_channelconfig.json', 'r'))
-
-    # Keep useful part
-    #system_channel_config = system_channel_config['data']['data'][0]['payload']['data']['config']
 
     json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
     call(['configtxlator',
@@ -728,11 +711,11 @@ def createSystemUpdateProposal(org, conf_orderer):
     return config_tx_file
 
 
-def getSystemChannelConfigBlock(conf_orderer, block_name):
-    reutrn getChannelConfigBlockWithOrderer(conf_orderer, conf_orderer['misc']['system_channel_name'], block_name)
+def getSystemChannelConfigBlock(conf_orderer):
+    return getChannelConfigBlockWithOrderer(conf_orderer, conf_orderer['misc']['system_channel_name'])
 
 
-def getChannelConfigBlockWithOrderer(conf, channel_name, block_name):
+def getChannelConfigBlockWithOrderer(conf, channel_name):
     print('Will getChannelConfigBlockWithOrderer', flush=True)
 
     state_store = FileKeyValueStore('/tmp/kvs/')
@@ -740,16 +723,6 @@ def getChannelConfigBlockWithOrderer(conf, channel_name, block_name):
     # add channel on cli
     if not cli.get_channel(channel_name):
         cli._channels.update({channel_name: cli.new_channel(channel_name)})
-    # create peer and make orderer a peer too for fetching config
-    for peer in conf['peers']:
-        if not cli.get_peer(peer['name']):
-            tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
-            # add peer in cli
-            p = Peer(endpoint=f"{peer['host']}:{peer['port']['internal']}",
-                     tls_ca_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
-                     client_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
-                     client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
-            cli._peers.update({peer['name']: p})
 
     # add orderer organization
     if conf['name'] not in cli.organizations:
@@ -783,16 +756,9 @@ def getChannelConfigBlockWithOrderer(conf, channel_name, block_name):
 
             cli._orderers.update({o['name']: orderer})
 
-
-    orderer = conf['orderers'][0]
-    #orderer_core = os.path.join('/substra/conf', conf['name'], orderer['name'])
-
-    peer = conf['peers'][0]
-    peer_core = os.path.join('/substra/conf', conf['name'], peer['name'])
-
     loop = asyncio.get_event_loop()
     config_envelope = loop.run_until_complete(cli.get_channel_config_with_orderer(
-        orderer=cli.get_orderer(orderer['name']),
+        orderer=orderer,
         requestor=orderer_admin,
         channel_name=channel_name
     ))
@@ -800,31 +766,6 @@ def getChannelConfigBlockWithOrderer(conf, channel_name, block_name):
     print('got ChannelConfigBlockWithOrderer', flush=True)
 
     return config_envelope
-
-    # set_env_variables(peer_core, orderer_org_admin_msp_dir)
-    #
-    # #tls_orderer_client_dir = os.path.join(orderer['tls']['dir']['external'], orderer['tls']['client']['dir'])
-    # tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
-    #
-    # call([
-    #     'peer',
-    #     'channel',
-    #     'fetch',
-    #     'config',
-    #     block_name,
-    #     '-c', channel_name,
-    #     '-o', f"{orderer['host']}:{orderer['port']['internal']}",
-    #     '--tls',
-    #     '--clientauth',
-    #     '--cafile', os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
-    #     '--certfile', os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
-    #     '--keyfile', os.path.join(tls_peer_client_dir, peer['tls']['client']['key'])
-    # ])
-    #
-    # call(['cat', block_name])
-    #
-    # # clean env variables
-    # clean_env_variables()
 
 
 def signAndPushSystemUpdateProposal(org, config_tx_file):
