@@ -5,6 +5,7 @@ from .users.bootstrap_admin import bootstrap_admin
 from .users.user import user
 
 clb = {
+    'type': 'client',
     'name': 'clb',
     'mspid': 'clbMSP',
     'anchor_tx_file': '/substra/data/orgs/clb/anchors.tx',

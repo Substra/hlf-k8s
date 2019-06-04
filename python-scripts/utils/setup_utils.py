@@ -93,9 +93,10 @@ def registerOrdererIdentities(org):
         print(f"Registering {orderer['name']} with {org['ca']['name']}", flush=True)
         badmin.register(orderer['name'], orderer['pass'], 'orderer', maxEnrollments=-1)
 
-    for peer in org['peers']:
-        print(f"Registering {peer['name']} with {org['ca']['name']}\n", flush=True)
-        badmin.register(peer['name'], peer['pass'], 'peer', maxEnrollments=-1)
+    if 'peers' in org:
+        for peer in org['peers']:
+            print(f"Registering {peer['name']} with {org['ca']['name']}\n", flush=True)
+            badmin.register(peer['name'], peer['pass'], 'peer', maxEnrollments=-1)
 
     print(f"Registering admin identity with {org['ca']['name']}", flush=True)
     attrs = [{'admin': 'true:ecert'}]

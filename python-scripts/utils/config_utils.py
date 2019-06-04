@@ -148,8 +148,9 @@ def create_core_config(org, peer):
 
 
 def create_peer_config(org):
-    for peer in org['peers']:
-        create_core_config(org, peer)
+    if 'peers' in org:
+        for peer in org['peers']:
+            create_core_config(org, peer)
 
 
 def create_orderer_config(orderer_conf):

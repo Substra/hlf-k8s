@@ -81,6 +81,6 @@ if __name__ == "__main__":
 
         conf_externals = [json.load(open(file_path, 'r')) for file_path in files]
 
-        #add_org(conf, conf_externals, conf_orderer)
+        add_org(conf, conf_externals, conf_orderer)
     else:
         add_org_with_channel(conf, conf_orderer)
