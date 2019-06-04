@@ -11,8 +11,11 @@ from hfc.fabric import Client
 from hfc.fabric.orderer import Orderer
 from hfc.fabric.organization import create_org
 from hfc.fabric.peer import Peer
+from hfc.fabric.transaction.tx_context import create_tx_context
+from hfc.fabric.transaction.tx_proposal_request import create_tx_prop_req, CC_INSTANTIATE, CC_UPGRADE
 from hfc.fabric.user import create_user
 from hfc.util.keyvaluestore import FileKeyValueStore
+from hfc.util.utils import CC_TYPE_GOLANG
 
 cli = Client()
 cli._state_store = FileKeyValueStore('/tmp/kvs/')
@@ -584,47 +587,38 @@ def instanciateChaincode(conf, args=None):
     ))
 
 
-def upgradeChainCode(conf, args, conf_orderer, orgs_mspid, chaincode_version):
+def upgradeChainCode(org, orgs_mspid, chaincode_version, fcn, args=None):
     policy = makePolicy(orgs_mspid)
 
-    org = conf
+    for peer in org['peers']:
+        tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
 
-    peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+        # add peer in cli
+        p = Peer(endpoint=f"{peer['host']}:{peer['port']['internal']}",
+                 tls_ca_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
+                 client_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
+                 client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
+        cli._peers.update({peer['name']: p})
 
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
+    chaincode_name = org['misc']['chaincode_name']
+    channel_name = org['misc']['channel_name']
 
-    orderer = conf_orderer['orderers'][0]
+    org_admin = org['users']['admin']
 
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-    set_tls_env_variables(peer)
+    requestor = cli.get_user(org['name'], org_admin['name'])
 
-    print('Upgrading chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
-
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    call(['peer',
-          'chaincode', 'upgrade',
-          '-C', conf['misc']['channel_name'],
-          '-n', conf['misc']['chaincode_name'],
-          '-v', chaincode_version,
-          '-c', args,
-          '-P', policy,
-          '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-          '--tls',
-          '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-          # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--clientauth',
-          '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-          '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-          ])
-
-    # clean env variables
-    clean_tls_env_variables()
-    clean_env_variables()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(cli.chaincode_upgrade(
+        requestor=requestor,
+        channel_name=channel_name,
+        peers=[x['name'] for x in org['peers']],
+        fcn=fcn,
+        args=args,
+        cc_name=chaincode_name,
+        cc_version=chaincode_version,
+        cc_endorsement_policy=policy,
+        wait_for_event=True
+    ))
 
 
 def queryChaincodeFromFirstPeerFirstOrg(org, chaincode_version=None):
