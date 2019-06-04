@@ -51,7 +51,7 @@ def add_org(conf, conf_externals, orderer):
         installChainCodeOnPeers(conf_org, new_chaincode_version)
         orgs_mspid.append(conf_org['mspid'])
 
-    upgradeChainCode(conf_externals[0], orderer, orgs_mspid, new_chaincode_version, 'init', None)
+    upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')
 
     if queryChaincodeFromFirstPeerFirstOrg(conf, new_chaincode_version):
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
