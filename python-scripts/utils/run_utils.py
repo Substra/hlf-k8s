@@ -11,11 +11,10 @@ from hfc.fabric import Client
 from hfc.fabric.orderer import Orderer
 from hfc.fabric.organization import create_org
 from hfc.fabric.peer import Peer
-from hfc.fabric.transaction.tx_context import create_tx_context
-from hfc.fabric.transaction.tx_proposal_request import create_tx_prop_req, CC_INSTANTIATE, CC_UPGRADE
+from hfc.fabric.transaction.tx_context import TXContext
 from hfc.fabric.user import create_user
+from hfc.util import utils
 from hfc.util.keyvaluestore import FileKeyValueStore
-from hfc.util.utils import CC_TYPE_GOLANG
 
 cli = Client()
 cli._state_store = FileKeyValueStore('/tmp/kvs/')
@@ -130,8 +129,6 @@ def peersJoinChannel(conf, conf_orderer):
     print(f"Join channel {[x['name'] for x in conf['peers']]} ...", flush=True)
 
     channel_name = conf['misc']['channel_name']
-
-
 
     if conf['name'] not in cli.organizations:
         cli._organizations.update({conf['name']: create_org(conf['name'], conf, cli.state_store)})
@@ -298,6 +295,7 @@ def createUpdateProposal(conf, org__channel_config, my_channel_config, channel_n
           '--type', 'common.ConfigUpdate',
           '--output', 'compute_update.json'])
 
+
     # Prepare proposal
     update = json.load(open('compute_update.json', 'r'))
     proposal = {'payload': {'header': {'channel_header': {'channel_id': channel_name,
@@ -306,57 +304,46 @@ def createUpdateProposal(conf, org__channel_config, my_channel_config, channel_n
 
     json.dump(proposal, open('proposal.json', 'w'))
 
-    config = 'proposal.pb'
+    config_tx_file = 'proposal.pb'
     call(['configtxlator',
           'proto_encode',
           '--input', 'proposal.json',
           '--type', 'common.Envelope',
-          '--output', config])
-    return config
+          '--output', config_tx_file])
+    return config_tx_file
 
 
-def signAndPushUpdateProposal(orgs, conf_orderer, config):
+def signAndPushUpdateProposal(orgs, conf_orderer, config_tx_file):
     orderer = conf_orderer['orderers'][0]
 
+    signatures = []
     for org in orgs:
         # Sign
-        org_admin_home = org['users']['admin']['home']
-        org_admin_msp_dir = org_admin_home + '/msp'
+        print(f"Sign update proposal on {org['name']} ...", flush=True)
 
-        peer = org['peers'][0]
-        peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+        # add organization
+        if org['name'] not in cli.organizations:
+            cli._organizations.update({org['name']: create_org(org['name'], org, cli.state_store)})
 
-        set_env_variables(peer_core, org_admin_msp_dir)
+        org_admin = org['users']['admin']
+        org_admin_home = org_admin['home']
+        org_admin_msp_dir = os.path.join(org_admin_home, 'msp')
 
-        tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-        tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
+        requestor = cli.get_user(org['name'], org_admin['name'])
+        if not requestor:
+            # register admin in client
+            admin_cert_path = os.path.join(org_admin_msp_dir, 'signcerts', 'cert.pem')
+            admin_key_path = os.path.join(org_admin_msp_dir, 'keystore', 'key.pem')
+            requestor = create_user(name=org_admin['name'],
+                                    org=org['name'],
+                                    state_store=cli.state_store,
+                                    msp_id=org['mspid'],
+                                    cert_path=admin_cert_path,
+                                    key_path=admin_key_path)
+            cli._organizations[org['name']]._users.update({org_admin['name']: requestor})
 
-        print('Sign update proposal on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
-
-        # One signature per proposal
-        proposal_file = 'proposal-%s-%s.pb' % (org['name'], peer['name'])
-        copyfile('proposal.pb', proposal_file)
-
-        call(['peer',
-              'channel', 'signconfigtx',
-              '-f', proposal_file,
-              '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-              '--tls',
-              '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-              # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-              '--clientauth',
-              '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-              '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-              ])
-
-        call(['configtxlator',
-              'proto_decode',
-              '--input', proposal_file,
-              '--type', 'common.Envelope',
-              '--output', 'proposal-%s-%s.json' % (org['name'], peer['name'])])
-
-        # clean env variables
-        clean_env_variables()
+        signature = cli.channel_signconfigtx(config_tx_file, requestor)
+        signatures.append(signature)
     else:
         # List all signed proposal
         files = glob.glob('./proposal-*.json')
@@ -379,17 +366,9 @@ def signAndPushUpdateProposal(orgs, conf_orderer, config):
               '--output', 'proposal-signed.pb'])
 
         # Push
-        print('Send update proposal...', flush=True)
+        print(f"Send update proposal with org: {org['name']}...", flush=True)
 
         channel_name = org['misc']['channel_name']
-
-        org_admin = org['users']['admin']
-        org_admin_home = org_admin['home']
-        org_admin_msp_dir = os.path.join(org_admin_home, 'msp')
-
-        # add organization
-        if org['name'] not in cli.organizations:
-            cli._organizations.update({org['name']: create_org(org['name'], org, cli.state_store)})
 
         # add real orderer from orderer organization
         for o in conf_orderer['orderers']:
@@ -405,25 +384,13 @@ def signAndPushUpdateProposal(orgs, conf_orderer, config):
 
                 cli._orderers.update({o['name']: orderer})
 
-        requestor = cli.get_user(org['name'], org_admin['name'])
-        if not requestor:
-            # register admin in client
-            admin_cert_path = os.path.join(org_admin_msp_dir, 'signcerts', 'cert.pem')
-            admin_key_path = os.path.join(org_admin_msp_dir, 'keystore', 'key.pem')
-            requestor = create_user(name=org_admin['name'],
-                                    org=org['name'],
-                                    state_store=cli.state_store,
-                                    msp_id=org['mspid'],
-                                    cert_path=admin_cert_path,
-                                    key_path=admin_key_path)
-            cli._organizations[org['name']]._users.update({org_admin['name']: requestor})
-
         loop = asyncio.get_event_loop()
         loop.run_until_complete(cli.channel_update(
             orderer,
             channel_name,
             requestor,
-            config_tx=config))
+            config_tx=config_tx_file,
+            signatures=signatures))
 
 
 def generateChannelUpdate(conf, external_orgs, orderer):
@@ -432,8 +399,8 @@ def generateChannelUpdate(conf, external_orgs, orderer):
     my_channel_config_envelope = getChannelConfigBlockWithOrderer(orderer, conf['misc']['channel_name'])
     my_channel_config = my_channel_config_envelope['config']
 
-    config = createUpdateProposal(conf, org_channel_config, my_channel_config, conf['misc']['channel_name'])
-    signAndPushUpdateProposal(external_orgs, orderer, config)
+    config_tx_file = createUpdateProposal(conf, org_channel_config, my_channel_config, conf['misc']['channel_name'])
+    signAndPushUpdateProposal(external_orgs, orderer, config_tx_file)
 
 
 # # the updater of the channel anchor transaction must have admin rights for one of the consortium orgs
@@ -508,44 +475,33 @@ def installChainCodeOnPeers(org, chaincode_version):
     ))
 
 
-def getChaincodeVersion(conf, conf_orderer):
-    org = conf
+def getChaincodeVersion(org):
+    org_admin = org['users']['admin']
 
-    peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
 
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
+    channel_name = org['misc']['channel_name']
+    requestor = cli.get_user(org['name'], org_admin['name'])
 
-    orderer = conf_orderer['orderers'][0]
+    for peer in org['peers']:
+        if not cli.get_peer(peer['name']):
+            tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
+            # add peer in cli
+            p = Peer(endpoint=f"{peer['host']}:{peer['port']['internal']}",
+                     tls_ca_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
+                     client_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
+                     client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
+            cli._peers.update({peer['name']: p})
 
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-    set_tls_env_variables(peer)
+    loop = asyncio.get_event_loop()
+    responses = loop.run_until_complete(cli.query_instantiated_chaincodes(
+        requestor=requestor,
+        channel_name=channel_name,
+        peers=[x['name'] for x in org['peers']]
+    ))
 
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    output = subprocess.run(['peer',
-                             'chaincode', 'list',
-                             '-C', conf['misc']['channel_name'],
-                             '--instantiated',
-                             '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-                             '--tls',
-                             '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-                             # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-                             '--clientauth',
-                             '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-                             '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-                             ],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-    data = output.stdout.decode('utf-8')
-
-    clean_tls_env_variables()
-    clean_env_variables()
-
-    return float(data.split('Version: ')[-1].split(',')[0])
+    # TODO get chaincode which has name like chaincode_name
+    version = float(responses[0].chaincodes[0].version)
+    return version
 
 
 def makePolicy(orgs_mspid):
@@ -625,7 +581,7 @@ def queryChaincodeFromFirstPeerFirstOrg(org, chaincode_version=None):
     org_admin = org['users']['admin']
     peer = org['peers'][0]
 
-    print('Try to query chaincode from first peer first org before invoke', flush=True)
+    print(f"Try to query chaincode from peer {peer['name']} on org {org['name']} with chaincode version {chaincode_version}", flush=True)
 
     channel_name = org['misc']['channel_name']
     chaincode_name = org['misc']['chaincode_name']
@@ -706,8 +662,6 @@ def getSystemChannelConfigBlock(conf_orderer):
 def getChannelConfigBlockWithOrderer(conf, channel_name):
     print('Will getChannelConfigBlockWithOrderer', flush=True)
 
-
-
     # add channel on cli
     if not cli.get_channel(channel_name):
         cli._channels.update({channel_name: cli.new_channel(channel_name)})
@@ -760,8 +714,6 @@ def signAndPushSystemUpdateProposal(org, config_tx_file):
     print('signAndPushSystemUpdateProposal')
 
     channel_name = org['misc']['system_channel_name']
-
-
 
     # add channel on cli
     if not cli.get_channel(channel_name):
