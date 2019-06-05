@@ -2,37 +2,20 @@ import asyncio
 
 import json
 import os
-import subprocess
 import glob
-from shutil import copyfile
 
 from subprocess import call, check_output
 from hfc.fabric import Client
 from hfc.fabric.orderer import Orderer
 from hfc.fabric.organization import create_org
 from hfc.fabric.peer import Peer
-from hfc.fabric.transaction.tx_context import TXContext
 from hfc.fabric.user import create_user
-from hfc.util import utils
 from hfc.util.keyvaluestore import FileKeyValueStore
 
 cli = Client()
 cli._state_store = FileKeyValueStore('/tmp/kvs/')
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
-def set_env_variables(fabric_cfg_path, msp_dir):
-
-    os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
-    os.environ['FABRIC_LOGGING_SPEC'] = 'info'
-
-
-def clean_env_variables():
-    del os.environ['FABRIC_CFG_PATH']
-    del os.environ['CORE_PEER_MSPCONFIGPATH']
-    del os.environ['FABRIC_LOGGING_SPEC']
-
 
 def set_tls_env_variables(node):
 
@@ -206,42 +189,6 @@ def peersJoinChannel(conf, conf_orderer):
         orderer=orderer,
         orderer_admin=orderer_admin
     ))
-
-
-def getChannelConfigBlockWithPeer(org, conf_orderer):
-    # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
-
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-    orderer = conf_orderer['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    call([
-        'peer',
-        'channel',
-        'fetch',
-        'config',
-        org['misc']['channel_block'],
-        '-c', org['misc']['channel_name'],
-        '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-        '--tls',
-        '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-        '--clientauth',
-        '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-        '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-    ])
-
-    # clean env variables
-    clean_env_variables()
 
 
 def createChannelConfig(org, with_anchor=True):
