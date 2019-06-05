@@ -42,7 +42,7 @@ def add_org(conf, conf_externals, orderer):
     generateChannelUpdate(conf, conf_externals, orderer)
     peersJoinChannel(conf, conf_orderer)
 
-    chaincode_version = getChaincodeVersion(conf_externals[0], orderer)
+    chaincode_version = getChaincodeVersion(conf_externals[0])
     new_chaincode_version = '%.1f' % (chaincode_version + 1.0)
 
     # Install chaincode on peer in each org
