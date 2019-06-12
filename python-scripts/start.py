@@ -201,8 +201,6 @@ if __name__ == '__main__':
     create_directory(f'{SUBSTRA_PATH}/dryrun/')
     create_directory(f'{SUBSTRA_PATH}/dockerfiles/')
 
-    fixtures = 'fixtures' in args
-
     if not glob.glob(f'{SUBSTRA_PATH}/conf/config/conf-*.json'):
         # Global configuration
         if args['config']:
@@ -221,7 +219,7 @@ if __name__ == '__main__':
 
     substra_network(orgs)
 
-    if fixtures:
+    if args['fixtures']:
         docker_compose_path = generate_fixtures_docker(SUBSTRA_PATH, SUBSTRA_NETWORK)
         project_directory = os.path.join(dir_path, os.pardir)
         call(['docker-compose', '-f', docker_compose_path, '--project-directory', project_directory, 'up', '-d',
