@@ -288,3 +288,40 @@ def generate_docker_compose_orderer(org, substra_path, network):
         f.write(yaml.dump(COMPOSITION, default_flow_style=False, indent=4, line_break=None))
 
     return docker_compose
+
+
+def generate_fixtures_docker(substra_path, network):
+    path = os.path.join(substra_path, 'dockerfiles', f'docker-compose-fixtures.yaml')
+
+    FABRIC_CA_HOME = '/etc/hyperledger/fabric-ca-server'
+    FABRIC_CFG_PATH = f'{substra_path}/data'
+    FABRIC_CA_CLIENT_HOME = '/etc/hyperledger/fabric'
+
+    COMPOSITION = {'services':
+                       {'fixtures':
+                            {'container_name': 'fixtures',
+                             'image': 'substra/substra-ca-tools-debug',
+                             'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/fixtures/fixtures2orgs.py 2>&1 | tee {substra_path}/data/log/fixtures.log"',
+                             'environment': [f'FABRIC_CA_HOME={FABRIC_CA_HOME}',
+                                             f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
+                                             f'FABRIC_CA_CLIENT_HOME={FABRIC_CA_CLIENT_HOME}'],
+                             'volumes': ['./python-scripts:/scripts',
+                                         f'{substra_path}/data/:{substra_path}/data/',
+                                         f'{substra_path}/conf/:{substra_path}/conf/',
+                                         # debug fabric-sdk-py, replace with your own debug path
+                                         "/home/guillaume/Projects/fabric/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
+                                         ],
+                             'networks': [network],
+                             'depends_on': []
+                             },
+                        },
+                   'version': '2',
+                   'networks': {
+                       network: {'external': True}
+                   }
+                }
+
+    with open(path, 'w+') as f:
+        f.write(yaml.dump(COMPOSITION, default_flow_style=False, indent=4, line_break=None))
+
+    return path

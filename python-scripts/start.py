@@ -10,7 +10,7 @@ from subprocess import call
 from utils.common_utils import dowait, create_directory, remove_chaincode_docker_images, remove_chaincode_docker_containers
 from utils.config_utils import (create_configtx, create_ca_server_config, create_ca_client_config, create_peer_config,
                                 create_orderer_config, create_substrabac_config)
-from utils.docker_utils import generate_docker_compose_org, generate_docker_compose_orderer
+from utils.docker_utils import generate_docker_compose_org, generate_docker_compose_orderer, generate_fixtures_docker
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -28,11 +28,12 @@ def remove_all_docker():
     for docker_compose_path in docker_compose_paths:
         with open(docker_compose_path) as dockercomposefile:
             dockercomposeconf = load(dockercomposefile, Loader=FullLoader)
-            services = list(dockercomposeconf['services'].keys())
 
-            # Force removal (quicker)
-            if services:
-                call(['docker', 'rm', '-f'] + services)
+            if 'services' in dockercomposeconf:
+                services = list(dockercomposeconf['services'].keys())
+                # Force removal (quicker)
+                if services:
+                    call(['docker', 'rm', '-f'] + services)
 
             down_cmds.append(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
 
@@ -81,7 +82,8 @@ def start(conf, docker_compose):
     # SVC
     services = [name for name, _ in docker_compose['substra_services']['svc']]
     print('Start services %s' % services, flush=True)
-    call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d', '--no-deps'] + services)
+    call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d',
+          '--no-deps'] + services)
 
     if 'orgs' in conf:
         peers_orgs_files = [peer['tls']['clientCert']
@@ -98,14 +100,15 @@ def start(conf, docker_compose):
 
     if has_run and 'run_success_file' in conf['misc']:
         if not os.path.exists(conf['misc']['run_success_file']):
-            call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d', '--no-deps', 'run'])
+            call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d',
+                  '--no-deps', 'run'])
 
             # Wait for the run container to start and complete
             dowait('the docker \'run\' container to run and complete',
                    160, conf['misc']['run_logfile'],
                    [conf['misc']['run_success_file']])
         else:
-            print('Run not launched because %s exists.' % conf['misc']['run_success_file'])
+            print(f"Run not launched because {conf['misc']['run_success_file']} exists.")
 
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
 
@@ -145,7 +148,7 @@ def substra_org(org, orderer=None):
         start(org, docker_compose)
 
 
-def substra_network(orgs):
+def substra_network(org):
 
     # Stop all
     docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
@@ -177,6 +180,8 @@ if __name__ == '__main__':
                         help="JSON config file to be used")
     parser.add_argument('--no-backup', action='store_true', default=False,
                         help="Remove backup binded volume. Launch from scratch")
+    parser.add_argument('--fixtures', action='store_true', default=False,
+                        help="Add fixtures")
     args = vars(parser.parse_args())
 
     # Stop all docker
@@ -196,6 +201,8 @@ if __name__ == '__main__':
     create_directory(f'{SUBSTRA_PATH}/dryrun/')
     create_directory(f'{SUBSTRA_PATH}/dockerfiles/')
 
+    fixtures = 'fixtures' in args
+
     if not glob.glob(f'{SUBSTRA_PATH}/conf/config/conf-*.json'):
         # Global configuration
         if args['config']:
@@ -213,3 +220,13 @@ if __name__ == '__main__':
     print('', flush=True)
 
     substra_network(orgs)
+
+    if fixtures:
+        docker_compose_path = generate_fixtures_docker(SUBSTRA_PATH, SUBSTRA_NETWORK)
+        project_directory = os.path.join(dir_path, os.pardir)
+        call(['docker-compose', '-f', docker_compose_path, '--project-directory', project_directory, 'up', '-d',
+              '--no-deps', 'fixtures'])
+        # Wait for the run container to start and complete
+        dowait('the docker fixtures container to run and complete',
+               160, '/substra/data/log/fixtures.log',
+               ['/substra/data/log/fixtures.successful'])
