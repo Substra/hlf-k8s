@@ -452,15 +452,22 @@ def getChaincodeVersion(org):
 
 
 def makePolicy(orgs_mspid):
-    policy = 'OR('
+    policy = {
+        'identities': [],
+        'policy': {}
+    }
 
     for index, org_mspid in enumerate(orgs_mspid):
-        if index != 0:
-            policy += ','
-        policy += '\'' + org_mspid + '.member\''
+        policy['identities'].append({'role': {'name': 'member', 'mspId': org_mspid}})
 
-    policy += ')'
-    print('policy: %s' % policy, flush=True)
+        if len(orgs_mspid) == 1:
+            policy['policy'] = {'signed-by': index}
+        else:
+            if not '1-of' in policy['policy']:
+                policy['policy']['1-of'] = []
+            policy['policy']['1-of'].append({'signed-by': index})
+
+    print(f'policy: {policy}', flush=True)
 
     return policy
 
@@ -478,7 +485,7 @@ def instanciateChaincode(conf, args=None):
     requestor = cli.get_user(conf['name'], org_admin['name'])
     loop = asyncio.get_event_loop()
 
-    loop.run_until_complete(cli.chaincode_instantiate(
+    res = loop.run_until_complete(cli.chaincode_instantiate(
         requestor=requestor,
         channel_name=channel_name,
         peers=[x['name'] for x in conf['peers']],
@@ -488,6 +495,7 @@ def instanciateChaincode(conf, args=None):
         cc_endorsement_policy=policy,
         wait_for_event=True
     ))
+    print(f'Instantiated chaincode with policy: {policy} and result: "{res}"')
 
 
 def upgradeChainCode(org, orgs_mspid, chaincode_version, fcn, args=None):
@@ -511,7 +519,7 @@ def upgradeChainCode(org, orgs_mspid, chaincode_version, fcn, args=None):
     requestor = cli.get_user(org['name'], org_admin['name'])
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(cli.chaincode_upgrade(
+    res = loop.run_until_complete(cli.chaincode_upgrade(
         requestor=requestor,
         channel_name=channel_name,
         peers=[x['name'] for x in org['peers']],
@@ -522,6 +530,7 @@ def upgradeChainCode(org, orgs_mspid, chaincode_version, fcn, args=None):
         cc_endorsement_policy=policy,
         wait_for_event=True
     ))
+    print(f'Upgraded chaincode with policy: {policy} and result: "{res}"')
 
 
 def queryChaincodeFromFirstPeerFirstOrg(org, chaincode_version=None):
@@ -544,6 +553,7 @@ def queryChaincodeFromFirstPeerFirstOrg(org, chaincode_version=None):
         args=None,
         cc_name=chaincode_name,
     ))
+    print(f"Queried chaincode, result: {response}")
 
     return response
 
