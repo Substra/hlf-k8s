@@ -172,6 +172,7 @@ def writeFile(filename, content):
 def saveMSP(msp_dir, enrollment, admincerts=False):
     # cert
     filename = os.path.join(msp_dir, 'signcerts', 'cert.pem')
+
     writeFile(filename, enrollment._cert)
 
     # private key
@@ -230,7 +231,7 @@ def genTLSCert(node, host_name, org, cert_file, key_file, ca_file):
 
     target = f"https://{org['ca']['host']}:{org['ca']['port']['internal']}"
     cacli = ca_service(target=target,
-                       ca_certs_path=org['ca']['certfile'],
+                       ca_certs_path=org['ca']['certfile']['internal'],
                        ca_name=org['ca']['name'])
     enrollment = cacli.enroll(node['name'], node['pass'], csr=csr, profile='tls')
 
