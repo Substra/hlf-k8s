@@ -2,6 +2,8 @@ import json
 import os
 import time
 import subprocess
+import glob
+from shutil import copyfile
 
 from subprocess import call, check_output, CalledProcessError
 
@@ -276,9 +278,13 @@ def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
 
         print('Sign update proposal on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
+        # One signature per proposal
+        proposal_file = 'proposal-%s-%s.pb' % (org['name'], peer['name'])
+        copyfile('proposal.pb', proposal_file)
+
         call(['peer',
               'channel', 'signconfigtx',
-              '-f', 'proposal.pb',
+              '-f', proposal_file,
               '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
               '--tls',
               '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
@@ -288,9 +294,35 @@ def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
               '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
               ])
 
+        call(['configtxlator',
+              'proto_decode',
+              '--input', proposal_file,
+              '--type', 'common.Envelope',
+              '--output', 'proposal-%s-%s.json' % (org['name'], peer['name'])])
+
         # clean env variables
         clean_env_variables()
     else:
+        # List all signed proposal
+        files = glob.glob('./proposal-*.json')
+        files.sort(key=os.path.getmtime)
+        proposals = [json.load(open(file_path, 'r')) for file_path in files]
+
+        # Take the first signed proposal
+        proposal = proposals.pop()
+
+        # Merge signatures into first signed proposal
+        for p in proposals:
+            proposal['payload']['data']['signatures'].extend(p['payload']['data']['signatures'])
+        json.dump(proposal, open('proposal-signed.json', 'w'))
+
+        # Convert it to protobuf
+        call(['configtxlator',
+              'proto_encode',
+              '--input', 'proposal-signed.json',
+              '--type', 'common.Envelope',
+              '--output', 'proposal-signed.pb'])
+
         # Push
         org_admin_home = org['users']['admin']['home']
         org_admin_msp_dir = org_admin_home + '/msp'
@@ -307,7 +339,7 @@ def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
 
         call(['peer',
               'channel', 'update',
-              '-f', 'proposal.pb',
+              '-f', 'proposal-signed.pb',
               '-c', channel_name,
               '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
               '--tls',
