@@ -16,10 +16,8 @@ def generateMSPandTLS(node, org, msp_dir, admincerts=False):
     tls_setup_dir = node['tls']['dir']['external']
 
     # create external folders (client and server)
-    tls_server_dir = os.path.join(node['tls']['dir']['external'], node['tls']['server']['dir'])
-    tls_client_dir = os.path.join(node['tls']['dir']['external'], node['tls']['client']['dir'])
-    create_directory(tls_server_dir)
-    create_directory(tls_client_dir)
+    tls_server_dir = os.path.join(tls_setup_dir, node['tls']['server']['dir'])
+    tls_client_dir = os.path.join(tls_setup_dir, node['tls']['client']['dir'])
 
     # Generate server TLS cert and key pair in container
     genTLSCert(node, node['host'], org,

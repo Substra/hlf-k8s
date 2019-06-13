@@ -28,6 +28,9 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                               f'{substra_path}/conf/config/conf-{org["name"]}.json:/{substra_path}/conf.json',
                                                               f'{substra_path}/conf/{org["name"]}/fabric-ca-client-config.yaml:{FABRIC_CA_CLIENT_HOME}/fabric-ca-client-config.yaml',
 
+                                                              # TODO remove when deal correctly with fabric-sdk-py
+                                                              # Bootstrap Admin MSP
+                                                              f'{org["users"]["bootstrap_admin"]["home"]}:{org["users"]["bootstrap_admin"]["home"]}',
                                                               # Admin MSP
                                                               f'{org["users"]["admin"]["home"]}:{org["users"]["admin"]["home"]}',
                                                               # User MSP
@@ -196,6 +199,10 @@ def generate_docker_compose_orderer(org, substra_path, network):
                                                               f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
                                                               f'{substra_path}/data/configtx-{org["name"]}.yaml:{FABRIC_CFG_PATH}/configtx.yaml',
                                                               f'{substra_path}/conf/{org["name"]}/fabric-ca-client-config.yaml:{FABRIC_CA_CLIENT_HOME}/fabric-ca-client-config.yaml',
+
+                                                              # TODO remove when deal correctly with fabric-sdk-py
+                                                              # Bootstrap Admin MSP
+                                                              f'{org["users"]["bootstrap_admin"]["home"]}:{org["users"]["bootstrap_admin"]["home"]}',
 
                                                               # Admin MSP
                                                               f'{org["users"]["admin"]["home"]}:{org["users"]["admin"]["home"]}',
