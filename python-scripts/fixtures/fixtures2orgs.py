@@ -430,6 +430,7 @@ def init_cli(orgs):
             # add peer in cli
 
             ##########################################################################################
+            # TODO pass it from docker
             # For debugging, you can use peer['port']['external'] instead of peer['port']['internal']
             ##########################################################################################
 
