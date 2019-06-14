@@ -34,7 +34,6 @@ def queryChaincode(fcn, args, org_name, peers):
         fcn=fcn,
         args=args,
         cc_name=chaincode_name,
-        cc_version=chaincode_version
     ))
 
     return response
@@ -56,7 +55,6 @@ def invokeChainCode(fcn, args, org_name, peers):
         fcn=fcn,
         args=args,
         cc_name=chaincode_name,
-        cc_version=chaincode_version,
         wait_for_event=True
     ))
 

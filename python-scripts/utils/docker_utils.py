@@ -25,7 +25,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                                   f'FABRIC_CA_CLIENT_HOME={FABRIC_CA_CLIENT_HOME}'],
                                                   'volumes': ['./python-scripts:/scripts',
                                                               f'{substra_path}/data/log:{substra_path}/data/log',
-                                                              f'{substra_path}/conf/config/conf-{org["name"]}.json:/{substra_path}/conf.json',
+                                                              f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
                                                               f'{substra_path}/conf/{org["name"]}/fabric-ca-client-config.yaml:{FABRIC_CA_CLIENT_HOME}/fabric-ca-client-config.yaml',
 
                                                               # TODO remove when deal correctly with fabric-sdk-py
@@ -297,7 +297,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
     return docker_compose
 
 
-def generate_fixtures_docker(substra_path, network):
+def generate_fixtures_docker(substra_path, fixtures_path, network):
     path = os.path.join(substra_path, 'dockerfiles', f'docker-compose-fixtures.yaml')
 
     FABRIC_CA_HOME = '/etc/hyperledger/fabric-ca-server'
@@ -308,7 +308,7 @@ def generate_fixtures_docker(substra_path, network):
                        {'fixtures':
                             {'container_name': 'fixtures',
                              'image': 'substra/substra-ca-tools-debug',
-                             'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/fixtures/fixtures2orgs.py 2>&1 | tee {substra_path}/data/log/fixtures.log"',
+                             'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/fixtures/{fixtures_path}.py 2>&1 | tee {substra_path}/data/log/fixtures.log"',
                              'environment': [f'FABRIC_CA_HOME={FABRIC_CA_HOME}',
                                              f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
                                              f'FABRIC_CA_CLIENT_HOME={FABRIC_CA_CLIENT_HOME}'],

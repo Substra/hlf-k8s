@@ -17,34 +17,6 @@ cli._state_store = FileKeyValueStore('/tmp/kvs/')
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-def set_tls_env_variables(node):
-
-    tls_client_dir = node['tls']['dir']['external'] + '/' + node['tls']['client']['dir']
-    tls_server_dir = node['tls']['dir']['external'] + '/' + node['tls']['server']['dir']
-
-    os.environ['CORE_PEER_TLS_ENABLED'] = 'true'
-    os.environ['CORE_PEER_TLS_ROOTCERT_FILE'] = tls_server_dir + '/' + node['tls']['server']['ca']
-    os.environ['CORE_PEER_TLS_CERT_FILE'] = tls_server_dir + '/' + node['tls']['server']['cert']
-    os.environ['CORE_PEER_TLS_KEY_FILE'] = tls_server_dir + '/' + node['tls']['server']['key']
-
-    os.environ['CORE_PEER_TLS_CLIENTAUTHREQUIRED'] = 'true'
-    os.environ['CORE_PEER_TLS_CLIENTCERT_FILE'] = tls_client_dir + '/' + node['tls']['client']['cert']
-    os.environ['CORE_PEER_TLS_CLIENTKEY_FILE'] = tls_client_dir + '/' + node['tls']['client']['key']
-    os.environ['CORE_PEER_TLS_CLIENTROOTCAS_FILES'] = tls_client_dir + '/' + node['tls']['client']['ca']
-
-
-def clean_tls_env_variables():
-    del os.environ['CORE_PEER_TLS_ENABLED']
-    del os.environ['CORE_PEER_TLS_ROOTCERT_FILE']
-    del os.environ['CORE_PEER_TLS_CERT_FILE']
-    del os.environ['CORE_PEER_TLS_KEY_FILE']
-
-    del os.environ['CORE_PEER_TLS_CLIENTAUTHREQUIRED']
-    del os.environ['CORE_PEER_TLS_CLIENTCERT_FILE']
-    del os.environ['CORE_PEER_TLS_CLIENTKEY_FILE']
-    del os.environ['CORE_PEER_TLS_CLIENTROOTCAS_FILES']
-
-
 def generateChannelArtifacts(conf):
     print(f"Generating channel configuration transaction at {conf['misc']['channel_tx_file']}", flush=True)
 

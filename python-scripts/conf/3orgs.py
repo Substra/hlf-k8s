@@ -7,7 +7,7 @@ from chunantes import chunantes
 from clb import clb
 
 misc.update({
-    'fixtures_path': 'fixtures2orgs.py'
+    'fixtures_path': 'fixtures3orgs.py'
 })
 
 
