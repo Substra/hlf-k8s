@@ -2,7 +2,6 @@ import asyncio
 
 import json
 import os
-import glob
 
 from subprocess import call, check_output
 from hfc.fabric import Client
@@ -264,26 +263,6 @@ def signAndPushUpdateProposal(orgs, conf_orderer, config_tx_file):
         signature = cli.channel_signconfigtx(config_tx_file, requestor)
         signatures.append(signature)
     else:
-        # List all signed proposal
-        files = glob.glob('./proposal-*.json')
-        files.sort(key=os.path.getmtime)
-        proposals = [json.load(open(file_path, 'r')) for file_path in files]
-
-        # Take the first signed proposal
-        proposal = proposals.pop()
-
-        # Merge signatures into first signed proposal
-        for p in proposals:
-            proposal['payload']['data']['signatures'].extend(p['payload']['data']['signatures'])
-        json.dump(proposal, open('proposal-signed.json', 'w'))
-
-        # Convert it to protobuf
-        call(['configtxlator',
-              'proto_encode',
-              '--input', 'proposal-signed.json',
-              '--type', 'common.Envelope',
-              '--output', 'proposal-signed.pb'])
-
         # Push
         print(f"Send update proposal with org: {org['name']}...", flush=True)
 
