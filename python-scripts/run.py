@@ -12,7 +12,8 @@ def add_org(conf, conf_externals, orderer):
     generateChannelUpdate(conf, conf_externals, orderer)
     peersJoinChannel(conf)
 
-    new_chaincode_version = '%.1f' % (getChaincodeVersion(conf_externals[0], orderer) + 1.0)
+    chaincode_version = getChaincodeVersion(conf_externals[0], orderer)
+    new_chaincode_version = '%.1f' % (chaincode_version + 1.0)
 
     # Install chaincode on peer in each org
     orgs_mspid = []

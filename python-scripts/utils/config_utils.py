@@ -16,11 +16,11 @@ def create_ca_server_config(org):
     yaml_data = load(stream, Loader=FullLoader)
 
     # override template here
-    yaml_data['tls']['certfile'] = org['tls']['certfile']
+    yaml_data['tls']['certfile'] = org['tls']['certfile']['internal']
 
     yaml_data['ca']['name'] = org['ca']['name']
-    yaml_data['ca']['certfile'] = org['ca']['certfile']
-    # yaml_data['ca']['keyfile'] = org['ca']['keyfile']
+    yaml_data['ca']['certfile'] = org['ca']['certfile']['internal']
+    # yaml_data['ca']['keyfile'] = org['ca']['keyfile']['internal']
 
     yaml_data['csr']['cn'] = org['csr']['cn']
     yaml_data['csr']['hosts'] += org['csr']['hosts']
@@ -42,7 +42,7 @@ def create_ca_client_config(org):
 
     # override template here
     # https://hyperledger-fabric-ca.readthedocs.io/en/release-1.2/users-guide.html#enabling-tls
-    yaml_data['tls']['certfiles'] = org['ca']['certfile']
+    yaml_data['tls']['certfiles'] = org['ca']['certfile']['internal']
 
     yaml_data['caname'] = org['ca']['name']
 
@@ -80,8 +80,9 @@ def create_configtx(org, filename, raft=True):
             yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['EtcdRaft'] = {'Consenters': [
                 {'Host': x['host'],
                  'Port': x['port']['internal'],
-                 'ClientTLSCert':f"{x['tls']['dir']['internal']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",
-                 'ServerTLSCert': f"{x['tls']['dir']['internal']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}
+                 # As we launch configtx.yaml in the setup.py we use external tls paths
+                 'ClientTLSCert':f"{x['tls']['dir']['external']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",
+                 'ServerTLSCert': f"{x['tls']['dir']['external']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}
 
                 for x in org['orderers']]
             }
@@ -105,8 +106,8 @@ def create_core_config(org, peer):
     stream = open(os.path.join(dir_path, '../../templates/core.yaml'), 'r')
     yaml_data = load(stream, Loader=FullLoader)
 
-    tls_server_dir = peer['tls']['dir']['internal']
-    tls_client_dir = f"{peer['tls']['dir']['external']}/{peer['tls']['client']['dir']}"
+    tls_server_dir = f"{peer['tls']['dir']['internal']}/{peer['tls']['server']['dir']}"
+    tls_client_dir = f"{peer['tls']['dir']['internal']}/{peer['tls']['client']['dir']}"
 
     # override template here
 
@@ -121,12 +122,15 @@ def create_core_config(org, peer):
     yaml_data['peer']['tls']['clientCert']['file'] = f"{tls_client_dir}/{peer['tls']['client']['cert']}"
     yaml_data['peer']['tls']['clientKey']['file'] = f"{tls_client_dir}/{peer['tls']['client']['key']}"
     yaml_data['peer']['tls']['enabled'] = 'true'
-    # the same as peer['tls']['serverCa'] but this one is inside the container
-    yaml_data['peer']['tls']['rootcert']['file'] = org['ca']['certfile']
+    # the same as peer['tls']['server']['ca'] but this one is inside the container
+    # yaml_data['peer']['tls']['rootcert']['file'] = org['ca']['certfile']['internal']
+    yaml_data['peer']['tls']['rootcert']['file'] = f"{tls_server_dir}/{peer['tls']['server']['ca']}"
+
     # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
     # from the py sdk if peer clientCert/clientKey is not set correctly
     yaml_data['peer']['tls']['clientAuthRequired'] = 'true'
-    yaml_data['peer']['tls']['clientRootCAs'] = [org['ca']['certfile']]
+    # yaml_data['peer']['tls']['clientRootCAs'] = [org['ca']['certfile']['internal']]
+    yaml_data['peer']['tls']['clientRootCAs'] = [f"{tls_client_dir}/{peer['tls']['client']['ca']}"]
 
     yaml_data['peer']['gossip']['useLeaderElection'] = 'true'
     yaml_data['peer']['gossip']['orgLeader'] = 'false'
@@ -152,13 +156,14 @@ def create_orderer_config(orderer_conf):
 
     org = orderer_conf
 
-    genesis_bloc_file = orderer_conf['misc']['genesis_bloc_file']
+    genesis_bloc_file = orderer_conf['misc']['genesis_bloc_file']['internal']
+
     stream = open(os.path.join(dir_path, '../../templates/orderer.yaml'), 'r')
     yaml_data = load(stream, Loader=FullLoader)
 
     for orderer in org['orderers']:
-        tls_server_dir = orderer['tls']['dir']['internal']
-        tls_client_dir = f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}"
+        tls_server_dir = f"{orderer['tls']['dir']['internal']}/{orderer['tls']['server']['dir']}"
+        tls_client_dir = f"{orderer['tls']['dir']['internal']}/{orderer['tls']['client']['dir']}"
 
         # override template here
         yaml_data['General']['TLS']['Certificate'] = f"{tls_server_dir}/{orderer['tls']['server']['cert']}"
@@ -167,8 +172,8 @@ def create_orderer_config(orderer_conf):
         # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
         # from the py sdk if peer clientCert/clientKey is not set correctly
         yaml_data['General']['TLS']['ClientAuthRequired'] = 'true'
-        yaml_data['General']['TLS']['RootCAs'] = [org['ca']['certfile']]
-        yaml_data['General']['TLS']['ClientRootCAs'] = [org['ca']['certfile']]
+        yaml_data['General']['TLS']['RootCAs'] = [org['ca']['certfile']['internal']]
+        yaml_data['General']['TLS']['ClientRootCAs'] = [org['ca']['certfile']['internal']]
 
         yaml_data['General']['ListenAddress'] = '0.0.0.0'
         yaml_data['General']['GenesisMethod'] = 'file'
@@ -176,7 +181,7 @@ def create_orderer_config(orderer_conf):
         yaml_data['General']['LocalMSPID'] = org['msp_id']
         yaml_data['General']['LocalMSPDir'] = f"{org['core_dir']['internal']}/msp"
 
-        yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']
+        yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']['internal']
 
         dir = f'{SUBSTRA_PATH}/conf/{org["name"]}/{orderer["name"]}'
         create_directory(dir)

@@ -1,4 +1,3 @@
-import docker
 import json
 import os
 import time
@@ -8,10 +7,9 @@ from subprocess import call, check_output, CalledProcessError
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-client = docker.from_env()
-
 
 def set_env_variables(fabric_cfg_path, msp_dir):
+
     os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
     os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
     os.environ['FABRIC_LOGGING_SPEC'] = 'info'
@@ -21,6 +19,34 @@ def clean_env_variables():
     del os.environ['FABRIC_CFG_PATH']
     del os.environ['CORE_PEER_MSPCONFIGPATH']
     del os.environ['FABRIC_LOGGING_SPEC']
+
+
+def set_tls_env_variables(node):
+
+    tls_client_dir = node['tls']['dir']['external'] + '/' + node['tls']['client']['dir']
+    tls_server_dir = node['tls']['dir']['external'] + '/' + node['tls']['server']['dir']
+
+    os.environ['CORE_PEER_TLS_ENABLED'] = 'true'
+    os.environ['CORE_PEER_TLS_ROOTCERT_FILE'] = tls_server_dir + '/' + node['tls']['server']['ca']
+    os.environ['CORE_PEER_TLS_CERT_FILE'] = tls_server_dir + '/' + node['tls']['server']['cert']
+    os.environ['CORE_PEER_TLS_KEY_FILE'] = tls_server_dir + '/' + node['tls']['server']['key']
+
+    os.environ['CORE_PEER_TLS_CLIENTAUTHREQUIRED'] = 'true'
+    os.environ['CORE_PEER_TLS_CLIENTCERT_FILE'] = tls_client_dir + '/' + node['tls']['client']['cert']
+    os.environ['CORE_PEER_TLS_CLIENTKEY_FILE'] = tls_client_dir + '/' + node['tls']['client']['key']
+    os.environ['CORE_PEER_TLS_CLIENTROOTCAS_FILES'] = tls_client_dir + '/' + node['tls']['client']['ca']
+
+
+def clean_tls_env_variables():
+    del os.environ['CORE_PEER_TLS_ENABLED']
+    del os.environ['CORE_PEER_TLS_ROOTCERT_FILE']
+    del os.environ['CORE_PEER_TLS_CERT_FILE']
+    del os.environ['CORE_PEER_TLS_KEY_FILE']
+
+    del os.environ['CORE_PEER_TLS_CLIENTAUTHREQUIRED']
+    del os.environ['CORE_PEER_TLS_CLIENTCERT_FILE']
+    del os.environ['CORE_PEER_TLS_CLIENTKEY_FILE']
+    del os.environ['CORE_PEER_TLS_CLIENTROOTCAS_FILES']
 
 
 def generateChannelArtifacts(conf):
@@ -86,6 +112,9 @@ def createChannel(conf, conf_orderer):
 
 
 def joinChannel(conf, peer):
+    # peer channel join use signcerts not admincerts, we need at least org admin signcerts because
+    # a peer cannot join a channel with its user signcerts in the user msp
+
     org_admin_home = conf['users']['admin']['home']
     org_admin_msp_dir = org_admin_home + '/msp'
 
@@ -95,10 +124,22 @@ def joinChannel(conf, peer):
         'channel_name': channel_name
     }, flush=True)
 
-    # peer channel join use signcerts not admincerts, we need to pass CORE_PEER_MSPCONFIGPATH to org admin.
-    # peer msp signcert is not an admin, a peer cannot join a channel with its own msp
-    container = client.containers.get(peer['host'])
-    container.exec_run('bash -c "export CORE_PEER_MSPCONFIGPATH=%s && peer channel join -b %s"' % (org_admin_msp_dir, conf['misc']['channel_block']))
+    peer_core = '/substra/conf/%s/%s' % (conf['name'], peer['name'])
+
+    # update config path for using right core.yaml and right msp dir
+    set_env_variables(peer_core, org_admin_msp_dir)
+    set_tls_env_variables(peer)
+
+    call([
+        'peer',
+        'channel',
+        'join',
+        '-b', conf['misc']['channel_block']
+    ])
+
+    # clean env variables
+    clean_tls_env_variables()
+    clean_env_variables()
 
 
 def peersJoinChannel(conf):
@@ -342,6 +383,7 @@ def installChainCode(conf, peer, chaincode_version):
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
+    set_tls_env_variables(peer)
 
     call(['peer',
           'chaincode', 'install',
@@ -350,6 +392,7 @@ def installChainCode(conf, peer, chaincode_version):
           '-p', 'github.com/hyperledger/chaincode/'])
 
     # clean env variables
+    clean_tls_env_variables()
     clean_env_variables()
 
 
@@ -373,6 +416,7 @@ def waitForInstantiation(conf, conf_orderer):
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
+    set_tls_env_variables(peer)
 
     tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
     tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
@@ -398,6 +442,8 @@ def waitForInstantiation(conf, conf_orderer):
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
         data = output.stdout.decode('utf-8')
+        if not data:
+            data = output.stderr.decode('utf-8')
         print(data, flush=True)
         split_msg = 'Get instantiated chaincodes on channel %s:' % channel_name
         if split_msg in data and len(data.split(split_msg)[1].replace('\n', '')):
@@ -406,6 +452,7 @@ def waitForInstantiation(conf, conf_orderer):
             return True
         print('.', end='', flush=True)
 
+    clean_tls_env_variables()
     clean_env_variables()
     return False
 
@@ -423,6 +470,7 @@ def getChaincodeVersion(conf, conf_orderer):
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
+    set_tls_env_variables(peer)
 
     tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
     tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
@@ -442,6 +490,10 @@ def getChaincodeVersion(conf, conf_orderer):
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)
     data = output.stdout.decode('utf-8')
+
+    clean_tls_env_variables()
+    clean_env_variables()
+
     return float(data.split('Version: ')[-1].split(',')[0])
 
 
@@ -472,6 +524,7 @@ def instanciateChainCode(conf, conf_orderer, args):
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
+    set_tls_env_variables(peer)
 
     print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
@@ -495,6 +548,7 @@ def instanciateChainCode(conf, conf_orderer, args):
           ])
 
     # clean env variables
+    clean_tls_env_variables()
     clean_env_variables()
 
 
@@ -517,6 +571,7 @@ def upgradeChainCode(conf, args, conf_orderer, orgs_mspid, chaincode_version):
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_admin_msp_dir)
+    set_tls_env_variables(peer)
 
     print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
 
@@ -540,6 +595,7 @@ def upgradeChainCode(conf, args, conf_orderer, orgs_mspid, chaincode_version):
           ])
 
     # clean env variables
+    clean_tls_env_variables()
     clean_env_variables()
 
 
@@ -551,6 +607,7 @@ def chainCodeQueryWith(conf, arg, org, peer):
 
     # update config path for using right core.yaml and right msp dir
     set_env_variables(peer_core, org_user_msp_dir)
+    set_tls_env_variables(peer)
 
     channel_name = conf['misc']['channel_name']
     chaincode_name = conf['misc']['chaincode_name']
@@ -570,6 +627,7 @@ def chainCodeQueryWith(conf, arg, org, peer):
         print('Error:', flush=True)
         print('Output: %s' % output, flush=True)
         # clean env variables
+        clean_tls_env_variables()
         clean_env_variables()
     else:
         try:
@@ -586,6 +644,7 @@ def chainCodeQueryWith(conf, arg, org, peer):
 
         finally:
             # clean env variables
+            clean_tls_env_variables()
             clean_env_variables()
             return value
 

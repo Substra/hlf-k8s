@@ -14,9 +14,12 @@ def generateMSPandTLS(node, service):
         'port': service['ca']['port']['internal']
     }
 
-    # create external folder
-    tls_server_dir = node['tls']['dir']['external'] + '/' + node['tls']['server']['dir']
-    tls_client_dir = node['tls']['dir']['external'] + '/' + node['tls']['client']['dir']
+    # Node peer/orderer mounted volume, see docker_utils 'Client/Server TLS' binded volume.
+    tls_setup_dir = node['tls']['dir']['external']
+
+    # create external folders (client and server)
+    tls_server_dir = tls_setup_dir + '/' + node['tls']['server']['dir']
+    tls_client_dir = tls_setup_dir + '/' + node['tls']['client']['dir']
     create_directory(tls_server_dir)
     create_directory(tls_client_dir)
 
@@ -98,7 +101,7 @@ def init(conf):
         init_org(conf)
     if 'orderers' in conf:
         init_orderer(conf)
-        create_directory(conf['broadcast_dir'])
+        create_directory(conf['broadcast_dir']['external'])
         generateGenesis(conf)
 
 

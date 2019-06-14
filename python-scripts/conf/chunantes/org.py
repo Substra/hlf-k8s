@@ -11,14 +11,23 @@ chunantes = {
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in
         # the docker image, do not forget to remove these examples files if naming the same way
-        'certfile': '/substra/data/orgs/chu-nantes/tls-ca-cert.pem',
+        'certfile': {
+            'external': '/substra/data/orgs/chu-nantes/tls-ca-cert.pem',
+            'internal': '/etc/hyperledger/fabric/ca/tls-ca-cert.pem'
+        },
         'clientkey': ''
     },
     'ca': {
         'name': 'rca-chu-nantes',
         'host': 'rca-chu-nantes',
-        'certfile': '/substra/data/orgs/chu-nantes/ca-cert.pem',
-        'keyfile': '/substra/data/orgs/chu-nantes/ca-key.pem',
+        'certfile': {
+            'external': '/substra/data/orgs/chu-nantes/ca-cert.pem',
+            'internal': '/etc/hyperledger/fabric/ca/ca-cert.pem'
+        },
+        'keyfile': {
+            'external': '/substra/data/orgs/chu-nantes/ca-key.pem',
+            'internal': '/etc/hyperledger/fabric/ca/ca-key.pem'
+        },
         'port': {
             'internal': 7054,
             'external': 8054
