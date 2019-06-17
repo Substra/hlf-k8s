@@ -262,7 +262,7 @@ def setup():
         'objectiveKey': objective_chunantes_key,
         'inModels': '',
         'dataManagerKey': datamanager_chunantes_key,
-        'dataSampleKeys': ','.join([x for x in data_chunantes_train_keys_1]),
+        'dataSampleKeys': ','.join(data_chunantes_train_keys_1),
         'flTask': '',
         'rank': '',
         'tag': 'foo'

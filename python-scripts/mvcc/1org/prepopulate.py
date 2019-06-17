@@ -163,9 +163,6 @@ def setup():
 
     # create parent traintuple
     fcn = 'createTraintuple'
-    print(objective_owkin_key, flush=True)
-    print(datamanager_owkin_key, flush=True)
-    print(','.join([x for x in data_owkin_train_keys_1]), flush=True)
     args = {
         'algoKey': algo_owkin_1_key,
         'objectiveKey': objective_owkin_key,
