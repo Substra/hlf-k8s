@@ -2,7 +2,6 @@ import asyncio
 import glob
 import json
 import os
-from multiprocessing import Process, Pool
 
 from subprocess import call
 
@@ -49,8 +48,6 @@ def invokeChainCode(fcn, args, org_name, peers):
         wait_for_event=True
     ))
 
-    print(response)
-
     try:
         res = json.loads(response)
     except:
@@ -60,11 +57,8 @@ def invokeChainCode(fcn, args, org_name, peers):
         return res
 
 
-def createTraintuples(fcn, args, org_name, peers):
-    invokeChainCode(fcn, args, org_name, peers)
-
-
 def setup():
+    ''''''
     '''
                         | |  (_)
             _____      _| | ___ _ __
@@ -261,45 +255,27 @@ def setup():
     res = queryChaincode('queryTraintuples', [], 'chu-nantes', [cli.get_peer('peer1-chu-nantes')])
     print(res)
 
+    # create parent traintuple
     fcn = 'createTraintuple'
-    with Pool(processes=20) as pool:
-        pool.starmap(createTraintuples, [
-            (fcn,
-             [json.dumps({
-                 'algoKey': algo_chunantes_1_key,
-                 'objectiveKey': objective_chunantes_key,
-                 'inModels': '',
-                 'dataManagerKey': datamanager_chunantes_key,
-                 'dataSampleKeys': ','.join([x for x in data_chunantes_train_keys_1]),
-                 'flTask': '',
-                 'rank': '',
-                 'tag': str(i)
-             })],
-             'chu-nantes',
-             ['peer1-owkin', 'peer1-chu-nantes']
-             ) for i in range(0, 100)])
+    args = {
+        'algoKey': algo_chunantes_1_key,
+        'objectiveKey': objective_chunantes_key,
+        'inModels': '',
+        'dataManagerKey': datamanager_chunantes_key,
+        'dataSampleKeys': ','.join([x for x in data_chunantes_train_keys_1]),
+        'flTask': '',
+        'rank': '',
+        'tag': 'foo'
+    }
+    traintuple = invokeChainCode(fcn, [json.dumps(args)], 'chu-nantes', [cli.get_peer('peer1-chu-nantes')])
 
-
-def run():
-    res = True
-
-    # Invoke chaincode with 1st peers of each org
-    setup()
-
-    # Query chaincode from the 1st peer of the 1st org after Invoke
-    res = res and queryChaincode('queryObjectives', [], 'owkin', [cli.get_peer('peer1-owkin')])
-    print(res)
-
-    # Query chaincode on 2nd peer of 2nd org
-    res = res and queryChaincode('queryObjectives', [], 'chu-nantes', [cli.get_peer('peer2-chu-nantes')])
-    print(res)
-
-    if res:
-        print('Congratulations! The fixtures have been loaded successfully.', flush=True)
-        call(['touch', '/substra/data/log/fixtures.successful'])
+    if isinstance(traintuple, dict) and 'key' in traintuple:
+        traintuple_key = traintuple['key']
+    # debug purposes
     else:
-        print('Loading fixtures failed.', flush=True)
-        call(['touch', '/substra/data/log/fixtures.fail'])
+        traintuple_key = traintuple.split('tkey: ')[1][0:-1]
+
+    print(traintuple_key)
 
 
 if __name__ == "__main__":
@@ -309,4 +285,4 @@ if __name__ == "__main__":
 
     cli = init_cli(orgs)
 
-    run()
+    setup()
