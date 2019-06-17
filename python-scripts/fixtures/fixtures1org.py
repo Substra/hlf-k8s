@@ -5,15 +5,7 @@ import os
 
 from subprocess import call
 
-from hfc.fabric import Client
-from hfc.fabric.orderer import Orderer
-from hfc.fabric.organization import create_org
-from hfc.fabric.peer import Peer
-from hfc.fabric.user import create_user
-from hfc.util.keyvaluestore import FileKeyValueStore
-
-cli = Client()
-cli._state_store = FileKeyValueStore('/tmp/kvs/')
+from fixtures.utils import init_cli
 
 SUBSTRA_PATH = '/substra'
 
@@ -24,7 +16,6 @@ def queryChaincode(fcn, args, org_name, peers):
     requestor = cli.get_user(org_name, 'admin')
     channel_name = 'substrachannel'
     chaincode_name = 'substracc'
-    chaincode_version = '2.0'
 
     loop = asyncio.get_event_loop()
     response = loop.run_until_complete(cli.chaincode_query(
@@ -45,7 +36,6 @@ def invokeChainCode(fcn, args, org_name, peers):
     requestor = cli.get_user(org_name, 'admin')
     channel_name = 'substrachannel'
     chaincode_name = 'substracc'
-    chaincode_version = '2.0'
 
     loop = asyncio.get_event_loop()
     response = loop.run_until_complete(cli.chaincode_invoke(
@@ -67,7 +57,7 @@ def invokeChainCode(fcn, args, org_name, peers):
     finally:
         return res
 
-def invokeChaincodeFirstPeers():
+def setup():
     res = queryChaincode('queryObjectives', None, 'owkin', [cli.get_peer('peer1-owkin')])
     print(res)
 
@@ -312,7 +302,6 @@ def invokeChaincodeFirstPeers():
     }
     testtuple = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
-
     if isinstance(testtuple, dict) and 'key' in testtuple:
         testtuple_key = testtuple['key']
     # debug purposes
@@ -332,90 +321,11 @@ def invokeChaincodeFirstPeers():
     invokeChainCode('logSuccessTest', [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
 
-def init_cli(orgs):
-    for org in [x for x in orgs if x['type'] == 'orderer']:
-        # add orderer organization
-        cli._organizations.update({org['name']: create_org(org['name'], org, cli.state_store)})
-
-        # add orderer admin
-        orderer_org_admin = org['users']['admin']
-        orderer_org_admin_home = orderer_org_admin['home']
-        orderer_org_admin_msp_dir = os.path.join(orderer_org_admin_home, 'msp')
-        # register admin
-        orderer_admin_cert_path = os.path.join(orderer_org_admin_msp_dir, 'signcerts', 'cert.pem')
-        orderer_admin_key_path = os.path.join(orderer_org_admin_msp_dir, 'keystore', 'key.pem')
-        orderer_admin = create_user(name=orderer_org_admin['name'],
-                                    org=org['name'],
-                                    state_store=cli.state_store,
-                                    msp_id=org['mspid'],
-                                    cert_path=orderer_admin_cert_path,
-                                    key_path=orderer_admin_key_path)
-        cli._organizations[org['name']]._users.update({orderer_org_admin['name']: orderer_admin})
-
-        # add real orderer from orderer organization
-        for o in org['orderers']:
-            tls_orderer_client_dir = os.path.join(o['tls']['dir']['external'], o['tls']['client']['dir'])
-            orderer = Orderer(o['name'],
-                              endpoint=f"{o['host']}:{o['port']['internal']}",
-                              tls_ca_cert_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['ca']),
-                              client_cert_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['cert']),
-                              client_key_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['key']),
-                              )
-
-            cli._orderers.update({o['name']: orderer})
-
-        # add channel on cli if needed
-        channel_name = org['misc']['channel_name']
-        if not cli.get_channel(org['misc']['channel_name']):
-            cli._channels.update({channel_name: cli.new_channel(channel_name)})
-
-    for org in [x for x in orgs if x['type'] == 'client']:
-
-        # add orderer organization
-        cli._organizations.update({org['name']: create_org(org['name'], org, cli.state_store)})
-
-        org_admin = org['users']['admin']
-        org_admin_home = org['users']['admin']['home']
-        org_admin_msp_dir = os.path.join(org_admin_home, 'msp')
-        # register admin
-        admin_cert_path = os.path.join(org_admin_msp_dir, 'signcerts', 'cert.pem')
-        admin_key_path = os.path.join(org_admin_msp_dir, 'keystore', 'key.pem')
-        admin = create_user(name=org_admin['name'],
-                                org=org['name'],
-                                state_store=cli.state_store,
-                                msp_id=org['mspid'],
-                                cert_path=admin_cert_path,
-                                key_path=admin_key_path)
-        cli._organizations[org['name']]._users.update({org_admin['name']: admin})
-
-        # register peers
-        for peer in org['peers']:
-            tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
-
-            # add peer in cli
-
-            ##########################################################################################
-            # TODO pass it from docker
-            # For debugging, you can use peer['port']['external'] instead of peer['port']['internal']
-            ##########################################################################################
-
-            p = Peer(endpoint=f"{peer['host']}:{peer['port']['external']}",
-                     tls_ca_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
-                     client_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
-                     client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
-            cli._peers.update({peer['name']: p})
-
-        # add channel on cli if needed
-        channel_name = org['misc']['channel_name']
-        if not cli.get_channel(org['misc']['channel_name']):
-            cli._channels.update({channel_name: cli.new_channel(channel_name)})
-
-
 def run():
     res = True
 
     # Invoke chaincode with 1st peers of each org
-    invokeChaincodeFirstPeers()
+    setup()
 
     # Query chaincode from the 1st peer of the 1st org after Invoke
     res = res and queryChaincode('queryObjectives', [], 'owkin', [cli.get_peer('peer1-owkin')])
@@ -434,6 +344,6 @@ if __name__ == "__main__":
     files.sort(key=os.path.getmtime)
     orgs = [json.load(open(file_path, 'r')) for file_path in files]
 
-    init_cli(orgs)
+    cli = init_cli(orgs)
 
     run()
