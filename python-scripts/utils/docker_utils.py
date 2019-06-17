@@ -56,7 +56,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                             f'{substra_path}/data/log/:{substra_path}/data/log/',
 
                                                             # chaincode
-                                                            '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode',
+                                                            '../substra-chaincode/chaincode:/opt/gopath/src/chaincode',
 
                                                             # channel
                                                             f'{substra_path}/data/channel/:{substra_path}/data/channel/',
