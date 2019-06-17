@@ -316,6 +316,7 @@ def generate_fixtures_docker(substra_path, fixtures_path, network):
                              'volumes': ['./python-scripts:/scripts',
                                          f'{substra_path}/data/:{substra_path}/data/',
                                          f'{substra_path}/conf/:{substra_path}/conf/',
+                                         # TODO remove
                                          # debug fabric-sdk-py, replace with your own debug path
                                          "/home/guillaume/Projects/fabric/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
                                          ],

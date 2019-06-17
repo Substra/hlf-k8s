@@ -60,7 +60,6 @@ def invokeChainCode(fcn, args, org_name, peers):
 def run():
     res = json.loads(queryChaincode('queryTraintuples', [], 'owkin', [cli.get_peer('peer1-owkin')]))
     traintuple_key = res[len(res) - 1]['key']  # get oldest
-    print(traintuple_key)
     time.sleep(0.5)
     args = [json.dumps({'key': traintuple_key})]
     print(f'logStartTrain traintuple with key {traintuple_key}', flush=True)

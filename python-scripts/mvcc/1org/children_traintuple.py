@@ -75,7 +75,6 @@ def register_random_algo():
 def run():
     res = json.loads(queryChaincode('queryTraintuples', [], 'owkin', [cli.get_peer('peer1-owkin')]))
     traintuple_key = res[len(res) - 1]['key']  # get oldest
-    print(traintuple_key)
     objective_owkin_key = '6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c'
     datamanager_owkin_key = 'ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994'
     data_owkin_train_keys_1 = '62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9'
