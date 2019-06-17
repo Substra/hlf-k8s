@@ -303,7 +303,6 @@ def setup():
     }
     traintuple = invokeChainCode(fcn, [json.dumps(args)], 'chu-nantes', [cli.get_peer('peer1-chu-nantes')])
 
-    #recreation of traintuple should fail
     if isinstance(traintuple, dict) and 'key' in traintuple:
         traintuple_key = traintuple['key']
     # debug purposes
