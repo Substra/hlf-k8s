@@ -3,9 +3,7 @@ import glob
 import json
 import os
 
-from subprocess import call
-
-from fixtures.utils import init_cli
+from utils.cli import init_cli
 
 SUBSTRA_PATH = '/substra'
 

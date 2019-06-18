@@ -49,7 +49,8 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                 'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 | tee {substra_path}/data/log/run-{org["name"]}.log"',
                                                 'environment': ['GOPATH=/opt/gopath',
                                                                 f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
-                                                                f'ORG={org["name"]}'],
+                                                                f'ORG={org["name"]}',
+                                                                'PEER_PORT=internal'],
                                                 'volumes': [
                                                             # docker in docker
                                                             '/var/run/docker.sock:/var/run/docker.sock',
@@ -312,7 +313,7 @@ def generate_fixtures_docker(substra_path, fixtures_path, network):
                              'environment': [f'FABRIC_CA_HOME={FABRIC_CA_HOME}',
                                              f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
                                              f'FABRIC_CA_CLIENT_HOME={FABRIC_CA_CLIENT_HOME}',
-                                             'INTERNAL=1'],
+                                             'PEER_PORT=internal'],
                              'volumes': ['./python-scripts:/scripts',
                                          f'{substra_path}/data/:{substra_path}/data/',
                                          f'{substra_path}/conf/:{substra_path}/conf/',

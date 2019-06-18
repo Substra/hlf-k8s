@@ -48,8 +48,12 @@ def init_cli(orgs):
 
         # add channel on cli if needed
         channel_name = org['misc']['channel_name']
-        if not cli.get_channel(org['misc']['channel_name']):
+        if not cli.get_channel(channel_name):
             cli._channels.update({channel_name: cli.new_channel(channel_name)})
+
+        system_channel_name = org['misc']['system_channel_name']
+        if not cli.get_channel(system_channel_name):
+            cli._channels.update({system_channel_name: cli.new_channel(system_channel_name)})
 
     for org in [x for x in orgs if x['type'] == 'client']:
 
@@ -74,13 +78,8 @@ def init_cli(orgs):
         for peer in org['peers']:
             tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
 
-            # add peer in cli
-            if os.environ.get('INTERNAL', False):
-                port = peer['port']['internal']
-            else:
-                port = peer['port']['external']
-
-            p = Peer(endpoint=f"{peer['host']}:{peer['port']['external']}",
+            port = peer['port'][os.environ.get('PEER_PORT', 'external')]
+            p = Peer(endpoint=f"{peer['host']}:{port}",
                      tls_ca_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
                      client_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
                      client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
@@ -88,7 +87,11 @@ def init_cli(orgs):
 
         # add channel on cli if needed
         channel_name = org['misc']['channel_name']
-        if not cli.get_channel(org['misc']['channel_name']):
+        if not cli.get_channel(channel_name):
             cli._channels.update({channel_name: cli.new_channel(channel_name)})
+
+        system_channel_name = org['misc']['system_channel_name']
+        if not cli.get_channel(system_channel_name):
+            cli._channels.update({system_channel_name: cli.new_channel(system_channel_name)})
 
     return cli
