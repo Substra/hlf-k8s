@@ -3,34 +3,31 @@ import os
 import json
 from subprocess import call
 
-from utils.run_utils import (createChannel, peersJoinChannel, updateAnchorPeers, installChainCodeOnPeers, instanciateChaincode,
-                             queryChaincodeFromFirstPeerFirstOrg, generateChannelUpdate, upgradeChainCode,
-                             createSystemUpdateProposal, signAndPushSystemUpdateProposal, getChaincodeVersion, generateChannelArtifacts)
+from utils.cli import init_cli
+from utils.run_utils import Client
+
+SUBSTRA_PATH = '/substra'
 
 
-def add_org_with_channel(conf, conf_orderer):
+def add_org_with_channel():
 
-    res = True
+    client.generateChannelArtifacts(conf)
+    config_tx_file = client.createSystemUpdateProposal(conf, conf_orderer)
+    client.signAndPushSystemUpdateProposal(conf_orderer, config_tx_file)
 
-    generateChannelArtifacts(conf)
-    config_tx_file = createSystemUpdateProposal(conf, conf_orderer)
-    signAndPushSystemUpdateProposal(conf_orderer, config_tx_file)
+    client.createChannel(conf, conf_orderer)
 
-    createChannel(conf, conf_orderer)
-
-    peersJoinChannel(conf, conf_orderer)
-    updateAnchorPeers(conf, conf_orderer)
+    client.peersJoinChannel(conf, conf_orderer)
+    client.updateAnchorPeers(conf, conf_orderer)
 
     # Install chaincode on peer in each org
-    installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
+    client.installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
 
     # Instantiate chaincode on the 1st peer of the 1st org
-    instanciateChaincode(conf)
+    client.instanciateChaincode(conf)
 
     # Query chaincode from the 1st peer of the 1st org
-    res = res and queryChaincodeFromFirstPeerFirstOrg(conf) == 'null'
-
-    if res:
+    if client.queryChaincodeFromFirstPeerFirstOrg(conf) == 'null':
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
         call(['touch', conf['misc']['run_success_file']])
     else:
@@ -38,22 +35,22 @@ def add_org_with_channel(conf, conf_orderer):
         call(['touch', conf['misc']['run_fail_file']])
 
 
-def add_org(conf, conf_externals, orderer):
-    generateChannelUpdate(conf, conf_externals, orderer)
-    peersJoinChannel(conf, conf_orderer)
+def add_org():
+    client.generateChannelUpdate(conf, conf_externals, conf_orderer)
+    client.peersJoinChannel(conf, conf_orderer)
 
-    chaincode_version = getChaincodeVersion(conf_externals[0])
+    chaincode_version = client.getChaincodeVersion(conf_externals[0])
     new_chaincode_version = '%.1f' % (chaincode_version + 1.0)
 
     # Install chaincode on peer in each org
     orgs_mspid = []
     for conf_org in [conf] + conf_externals:
-        installChainCodeOnPeers(conf_org, new_chaincode_version)
+        client.installChainCodeOnPeers(conf_org, new_chaincode_version)
         orgs_mspid.append(conf_org['mspid'])
 
-    upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')
+    client.upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')
 
-    if queryChaincodeFromFirstPeerFirstOrg(conf, new_chaincode_version):
+    if client.queryChaincodeFromFirstPeerFirstOrg(conf):
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
         call(['touch', conf['misc']['run_success_file']])
     else:
@@ -82,6 +79,10 @@ if __name__ == "__main__":
 
         conf_externals = [json.load(open(file_path, 'r')) for file_path in files]
 
-        add_org(conf, conf_externals, conf_orderer)
+        cli = init_cli(conf_externals + [conf, conf_orderer])
+        client = Client(cli)
+        add_org()
     else:
-        add_org_with_channel(conf, conf_orderer)
+        cli = init_cli([conf, conf_orderer])
+        client = Client(cli)
+        add_org_with_channel()
