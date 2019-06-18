@@ -3,8 +3,8 @@ import os
 import json
 from subprocess import call
 
-from .utils.cli import init_cli
-from .utils.run_utils import Client
+from utils.cli import init_cli
+from utils.run_utils import Client
 
 SUBSTRA_PATH = '/substra'
 

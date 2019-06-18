@@ -1,7 +1,7 @@
 import os
 import glob
 from subprocess import call
-from .utils.common_utils import remove_chaincode_docker_containers, remove_chaincode_docker_images
+from utils.common_utils import remove_chaincode_docker_containers, remove_chaincode_docker_images
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 

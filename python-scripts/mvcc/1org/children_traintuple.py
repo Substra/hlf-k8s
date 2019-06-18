@@ -6,7 +6,7 @@ import os
 import uuid
 
 
-from ...utils.cli import init_cli
+from utils.cli import init_cli
 
 SUBSTRA_PATH = '/substra'
 

@@ -6,7 +6,7 @@ from multiprocessing import Pool
 
 from subprocess import call
 
-from ..utils.cli import init_cli
+from utils.cli import init_cli
 
 SUBSTRA_PATH = '/substra'
 
