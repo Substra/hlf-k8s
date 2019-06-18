@@ -260,6 +260,63 @@ def createUpdateProposal(conf, org__channel_config, input_block, channel_name):
           '--output', 'proposal.pb'])
 
 
+def createUpdateProposalRemove(conf, input_block, channel_name):
+    call(['configtxlator',
+          'proto_decode',
+          '--input', input_block,
+          '--type', 'common.Block',
+          '--output', 'mychannelconfig.json'])
+
+    my_channel_config = json.load(open('mychannelconfig.json', 'r'))
+
+    # Keep useful part
+    my_channel_config = my_channel_config['data']['data'][0]['payload']['data']['config']
+    json.dump(my_channel_config, open('mychannelconfig.json', 'w'))
+
+    # Remove org
+    del my_channel_config['channel_group']['groups']['Application']['groups'][conf['name']]
+    json.dump(my_channel_config, open('mychannelconfigupdate.json', 'w'))
+
+    # Compute diff
+    call(['configtxlator',
+          'proto_encode',
+          '--input', 'mychannelconfig.json',
+          '--type', 'common.Config',
+          '--output', 'mychannelconfig.pb'])
+
+    call(['configtxlator',
+          'proto_encode',
+          '--input', 'mychannelconfigupdate.json',
+          '--type', 'common.Config',
+          '--output', 'mychannelconfigupdate.pb'])
+
+    call(['configtxlator',
+          'compute_update',
+          '--channel_id', channel_name,
+          '--original', 'mychannelconfig.pb',
+          '--updated', 'mychannelconfigupdate.pb',
+          '--output', 'compute_update.pb'])
+
+    call(['configtxlator',
+          'proto_decode',
+          '--input', 'compute_update.pb',
+          '--type', 'common.ConfigUpdate',
+          '--output', 'compute_update.json'])
+
+    # Prepare proposal
+    update = json.load(open('compute_update.json', 'r'))
+    proposal = {'payload': {'header': {'channel_header': {'channel_id': channel_name,
+                                                          'type': 2}},
+                            'data': {'config_update': update}}}
+
+    json.dump(proposal, open('proposal.json', 'w'))
+    call(['configtxlator',
+          'proto_encode',
+          '--input', 'proposal.json',
+          '--type', 'common.Envelope',
+          '--output', 'proposal.pb'])
+
+
 def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
     orderer = conf_orderer['orderers'][0]
 
@@ -362,6 +419,20 @@ def generateChannelUpdate(conf, conf_externals, orderer):
     createUpdateProposal(conf, org_channel_config, 'mychannelconfig.block', conf['misc']['channel_name'])
     external_orgs = [conf_org for conf_org in conf_externals]
     signAndPushUpdateProposal(external_orgs, orderer, conf['misc']['channel_name'])
+
+
+def generateChannelUpdateRemove(conf, conf_externals, orderer):
+
+    for filename in glob.glob('./mychannelconfig*'):
+        os.remove(filename)
+    for filename in glob.glob('./proposal*'):
+        os.remove(filename)
+
+    getChannelConfigBlockWithOrderer(orderer, conf['misc']['channel_name'], 'mychannelconfig.block')
+
+    createUpdateProposalRemove(conf, 'mychannelconfig.block', conf['misc']['channel_name'])
+    external_orgs = [conf_org for conf_org in conf_externals]
+    signAndPushUpdateProposal(external_orgs + [conf], orderer, conf['misc']['channel_name'])
 
 
 # # the updater of the channel anchor transaction must have admin rights for one of the consortium orgs

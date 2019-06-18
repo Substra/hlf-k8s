@@ -5,7 +5,8 @@ from subprocess import call
 
 from utils.run_utils import (createChannel, peersJoinChannel, updateAnchorPeers, installChainCodeOnPeers, instanciateChaincode,
                              waitForInstantiation, queryChaincodeFromFirstPeerFirstOrg, generateChannelUpdate, upgradeChainCode,
-                             createSystemUpdateProposal, signAndPushSystemUpdateProposal, getChaincodeVersion, generateChannelArtifacts)
+                             createSystemUpdateProposal, signAndPushSystemUpdateProposal, getChaincodeVersion, generateChannelArtifacts,
+                             generateChannelUpdateRemove)
 
 
 def add_org(conf, conf_externals, orderer):
@@ -22,6 +23,17 @@ def add_org(conf, conf_externals, orderer):
         orgs_mspid.append(conf_org['msp_id'])
 
     upgradeChainCode(conf_externals[0], '{"Args":["init"]}', orderer, orgs_mspid, new_chaincode_version)
+
+    if queryChaincodeFromFirstPeerFirstOrg(conf):
+        print('Congratulations! Ledger has been correctly initialized.', flush=True)
+        # call(['touch', conf['misc']['run_success_file']])
+    else:
+        print('Fail to initialize ledger.', flush=True)
+        # call(['touch', conf['misc']['run_fail_file']])
+
+    print('Remove organization from channel')
+
+    generateChannelUpdateRemove(conf, conf_externals, orderer)
 
     if queryChaincodeFromFirstPeerFirstOrg(conf):
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
