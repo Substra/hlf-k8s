@@ -46,14 +46,9 @@ def init_cli(orgs):
 
             cli._orderers.update({o['name']: orderer})
 
-        # add channel on cli if needed
-        channel_name = org['misc']['channel_name']
-        if not cli.get_channel(channel_name):
-            cli._channels.update({channel_name: cli.new_channel(channel_name)})
-
         system_channel_name = org['misc']['system_channel_name']
         if not cli.get_channel(system_channel_name):
-            cli._channels.update({system_channel_name: cli.new_channel(system_channel_name)})
+            cli.new_channel(system_channel_name)
 
     for org in [x for x in orgs if x['type'] == 'client']:
 
@@ -85,13 +80,8 @@ def init_cli(orgs):
                      client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
             cli._peers.update({peer['name']: p})
 
-        # add channel on cli if needed
-        channel_name = org['misc']['channel_name']
-        if not cli.get_channel(channel_name):
-            cli._channels.update({channel_name: cli.new_channel(channel_name)})
-
         system_channel_name = org['misc']['system_channel_name']
         if not cli.get_channel(system_channel_name):
-            cli._channels.update({system_channel_name: cli.new_channel(system_channel_name)})
+            cli.new_channel(system_channel_name)
 
     return cli

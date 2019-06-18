@@ -80,6 +80,10 @@ if __name__ == "__main__":
         conf_externals = [json.load(open(file_path, 'r')) for file_path in files]
 
         cli = init_cli(conf_externals + [conf, conf_orderer])
+
+        # make new org know channel already created
+        cli.new_channel(conf['misc']['channel_name'])
+
         client = Client(cli)
         add_org()
     else:
