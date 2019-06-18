@@ -18,8 +18,8 @@ This project is developed under the Apache License, Version 2.0 (Apache-2.0), lo
 
 ### Bootstrap
 
-Run the `bootstrap.sh` script.  
-:warning: If you are on linux and want to play with the substrabac projects, please read its documentation first. 
+Run the `bootstrap.sh` script.
+:warning: If you are on linux and want to play with the substrabac projects, please read its documentation first.
 
 It will pull from the hyperledger registry the right docker images and then will build our own docker images from it.
 
@@ -33,21 +33,21 @@ $> sudo chown guillaume:guillaume /substra
 Replace `guillaume:guillaume` by your `user:group`.
 
 ```
-$> python3 start.py --config conf1org.py --no-backup
+$> python3 python-scripts/start.py  --no-backup
 ```
 
 :warning:
-Launching `start.py` without the config option, will make a call of `python3 conf2orgs.py` internally.
+Launching `start.py` without the config option, will make a call of `python3 python-scripts/conf/2orgs.py` internally.
 
-- For launching a network from scratch,  without ising backup files, use `--no-backup` option (recommended in development mode).  
-- For loading fixtures, test and revoke containers, pass the `--fixtures` or `-f` option.  
+- For launching a network from scratch,  without ising backup files, use `--no-backup` option (recommended in development mode).
+- For loading fixtures, test and revoke containers, pass the `--fixtures` or `-f` option.
 - If you do not want to call the `revoke` container, please comment it in the `start.py` file.
 
 Roughly speaking, it will generate a docker-compose file (docker-compose-dynamic.yaml), build the network and run init config.
 
-The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.  
-The `fixtures` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on orgs.  
-The `revoke` docker instance allow you to revoke an user.  
+The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.
+The `fixtures` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on orgs.
+The `revoke` docker instance allow you to revoke an user.
 
 You now will be able to play with the network ! :tada:
 
