@@ -2,8 +2,8 @@ import json
 import os
 from subprocess import call
 
-from utils.setup_utils import registerIdentities, registerUsers, generateGenesis, enrollWithFiles, genTLSCert, writeFile
-from utils.common_utils import create_directory
+from .utils.setup_utils import registerIdentities, registerUsers, generateGenesis, enrollWithFiles, genTLSCert, writeFile
+from .utils.common_utils import create_directory
 
 
 def generateMSPandTLS(node, org, msp_dir, admincerts=False):
