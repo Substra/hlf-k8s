@@ -5,7 +5,7 @@ from utils.common_utils import remove_chaincode_docker_containers, remove_chainc
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-from .start import SUBSTRA_PATH
+from start import SUBSTRA_PATH
 
 
 def stop():
