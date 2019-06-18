@@ -32,6 +32,9 @@ $> sudo chown guillaume:guillaume /substra
 ```
 Replace `guillaume:guillaume` by your `user:group`.
 
+
+!> Please make sure that substra-chaincode code is cloned and present beside substra-network project directory
+
 ```
 $> python3 python-scripts/start.py  --no-backup
 ```
@@ -43,11 +46,11 @@ Launching `start.py` without the config option, will make a call of `python3 pyt
 - For loading fixtures, test and revoke containers, pass the `--fixtures` or `-f` option.
 - If you do not want to call the `revoke` container, please comment it in the `start.py` file.
 
-Roughly speaking, it will generate a docker-compose file (docker-compose-dynamic.yaml), build the network and run init config.
+Roughly speaking, it will generate several docker-compose files in /substra/docker-files, build the network and run init config.
 
 The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.
-The `fixtures` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on orgs.
-The `revoke` docker instance allow you to revoke an user.
+The `fixtures` docker instance container will create some objectives, algo, datamanager, train data, test data, traintuples on orgs.
+The `revoke` docker instance allow you to revoke an user. 
 
 You now will be able to play with the network ! :tada:
 
