@@ -51,6 +51,9 @@ The `revoke` docker instance allow you to revoke an user.
 
 You now will be able to play with the network ! :tada:
 
+:warning: Debugging: Make sure you have set a file named `substra-network.pth` in your virtualenv `lib/python3.6/site-packages` folder containing the absolute path to `substra-network/python-scripts` for being able to run fixtures scripts manually.
+
+
 ### Network
 
 The docker-compose use the `net_substra` private network for running its docker, if you want to be able to enroll, invoke or query the ledger from the outside, you will have to modify your `/etc/hosts` file on your machine for mapping your localhost:

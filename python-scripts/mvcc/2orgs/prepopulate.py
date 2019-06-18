@@ -3,7 +3,7 @@ import glob
 import json
 import os
 
-from ...utils.cli import init_cli
+from utils.cli import init_cli
 
 SUBSTRA_PATH = '/substra'
 
