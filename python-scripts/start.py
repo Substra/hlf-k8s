@@ -7,10 +7,10 @@ from yaml import load, FullLoader
 
 from subprocess import call
 
-from utils.common_utils import dowait, create_directory, remove_chaincode_docker_images, remove_chaincode_docker_containers
-from utils.config_utils import (create_configtx, create_ca_server_config, create_ca_client_config, create_peer_config,
-                                create_orderer_config, create_substrabac_config)
-from utils.docker_utils import generate_docker_compose_org, generate_docker_compose_orderer, generate_fixtures_docker
+from .utils.common_utils import dowait, create_directory, remove_chaincode_docker_images, remove_chaincode_docker_containers
+from .utils.config_utils import (create_configtx, create_ca_server_config, create_ca_client_config, create_peer_config,
+                                 create_orderer_config, create_substrabac_config)
+from .utils.docker_utils import generate_docker_compose_org, generate_docker_compose_orderer, generate_fixtures_docker
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
