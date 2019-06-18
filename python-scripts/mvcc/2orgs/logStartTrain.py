@@ -5,7 +5,7 @@ import os
 import time
 
 
-from fixtures.utils import init_cli
+from utils.cli import init_cli
 
 SUBSTRA_PATH = '/substra'
 
