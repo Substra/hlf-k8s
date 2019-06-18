@@ -5,11 +5,7 @@ import os
 
 from subprocess import call, check_output
 
-from hfc.fabric.transaction.tx_context import TXContext
-from hfc.fabric.transaction.tx_proposal_request import TXProposalRequest
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
 
 class Client(object):
 
@@ -37,25 +33,12 @@ class Client(object):
     def createChannel(self, org, conf_orderer):
 
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.cli.channel_create(
+        res = loop.run_until_complete(self.cli.channel_create(
             self.cli.get_orderer(conf_orderer['orderers'][0]['name']),
             org['misc']['channel_name'],
             self.cli.get_user(org['name'], org['users']['admin']['name']),
             config_tx=org['misc']['channel_tx_file']))
-
-    async def get_genesis_block(self, orderer, orderer_admin, channel_name):
-        print('Test')
-        tx_prop_req = TXProposalRequest()
-        tx_context = TXContext(orderer_admin, orderer_admin.cryptoSuite, tx_prop_req)
-
-        stream = orderer.get_genesis_block(tx_context, channel_name)
-        async for v in stream:
-            block = v.block.SerializeToString()
-            print(block)
-            if block is None or block == b'':
-                msg = "fail to get genesis block"
-                raise Exception(msg)
-            break
+        print('channel creation: ', res)
 
     def peersJoinChannel(self, org, conf_orderer):
         print(f"Join channel {[x['name'] for x in org['peers']]} ...", flush=True)
@@ -66,7 +49,6 @@ class Client(object):
 
         loop = asyncio.get_event_loop()
 
-        loop.run_until_complete(self.get_genesis_block(orderer, orderer_admin, channel_name))
         loop.run_until_complete(self.cli.channel_join(
             requestor=self.cli.get_user(org['name'], org['users']['admin']['name']),
             channel_name=channel_name,
@@ -322,7 +304,7 @@ class Client(object):
 
         channel_name = org['misc']['system_channel_name']
         org_config = self.createChannelConfig(org, with_anchor=False)
-        system_channel_config_envelope = self.getSystemChannelConfigBlock(conf_orderer)
+        system_channel_config_envelope = self.getChannelConfigBlockWithOrderer(conf_orderer, conf_orderer['misc']['system_channel_name'])
         system_channel_config = system_channel_config_envelope['config']
 
         json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
@@ -369,9 +351,6 @@ class Client(object):
               '--output', config_tx_file])
 
         return config_tx_file
-
-    def getSystemChannelConfigBlock(self, conf_orderer):
-        return self.getChannelConfigBlockWithOrderer(conf_orderer, conf_orderer['misc']['system_channel_name'])
 
     def getChannelConfigBlockWithOrderer(self, conf, channel_name):
         print('Will getChannelConfigBlockWithOrderer', flush=True)

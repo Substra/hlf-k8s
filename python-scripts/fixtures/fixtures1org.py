@@ -346,4 +346,9 @@ if __name__ == "__main__":
 
     cli = init_cli(orgs)
 
+    # add channel on cli if needed
+    channel_name = orgs[0]['misc']['channel_name']
+    if not cli.get_channel(channel_name):
+        cli._channels.update({channel_name: cli.new_channel(channel_name)})
+
     run()
