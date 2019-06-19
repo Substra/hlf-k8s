@@ -63,20 +63,26 @@ def init_cli(orgs):
         cli._organizations.update(
             {org['name']: create_org(org['name'], org, cli.state_store)})
 
-        org_admin = org['users']['admin']
-        org_admin_home = org['users']['admin']['home']
-        org_admin_msp_dir = os.path.join(org_admin_home, 'msp')
-        # register admin
-        admin_cert_path = os.path.join(
-            org_admin_msp_dir, 'signcerts', 'cert.pem')
-        admin_key_path = os.path.join(org_admin_msp_dir, 'keystore', 'key.pem')
-        admin = create_user(name=org_admin['name'],
-                            org=org['name'],
-                            state_store=cli.state_store,
-                            msp_id=org['mspid'],
-                            cert_path=admin_cert_path,
-                            key_path=admin_key_path)
-        cli._organizations[org['name']]._users.update({org_admin['name']: admin})
+        for user_name in org['users'].keys():
+            org_user = org['users'][user_name]
+            org_user_home = org_user['home']
+            org_user_msp_dir = os.path.join(org_user_home, 'msp')
+
+            # register user
+            user_cert_path = os.path.join(
+                org_user_msp_dir, 'signcerts', 'cert.pem')
+            user_key_path = os.path.join(
+                org_user_msp_dir, 'keystore', 'key.pem')
+
+            user = create_user(name=org_user['name'],
+                               org=org['name'],
+                               state_store=cli.state_store,
+                               msp_id=org['mspid'],
+                               cert_path=user_cert_path,
+                               key_path=user_key_path)
+
+            cli._organizations[org['name']]._users.update(
+                {org_user['name']: user})
 
         # register peers
         for peer in org['peers']:
@@ -86,8 +92,10 @@ def init_cli(orgs):
             port = peer['port'][os.environ.get('PEER_PORT', 'external')]
             p = Peer(name=peer['name'],
                      endpoint=f"{peer['host']}:{port}",
-                     tls_ca_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
-                     client_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
+                     tls_ca_cert_file=os.path.join(
+                         tls_peer_client_dir, peer['tls']['client']['ca']),
+                     client_cert_file=os.path.join(
+                         tls_peer_client_dir, peer['tls']['client']['cert']),
                      client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
             cli._peers.update({peer['name']: p})
 

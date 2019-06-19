@@ -82,7 +82,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                             f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
 
                                                             # debug fabric-sdk-py, replace with your own debug path
-                                                            "/home/guillaume/Projects/fabric/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
+                                                            "/Users/inalgnu/Workspace/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
                                                 ],
                                                 'networks': [network],
                                                 'depends_on': [],
@@ -319,7 +319,7 @@ def generate_fixtures_docker(substra_path, fixtures_path, network):
                                          f'{substra_path}/conf/:{substra_path}/conf/',
                                          # TODO remove
                                          # debug fabric-sdk-py, replace with your own debug path
-                                         "/home/guillaume/Projects/fabric/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
+                                         "/Users/inalgnu/Workspace/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
                                          ],
                              'networks': [network],
                              'depends_on': []
