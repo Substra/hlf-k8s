@@ -68,10 +68,13 @@ def enrollCABootstrapAdmin(org):
              org['ca']['logfile'],
              org['ca']['host'],
              org['ca']['port']['internal'])
-    print(f"Enrolling with {org['ca']['name']} as bootstrap identity ...", flush=True)
+    print(
+        f"Enrolling with {org['ca']['name']} as bootstrap identity ...", flush=True)
 
-    org_user_msp_dir = os.path.join(org['users']['bootstrap_admin']['home'], 'msp')
-    bootstrap_admin = enrollWithFiles(org['users']['bootstrap_admin'], org, org_user_msp_dir, admincerts=False)
+    org_user_msp_dir = os.path.join(
+        org['users']['bootstrap_admin']['home'], 'msp')
+    bootstrap_admin = enrollWithFiles(
+        org['users']['bootstrap_admin'], org, org_user_msp_dir, admincerts=False)
     return bootstrap_admin
 
     # following commented code is better, but it is easier to save bootstrap_admin cert/key for not working with fabric-sdk-py.
@@ -90,40 +93,48 @@ def registerOrdererIdentities(org):
     badmin = enrollCABootstrapAdmin(org)
 
     for orderer in org['orderers']:
-        print(f"Registering {orderer['name']} with {org['ca']['name']}", flush=True)
-        badmin.register(orderer['name'], orderer['pass'], 'orderer', maxEnrollments=-1)
+        print(
+            f"Registering {orderer['name']} with {org['ca']['name']}", flush=True)
+        badmin.register(orderer['name'], orderer['pass'],
+                        'orderer', maxEnrollments=-1)
 
     if 'peers' in org:
         for peer in org['peers']:
-            print(f"Registering {peer['name']} with {org['ca']['name']}\n", flush=True)
-            badmin.register(peer['name'], peer['pass'], 'peer', maxEnrollments=-1)
+            print(
+                f"Registering {peer['name']} with {org['ca']['name']}\n", flush=True)
+            badmin.register(peer['name'], peer['pass'],
+                            'peer', maxEnrollments=-1)
 
     print(f"Registering admin identity with {org['ca']['name']}", flush=True)
-    attrs = [{'admin': 'true:ecert'}]
-    badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=attrs)
+    attrs = [{'name': 'admin', 'value': 'true:ecert'}]
+    badmin.register(org['users']['admin']['name'], org['users']
+                    ['admin']['pass'], maxEnrollments=-1, attrs=attrs)
 
 
 def registerPeerIdentities(org):
     badmin = enrollCABootstrapAdmin(org)
     for peer in org['peers']:
-        print(f"Registering {peer['name']} with {org['ca']['name']}\n", flush=True)
+        print(
+            f"Registering {peer['name']} with {org['ca']['name']}\n", flush=True)
         badmin.register(peer['name'], peer['pass'], 'peer', maxEnrollments=-1)
 
     print(f"Registering admin identity with {org['ca']['name']}", flush=True)
     # The admin identity has the "admin" attribute which is added to ECert by default
     attrs = [
-        {'hf.Registrar.Roles': 'client'},
-        {'hf.Registrar.Attributes': '*'},
-        {'hf.Revoker': 'true'},
-        {'hf.GenCRL': 'true'},
-        {'admin': 'true:ecert'},
-        {'abac.init': 'true:ecert'}
+        {'name': 'hf.Registrar.Roles', 'value': 'client'},
+        {'name': 'hf.Registrar.Attributes', 'value': '*'},
+        {'name': 'hf.Revoker', 'value': 'true'},
+        {'name': 'hf.GenCRL', 'value': 'true'},
+        {'name': 'admin', 'value': 'true:ecert'},
+        {'name': 'abac.init', 'value': 'true:ecert'}
     ]
-    badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=attrs)
+    badmin.register(org['users']['admin']['name'], org['users']
+                    ['admin']['pass'], maxEnrollments=-1, attrs=attrs)
 
     print(f"Registering user identity with {org['ca']['name']}\n", flush=True)
     if 'user' in org['users']:
-        badmin.register(org['users']['user']['name'], org['users']['user']['pass'], maxEnrollments=-1)
+        badmin.register(org['users']['user']['name'],
+                        org['users']['user']['pass'], maxEnrollments=-1)
 
 
 def registerIdentities(conf):
@@ -197,7 +208,8 @@ def enrollWithFiles(user, org, msp_dir, csr=None, profile='', attr_reqs=None, ad
     cacli = ca_service(target=target,
                        ca_certs_path=org['ca']['certfile']['internal'],
                        ca_name=org['ca']['name'])
-    enrollment = cacli.enroll(user['name'], user['pass'], csr=csr, profile=profile, attr_reqs=attr_reqs)
+    enrollment = cacli.enroll(
+        user['name'], user['pass'], csr=csr, profile=profile, attr_reqs=attr_reqs)
 
     saveMSP(msp_dir, enrollment, admincerts=admincerts)
 
@@ -234,7 +246,8 @@ def genTLSCert(node, org, cert_file, key_file, ca_file):
     cacli = ca_service(target=target,
                        ca_certs_path=org['ca']['certfile']['internal'],
                        ca_name=org['ca']['name'])
-    enrollment = cacli.enroll(node['name'], node['pass'], csr=csr, profile='tls')
+    enrollment = cacli.enroll(
+        node['name'], node['pass'], csr=csr, profile='tls')
 
     # cert
     writeFile(cert_file, enrollment._cert)
@@ -250,7 +263,8 @@ def genTLSCert(node, org, cert_file, key_file, ca_file):
 
 
 def generateGenesis(conf):
-    print(f"Generating orderer genesis block at {conf['misc']['genesis_bloc_file']['external']}", flush=True)
+    print(
+        f"Generating orderer genesis block at {conf['misc']['genesis_bloc_file']['external']}", flush=True)
 
     # Note: For some unknown reason (at least for now) the block file can't be
     # named orderer.genesis.block or the orderer will fail to launch
