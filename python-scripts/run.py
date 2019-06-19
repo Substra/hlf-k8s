@@ -1,6 +1,8 @@
+import asyncio
 import glob
 import os
 import json
+import time
 from subprocess import call
 
 from utils.cli import init_cli
@@ -8,26 +10,44 @@ from utils.run_utils import Client
 
 SUBSTRA_PATH = '/substra'
 
+def onEvent(block):
+    print('#' * 80)
+    print('#' * 80)
+    print('block: ', block, flush=True)
+    print('#' * 80)
+    print('#' * 80)
 
 def add_org_with_channel():
 
-    client.generateChannelArtifacts(conf)
-    config_tx_file = client.createSystemUpdateProposal(conf, conf_orderer)
-    client.signAndPushSystemUpdateProposal(conf_orderer, config_tx_file)
+    client.generateChannelArtifacts()
+    config_tx_file = client.createSystemUpdateProposal()
+    client.signAndPushSystemUpdateProposal(config_tx_file)
 
-    client.createChannel(conf, conf_orderer)
+    # wait for update proposal
+    # system_channel = cli.get_channel(conf['misc']['system_channel_name'])
+    # channel_event_hub = system_channel.newChannelEventHub(cli.get_orderer(conf_orderer['orderers'][0]['name']), cli.get_user(conf_orderer['name'], conf_orderer['users']['admin']['name']))
+    # stream = channel_event_hub.connect(filtered=False)
+    # channel_event_hub.registerBlockEvent(onEvent=onEvent, unregister=False)
+    # loop = asyncio.get_event_loop()
+    # loop.run_until_complete(stream)
 
-    client.peersJoinChannel(conf, conf_orderer)
-    client.updateAnchorPeers(conf, conf_orderer)
+    time.sleep(5)
+
+    client.createChannel()
+
+    time.sleep(2)
+
+    client.peersJoinChannel()
+    client.updateAnchorPeers()
 
     # Install chaincode on peer in each org
     client.installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
 
     # Instantiate chaincode on the 1st peer of the 1st org
-    client.instanciateChaincode(conf)
+    client.instanciateChaincode()
 
     # Query chaincode from the 1st peer of the 1st org
-    if client.queryChaincodeFromFirstPeerFirstOrg(conf) == 'null':
+    if client.queryChaincodeFromPeers() == 'null':
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
         call(['touch', conf['misc']['run_success_file']])
     else:
@@ -36,8 +56,11 @@ def add_org_with_channel():
 
 
 def add_org():
-    client.generateChannelUpdate(conf, conf_externals, conf_orderer)
-    client.peersJoinChannel(conf, conf_orderer)
+    client.generateChannelUpdate(conf, conf_externals)
+
+    time.sleep(2)
+
+    client.peersJoinChannel()
 
     chaincode_version = client.getChaincodeVersion(conf_externals[0])
     new_chaincode_version = '%.1f' % (chaincode_version + 1.0)
@@ -50,7 +73,7 @@ def add_org():
 
     client.upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')
 
-    if client.queryChaincodeFromFirstPeerFirstOrg(conf):
+    if client.queryChaincodeFromPeers():
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
         call(['touch', conf['misc']['run_success_file']])
     else:
@@ -84,9 +107,9 @@ if __name__ == "__main__":
         # make new org know channel already created
         cli.new_channel(conf['misc']['channel_name'])
 
-        client = Client(cli)
+        client = Client(cli, conf, conf_orderer)
         add_org()
     else:
         cli = init_cli([conf, conf_orderer])
-        client = Client(cli)
+        client = Client(cli, conf, conf_orderer)
         add_org_with_channel()

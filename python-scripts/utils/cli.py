@@ -1,6 +1,5 @@
 import os
 
-
 from hfc.fabric import Client
 from hfc.fabric.orderer import Orderer
 from hfc.fabric.organization import create_org
@@ -62,11 +61,11 @@ def init_cli(orgs):
         admin_cert_path = os.path.join(org_admin_msp_dir, 'signcerts', 'cert.pem')
         admin_key_path = os.path.join(org_admin_msp_dir, 'keystore', 'key.pem')
         admin = create_user(name=org_admin['name'],
-                                org=org['name'],
-                                state_store=cli.state_store,
-                                msp_id=org['mspid'],
-                                cert_path=admin_cert_path,
-                                key_path=admin_key_path)
+                            org=org['name'],
+                            state_store=cli.state_store,
+                            msp_id=org['mspid'],
+                            cert_path=admin_cert_path,
+                            key_path=admin_key_path)
         cli._organizations[org['name']]._users.update({org_admin['name']: admin})
 
         # register peers
@@ -74,7 +73,8 @@ def init_cli(orgs):
             tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
 
             port = peer['port'][os.environ.get('PEER_PORT', 'external')]
-            p = Peer(endpoint=f"{peer['host']}:{port}",
+            p = Peer(name=peer['name'],
+                     endpoint=f"{peer['host']}:{port}",
                      tls_ca_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
                      client_cert_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
                      client_key_file=os.path.join(tls_peer_client_dir, peer['tls']['client']['key']))
