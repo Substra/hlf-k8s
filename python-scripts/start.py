@@ -126,7 +126,7 @@ def substra_org(org, orderer=None):
 
     # Configtx file
     config_filepath = org['misc']['configtx-config-path']
-    create_configtx(org, config_filepath, raft=False)
+    create_configtx(org, config_filepath, raft=True)
 
     # Org Config files
     if org['type'] == 'client':

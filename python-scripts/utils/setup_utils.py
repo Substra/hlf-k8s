@@ -204,27 +204,28 @@ def enrollWithFiles(user, org, msp_dir, csr=None, profile='', attr_reqs=None, ad
     return enrollment
 
 
-def genTLSCert(node, host_name, org, cert_file, key_file, ca_file):
+def genTLSCert(node, org, cert_file, key_file, ca_file):
     # Generate our key
     pkey = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
         backend=default_backend())
 
+    name = org['csr']['names'][0]
     # Generate a CSR
-    # TODO replace by real args
     csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
         # Provide various details about who we are.
-        x509.NameAttribute(NameOID.COUNTRY_NAME, u"FR"),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u"Loire Atlantique"),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, u"Nantes"),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"owkin"),
-        x509.NameAttribute(NameOID.COMMON_NAME, node['name']),
+        x509.NameAttribute(NameOID.COUNTRY_NAME, name['C']),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, name['ST']),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, name['L']),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, name['O']),
+        x509.NameAttribute(NameOID.COMMON_NAME, node['host']),
     ])).add_extension(
+        # Describe what sites we want this certificate for.
         x509.SubjectAlternativeName([
-            # Describe what sites we want this certificate for.
-            x509.DNSName(host_name),
-        ]),
+              # Describe what sites we want this certificate for.
+                x509.DNSName(node['host']),
+            ]),
         critical=False,
         # Sign the CSR with our private key.
     ).sign(pkey, hashes.SHA256(), default_backend())

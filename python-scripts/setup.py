@@ -20,14 +20,14 @@ def generateMSPandTLS(node, org, msp_dir, admincerts=False):
     tls_client_dir = os.path.join(tls_setup_dir, node['tls']['client']['dir'])
 
     # Generate server TLS cert and key pair in container
-    genTLSCert(node, node['host'], org,
+    genTLSCert(node, org,
                cert_file=os.path.join(tls_server_dir, node['tls']['server']['cert']),
                key_file=os.path.join(tls_server_dir, node['tls']['server']['key']),
                ca_file=os.path.join(tls_server_dir, node['tls']['server']['ca']))
 
     # Generate client TLS cert and key pair for the peer CLI (will be used by external tools)
     # in a binded volume
-    genTLSCert(node, node['name'], org,
+    genTLSCert(node, org,
                cert_file=os.path.join(tls_client_dir, node['tls']['client']['cert']),
                key_file=os.path.join(tls_client_dir, node['tls']['client']['key']),
                ca_file=os.path.join(tls_client_dir, node['tls']['client']['ca']))
