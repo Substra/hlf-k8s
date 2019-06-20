@@ -50,13 +50,14 @@ class Client(object):
 
     # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
     # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
-    # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
     def createChannel(self):
         res = self.loop.run_until_complete(self.cli.channel_create(
             self.orderer,
             self.channel_name,
             self.org_admin,
-            config_tx=self.channel_tx_file))
+            config_tx=self.channel_tx_file,
+            wait_for_event=True,
+            orderer_admin=self.orderer_admin))
         print('channel creation: ', res)
 
         if res is not True:
@@ -70,7 +71,6 @@ class Client(object):
             channel_name=self.channel_name,
             peers=self.org_peers,
             orderer=self.orderer,
-            orderer_admin=self.orderer_admin
         ))
 
     def createChannelConfig(self, with_anchor=True):
@@ -345,9 +345,10 @@ class Client(object):
     def signAndPushSystemUpdateProposal(self, config_tx_file):
         print('signAndPushSystemUpdateProposal')
 
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.cli.channel_update(
+        res = self.loop.run_until_complete(self.cli.channel_update(
             self.orderer,
             self.system_channel_name,
             self.orderer_admin,
-            config_tx=config_tx_file))
+            config_tx=config_tx_file,
+            wait_for_event=True))
+        print('channel update res: ', res)

@@ -99,7 +99,7 @@ def registerOrdererIdentities(org):
             badmin.register(peer['name'], peer['pass'], 'peer', maxEnrollments=-1)
 
     print(f"Registering admin identity with {org['ca']['name']}", flush=True)
-    attrs = [{'admin': 'true:ecert'}]
+    attrs = [{'name': 'admin', 'value': 'true:ecert'}]
     badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=attrs)
 
 
@@ -112,12 +112,12 @@ def registerPeerIdentities(org):
     print(f"Registering admin identity with {org['ca']['name']}", flush=True)
     # The admin identity has the "admin" attribute which is added to ECert by default
     attrs = [
-        {'hf.Registrar.Roles': 'client'},
-        {'hf.Registrar.Attributes': '*'},
-        {'hf.Revoker': 'true'},
-        {'hf.GenCRL': 'true'},
-        {'admin': 'true:ecert'},
-        {'abac.init': 'true:ecert'}
+        {'name': 'hf.Registrar.Roles', 'value': 'client'},
+        {'name': 'hf.Registrar.Attributes', 'value': '*'},
+        {'name': 'hf.Revoker', 'value': 'true'},
+        {'name': 'hf.GenCRL', 'value': 'true'},
+        {'name': 'admin', 'value': 'true:ecert'},
+        {'name': 'abac.init', 'value': 'true:ecert'}
     ]
     badmin.register(org['users']['admin']['name'], org['users']['admin']['pass'], maxEnrollments=-1, attrs=attrs)
 

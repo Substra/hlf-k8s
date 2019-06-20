@@ -26,16 +26,12 @@ def add_org_with_channel():
     # wait for update proposal
     # system_channel = cli.get_channel(conf['misc']['system_channel_name'])
     # channel_event_hub = system_channel.newChannelEventHub(cli.get_orderer(conf_orderer['orderers'][0]['name']), cli.get_user(conf_orderer['name'], conf_orderer['users']['admin']['name']))
-    # stream = channel_event_hub.connect(filtered=False)
+    # stream = channel_event_hub.connect(start=0, filtered=False)
     # channel_event_hub.registerBlockEvent(onEvent=onEvent, unregister=False)
     # loop = asyncio.get_event_loop()
     # loop.run_until_complete(stream)
 
-    time.sleep(5)
-
     client.createChannel()
-
-    time.sleep(2)
 
     client.peersJoinChannel()
     client.updateAnchorPeers()
