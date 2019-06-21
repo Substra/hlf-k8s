@@ -222,7 +222,9 @@ if __name__ == '__main__':
     substra_network(orgs)
 
     if args['fixtures']:
-        docker_compose_path = generate_fixtures_docker(SUBSTRA_PATH, orgs[0]["misc"]["fixtures_path"], SUBSTRA_NETWORK)
+        suffix = 's' if len(orgs) - 1 > 1 else ''
+        fixtures_path = f'fixtures{len(orgs) - 1}org{suffix}.py'
+        docker_compose_path = generate_fixtures_docker(SUBSTRA_PATH, fixtures_path, SUBSTRA_NETWORK)
         project_directory = os.path.join(dir_path, os.pardir)
         call(['docker-compose', '-f', docker_compose_path, '--project-directory', project_directory, 'up', '-d',
               '--no-deps', 'fixtures'])
