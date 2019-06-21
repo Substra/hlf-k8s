@@ -1,4 +1,3 @@
-import base64
 import pprint
 import json
 import glob
@@ -21,7 +20,7 @@ def revokeFabricUserAndGenerateCRL():
 
     username = org['users']['user']['name']
     port = org['ca']['port'][os.environ.get('ENV', 'external')]
-    ca_certs_path = org['ca']['certfile'][os.environ.get('ENV', 'external')]
+    ca_certs_path = org['ca']['certfile']['external']
     cacli = ca_service(target=f"https://{org['ca']['host']}:{port}",
                        ca_certs_path=ca_certs_path,
                        ca_name=org['ca']['name'])
@@ -131,7 +130,7 @@ def queryAsRevokedUser():
 
     loop = asyncio.get_event_loop()
     try:
-        loop.run_until_complete(cli.chaincode_query(
+        res = loop.run_until_complete(cli.chaincode_query(
             requestor=org_user,
             channel_name=org['misc']['channel_name'],
             peers=peers,
