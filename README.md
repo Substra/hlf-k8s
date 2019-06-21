@@ -36,12 +36,10 @@ Replace `guillaume:guillaume` by your `user:group`.
 !> Please make sure that substra-chaincode code is cloned and present beside substra-network project directory
 
 ```
-$> python3 python-scripts/start.py  --no-backup
+$> python3 python-scripts/start.py --no-backup
 ```
 
-:warning:
-Launching `start.py` without the config option, will make a call of `python3 python-scripts/conf/2orgs.py` internally.
-
+- For launching it with a configuration file, pass the `--config` or `-c` option. By default `python-scripts/conf/2orgs.py` will be used
 - For launching a network from scratch,  without ising backup files, use `--no-backup` option (recommended in development mode).
 - For loading fixtures, pass the `--fixtures` or `-f` option. This is equivalent to an e2e test.
 - For revoking an user, pass the `--revoke` or `-r` option. This will revoke user-owkin and try to make a query as a revoked user.
