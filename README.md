@@ -47,8 +47,8 @@ $> python3 python-scripts/start.py --no-backup
 Roughly speaking, it will generate several docker-compose files in /substra/dockerfiles, build the network and run init config.
 
 The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.
-The `fixtures` docker instance container will create some objectives, algo, datamanager, train data, test data, traintuples on orgs.
-The `revoke` docker instance allow you to revoke an user.
+The `fixtures` docker instance container will create some objectives, algo, datamanager, train data samples, test data samples, traintuples, testtuples on orgs.
+The `revoke` docker instance allow you to revoke an user, and query with an expected `acces denied` response.
 
 You now will be able to play with the network ! :tada:
 
