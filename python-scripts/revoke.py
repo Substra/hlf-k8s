@@ -4,6 +4,7 @@ import glob
 import os
 import asyncio
 import copy
+import time
 
 from subprocess import call
 
@@ -130,7 +131,7 @@ def queryAsRevokedUser():
 
     loop = asyncio.get_event_loop()
     try:
-        res = loop.run_until_complete(cli.chaincode_query(
+        loop.run_until_complete(cli.chaincode_query(
             requestor=org_user,
             channel_name=org['misc']['channel_name'],
             peers=peers,
@@ -154,6 +155,11 @@ def revokeFirstOrgUser():
     config_tx_file = createConfigUpdatePayloadWithCRL(old_config, crl)
 
     updateConfigBlock(config_tx_file)
+
+    # wait for block being fetched by endorsing peer
+    # TODO wait for channel_update waitForEvent in fabric-sdk-py
+    time.sleep(2)
+
     if queryAsRevokedUser():
         print('Revokation Success')
         call(['touch', '/substra/data/log/revoke.successful'])
