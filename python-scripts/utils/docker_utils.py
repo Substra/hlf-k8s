@@ -50,7 +50,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                 'environment': ['GOPATH=/opt/gopath',
                                                                 f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
                                                                 f'ORG={org["name"]}',
-                                                                'PEER_PORT=internal'],
+                                                                'ENV=internal'],
                                                 'volumes': [
                                                             # docker in docker
                                                             '/var/run/docker.sock:/var/run/docker.sock',
@@ -82,7 +82,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                                                             f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
 
                                                             # debug fabric-sdk-py, replace with your own debug path
-                                                            "/Users/inalgnu/Workspace/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
+                                                            "/home/guillaume/Projects/fabric/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
                                                 ],
                                                 'networks': [network],
                                                 'depends_on': [],
@@ -251,6 +251,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
                'command': '/bin/bash -c "orderer 2>&1"',
                'ports': [f"{orderer['port']['external']}:{orderer['port']['internal']}"],
                'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
+               'environment': ['FABRIC_LOGGING_SPEC=DEBUG'],
                'volumes': [
                    # genesis file
                    f'{genesis_bloc_file["external"]}:{genesis_bloc_file["internal"]}',
@@ -313,13 +314,52 @@ def generate_fixtures_docker(substra_path, fixtures_path, network):
                              'environment': [f'FABRIC_CA_HOME={FABRIC_CA_HOME}',
                                              f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
                                              f'FABRIC_CA_CLIENT_HOME={FABRIC_CA_CLIENT_HOME}',
-                                             'PEER_PORT=internal'],
+                                             'ENV=internal'],
                              'volumes': ['./python-scripts:/scripts',
                                          f'{substra_path}/data/:{substra_path}/data/',
                                          f'{substra_path}/conf/:{substra_path}/conf/',
                                          # TODO remove
                                          # debug fabric-sdk-py, replace with your own debug path
-                                         "/Users/inalgnu/Workspace/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
+                                         "/home/guillaume/Projects/fabric/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
+                                         ],
+                             'networks': [network],
+                             'depends_on': []
+                             },
+                        },
+                   'version': '2',
+                   'networks': {
+                       network: {'external': True}
+                   }
+                }
+
+    with open(path, 'w+') as f:
+        f.write(yaml.dump(COMPOSITION, default_flow_style=False, indent=4, line_break=None))
+
+    return path
+
+
+def generate_revoke_docker(substra_path, network):
+    path = os.path.join(substra_path, 'dockerfiles', f'docker-compose-revoke.yaml')
+
+    FABRIC_CA_HOME = '/etc/hyperledger/fabric-ca-server'
+    FABRIC_CFG_PATH = f'{substra_path}/data'
+    FABRIC_CA_CLIENT_HOME = '/etc/hyperledger/fabric'
+
+    COMPOSITION = {'services':
+                       {'revoke':
+                            {'container_name': 'revoke',
+                             'image': 'substra/substra-ca-tools-debug',
+                             'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/fixtures/revoke.py 2>&1 | tee {substra_path}/data/log/revoke.log"',
+                             'environment': [f'FABRIC_CA_HOME={FABRIC_CA_HOME}',
+                                             f'FABRIC_CFG_PATH={FABRIC_CFG_PATH}',
+                                             f'FABRIC_CA_CLIENT_HOME={FABRIC_CA_CLIENT_HOME}',
+                                             'ENV=internal'],
+                             'volumes': ['./python-scripts:/scripts',
+                                         f'{substra_path}/data/:{substra_path}/data/',
+                                         f'{substra_path}/conf/:{substra_path}/conf/',
+                                         # TODO remove
+                                         # debug fabric-sdk-py, replace with your own debug path
+                                         "/home/guillaume/Projects/fabric/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
                                          ],
                              'networks': [network],
                              'depends_on': []

@@ -89,7 +89,7 @@ def init_cli(orgs):
             tls_peer_client_dir = os.path.join(
                 peer['tls']['dir']['external'], peer['tls']['client']['dir'])
 
-            port = peer['port'][os.environ.get('PEER_PORT', 'external')]
+            port = peer['port'][os.environ.get('ENV', 'external')]
             p = Peer(name=peer['name'],
                      endpoint=f"{peer['host']}:{port}",
                      tls_ca_cert_file=os.path.join(

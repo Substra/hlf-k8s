@@ -43,8 +43,8 @@ $> python3 python-scripts/start.py  --no-backup
 Launching `start.py` without the config option, will make a call of `python3 python-scripts/conf/2orgs.py` internally.
 
 - For launching a network from scratch,  without ising backup files, use `--no-backup` option (recommended in development mode).
-- For loading fixtures, test and revoke containers, pass the `--fixtures` or `-f` option.
-- If you do not want to call the `revoke` container, please comment it in the `start.py` file.
+- For loading fixtures, pass the `--fixtures` or `-f` option. This is equivalent to an e2e test.
+- For revoking an user, pass the `--revoke` or `-r` option. This will revoke user-owkin and try to make a query as a revoked user.
 
 Roughly speaking, it will generate several docker-compose files in /substra/docker-files, build the network and run init config.
 

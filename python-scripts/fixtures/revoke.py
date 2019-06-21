@@ -18,15 +18,18 @@ pp = pprint.PrettyPrinter(indent=2)
 
 
 def revokeFabricUserAndGenerateCRL():
-    cacli = ca_service(target=f"https://{org['ca']['host']}:{org['ca']['port']['external']}",
-                       ca_certs_path=org['ca']['certfile']['external'],
+
+    username = org['users']['user']['name']
+    port = org['ca']['port'][os.environ.get('ENV', 'external')]
+    ca_certs_path = org['ca']['certfile'][os.environ.get('ENV', 'external')]
+    cacli = ca_service(target=f"https://{org['ca']['host']}:{port}",
+                       ca_certs_path=ca_certs_path,
                        ca_name=org['ca']['name'])
 
     enrolledAdmin = cacli.enroll(org['users']['admin']['name'],
                                  org['users']['admin']['pass'])
 
-    revoked_certs, crl = enrolledAdmin.revoke(
-        org['users']['user']['name'], gencrl=True)
+    revoked_certs, crl = enrolledAdmin.revoke(username, gencrl=True)
 
     return crl
 
@@ -47,43 +50,43 @@ def fetchConfigBlock():
 
 def createConfigUpdatePayloadWithCRL(old_config, crl):
 
-    _config = copy.deepcopy(old_config)
-    _config['channel_group']['groups']['Application']['groups'][org['name']]['values']['MSP']['value']['config'][
+    new_config = copy.deepcopy(old_config)
+    new_config['channel_group']['groups']['Application']['groups'][org['name']]['values']['MSP']['value']['config'][
         'revocation_list'] = [crl]
 
-    json.dump(old_config, open('old_config.json', 'w'))
+    json.dump(old_config, open('/tmp/old_config.json', 'w'))
     call(['configtxlator',
           'proto_encode',
           '--type', 'common.Config',
-          '--input', 'old_config.json',
-          '--output', 'old_config.block'
+          '--input', '/tmp/old_config.json',
+          '--output', '/tmp/old_config.block'
           ])
 
-    json.dump(_config, open('_config.json', 'w'))
+    json.dump(new_config, open('/tmp/new_config.json', 'w'))
     call(['configtxlator',
           'proto_encode',
           '--type', 'common.Config',
-          '--input', '_config.json',
-          '--output', '_config.block'
+          '--input', '/tmp/new_config.json',
+          '--output', '/tmp/new_config.block'
           ])
 
     # Compute update
     call(['configtxlator',
           'compute_update',
           '--channel_id', org['misc']['channel_name'],
-          '--original', 'old_config.block',
-          '--updated', '_config.block',
-          '--output', 'compute_update.pb'
+          '--original', '/tmp/old_config.block',
+          '--updated', '/tmp/new_config.block',
+          '--output', '/tmp/compute_update.pb'
           ])
 
     call(['configtxlator',
           'proto_decode',
           '--type', 'common.ConfigUpdate',
-          '--input', 'compute_update.pb',
-          '--output', 'config_update.json'
+          '--input', '/tmp/compute_update.pb',
+          '--output', '/tmp/config_update.json'
           ])
 
-    config_update = json.load(open('config_update.json'))
+    config_update = json.load(open('/tmp/config_update.json'))
 
     config_update_as_envelope = {
         'payload': {
@@ -99,13 +102,13 @@ def createConfigUpdatePayloadWithCRL(old_config, crl):
         }
     }
 
-    json.dump(config_update_as_envelope, open('proposal.json', 'w'))
+    json.dump(config_update_as_envelope, open('/tmp/proposal.json', 'w'))
 
-    config_tx_file = 'proposal.pb'
+    config_tx_file = '/tmp/proposal.pb'
 
     call(['configtxlator',
           'proto_encode',
-          '--input', 'proposal.json',
+          '--input', '/tmp/proposal.json',
           '--type', 'common.Envelope',
           '--output', config_tx_file])
 
@@ -116,31 +119,30 @@ def updateConfigBlock(config_tx_file):
     org_admin = cli.get_user(org['name'], org['users']['admin']['name'])
 
     loop = asyncio.get_event_loop()
-    res = loop.run_until_complete(cli.channel_update(
+    loop.run_until_complete(cli.channel_update(
         cli.get_orderer(orderer['orderers'][0]['name']),
         org['misc']['channel_name'],
         org_admin,
         config_tx=config_tx_file))
 
-    if res is not True:
-        raise Exception('Fail to update channel')
-
 def queryAsRevokedUser():
-
     org_user = cli.get_user(org['name'], org['users']['user']['name'])
     peers = [x['name'] for x in org['peers']]
 
     loop = asyncio.get_event_loop()
-    response = loop.run_until_complete(cli.chaincode_query(
-        requestor=org_user,
-        channel_name=org['misc']['channel_name'],
-        peers=peers,
-        fcn='queryObjectives',
-        args=None,
-        cc_name=org['misc']['chaincode_name'],
-    ))
-
-    pp.pprint(response)
+    try:
+        loop.run_until_complete(cli.chaincode_query(
+            requestor=org_user,
+            channel_name=org['misc']['channel_name'],
+            peers=peers,
+            fcn='queryObjectives',
+            args=None,
+            cc_name=org['misc']['chaincode_name'],
+        ))
+    except Exception as e:
+        return 'access denied' in e.details()
+    else:
+        return False
 
 
 def revokeFirstOrgUser():
@@ -153,7 +155,12 @@ def revokeFirstOrgUser():
     config_tx_file = createConfigUpdatePayloadWithCRL(old_config, crl)
 
     updateConfigBlock(config_tx_file)
-    queryAsRevokedUser()
+    if queryAsRevokedUser():
+        print('Revokation Success')
+        call(['touch', '/substra/data/log/revoke.successful'])
+    else:
+        print('Revokation Fail')
+        call(['touch', '/substra/data/log/revoke.fail'])
 
 
 if __name__ == "__main__":
@@ -166,6 +173,6 @@ if __name__ == "__main__":
     org = [x for x in orgs if x['name'] == org_name][0]
     orderer = [x for x in orgs if x['type'] == 'orderer'][0]
 
-    cli._channel(org['misc']['channel_name'])
+    cli.new_channel(org['misc']['channel_name'])
 
     revokeFirstOrgUser()
