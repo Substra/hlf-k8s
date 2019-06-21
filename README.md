@@ -44,7 +44,7 @@ $> python3 python-scripts/start.py --no-backup
 - For loading fixtures, pass the `--fixtures` or `-f` option. This is equivalent to an e2e test.
 - For revoking an user, pass the `--revoke` or `-r` option. This will revoke user-owkin and try to make a query as a revoked user.
 
-Roughly speaking, it will generate several docker-compose files in /substra/docker-files, build the network and run init config.
+Roughly speaking, it will generate several docker-compose files in /substra/dockerfiles, build the network and run init config.
 
 The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.
 The `fixtures` docker instance container will create some objectives, algo, datamanager, train data, test data, traintuples on orgs.
