@@ -11,6 +11,7 @@ from hfc.util.utils import CC_TYPE_GOLANG
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+
 class Client(object):
 
     def __init__(self, cli, conf, conf_orderer):
@@ -33,7 +34,6 @@ class Client(object):
         self.chaincode_version = conf['misc']['chaincode_version']
 
         self.loop = asyncio.get_event_loop()
-
 
     def generateChannelArtifacts(self):
         print(f"Generating channel configuration transaction at {self.channel_tx_file}", flush=True)
@@ -125,7 +125,6 @@ class Client(object):
               '--type', 'common.ConfigUpdate',
               '--output', 'compute_update.json'])
 
-
         # Prepare proposal
         update = json.load(open('compute_update.json', 'r'))
         proposal = {'payload': {'header': {'channel_header': {'channel_id': self.channel_name,
@@ -216,9 +215,12 @@ class Client(object):
             peers=peers
         ))
 
-        # TODO get chaincode which has name like chaincode_name
-        version = float(responses[0].chaincodes[0].version)
-        return version
+        chaincodes = responses[0].chaincodes
+        for cc in chaincodes:
+            if self.chaincode_name == cc.name:
+                return float(cc.version)
+        else:
+            return float(responses[0].chaincodes[0].version)
 
     def makePolicy(self, orgs_mspid):
         policy = {
