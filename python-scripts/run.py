@@ -4,6 +4,7 @@ import json
 import time
 from subprocess import call
 
+
 from utils.cli import init_cli
 from utils.run_utils import Client
 
@@ -52,8 +53,10 @@ def add_org():
 
     # Install chaincode on peer in each org
     orgs_mspid = []
+    # create chaonde package before for avoiding chaincode fingerprint mismatch
+    code_package = client.get_code_package()
     for conf_org in [conf] + conf_externals:
-        client.installChainCodeOnPeers(conf_org, new_chaincode_version)
+        client.installChainCodeOnPeers(conf_org, new_chaincode_version, code_package)
         orgs_mspid.append(conf_org['mspid'])
 
     client.upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')

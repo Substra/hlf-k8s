@@ -3,8 +3,11 @@ import asyncio
 import json
 import os
 import random
+import time
 
 from subprocess import call, check_output
+
+from hfc.util.utils import CC_TYPE_GOLANG
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -179,20 +182,29 @@ class Client(object):
             self.org_admin,
             config_tx=self.config_tx))
 
-    def installChainCodeOnPeers(self, conf, chaincode_version):
+    def get_code_package(self):
+        channel = self.cli.get_channel(self.channel_name)
+        return channel._package_chaincode(self.chaincode_path, CC_TYPE_GOLANG)
+
+    def installChainCodeOnPeers(self, conf, chaincode_version, code_package=None):
 
         org_admin = self.cli.get_user(conf['name'], conf['users']['admin']['name'])
         peers = [x['name'] for x in conf['peers']]
 
         print(f"Installing chaincode on {peers} ...", flush=True)
 
-        self.loop.run_until_complete(self.cli.chaincode_install(
-            requestor=org_admin,
-            peers=peers,
-            cc_path=self.chaincode_path,
-            cc_name=self.chaincode_name,
-            cc_version=chaincode_version
-        ))
+        kwargs = {
+            'requestor': org_admin,
+            'peers': peers,
+            'cc_path': self.chaincode_path,
+            'cc_name': self.chaincode_name,
+            'cc_version': chaincode_version,
+        }
+
+        if code_package:
+            kwargs['packaged_cc'] = code_package
+
+        self.loop.run_until_complete(self.cli.chaincode_install(**kwargs))
 
     def getChaincodeVersion(self, conf):
         org_admin = self.cli.get_user(conf['name'], conf['users']['admin']['name'])
