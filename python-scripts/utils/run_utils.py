@@ -220,7 +220,7 @@ class Client(object):
             if self.chaincode_name == cc.name:
                 return float(cc.version)
         else:
-            return float(responses[0].chaincodes[0].version)
+            raise Exception(f'Could not find valid chaincode version, expected version: "{self.chaincode_name}"')
 
     def makePolicy(self, orgs_mspid):
         policy = {
