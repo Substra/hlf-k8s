@@ -421,7 +421,7 @@ def installChainCode(conf, peer, chaincode_version):
           'chaincode', 'install',
           '-n', chaincode_name,
           '-v', chaincode_version,
-          '-p', 'github.com/hyperledger/chaincode/'])
+          '-p', 'chaincode/'])
 
     # clean env variables
     clean_tls_env_variables()
