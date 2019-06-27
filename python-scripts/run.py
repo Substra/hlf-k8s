@@ -53,10 +53,9 @@ def add_org():
 
     # Install chaincode on peer in each org
     orgs_mspid = []
-    # create chaonde package before for avoiding chaincode fingerprint mismatch
-    code_package = client.get_code_package()
+
     for conf_org in [conf] + conf_externals:
-        client.installChainCodeOnPeers(conf_org, new_chaincode_version, code_package)
+        client.installChainCodeOnPeers(conf_org, new_chaincode_version)
         orgs_mspid.append(conf_org['mspid'])
 
     client.upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')

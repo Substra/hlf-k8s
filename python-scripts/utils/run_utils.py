@@ -3,11 +3,8 @@ import asyncio
 import json
 import os
 import random
-import time
 
 from subprocess import call, check_output
-
-from hfc.util.utils import CC_TYPE_GOLANG
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -181,11 +178,7 @@ class Client(object):
             self.org_admin,
             config_tx=self.config_tx))
 
-    def get_code_package(self):
-        channel = self.cli.get_channel(self.channel_name)
-        return channel._package_chaincode(self.chaincode_path, CC_TYPE_GOLANG)
-
-    def installChainCodeOnPeers(self, conf, chaincode_version, code_package=None):
+    def installChainCodeOnPeers(self, conf, chaincode_version):
 
         org_admin = self.cli.get_user(conf['name'], conf['users']['admin']['name'])
         peers = [x['name'] for x in conf['peers']]
@@ -199,9 +192,6 @@ class Client(object):
             'cc_name': self.chaincode_name,
             'cc_version': chaincode_version,
         }
-
-        if code_package:
-            kwargs['packaged_cc'] = code_package
 
         self.loop.run_until_complete(self.cli.chaincode_install(**kwargs))
 
