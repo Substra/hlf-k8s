@@ -52,7 +52,7 @@ def invokeChainCode(fcn, args, org_name, peers):
 
     try:
         res = json.loads(response)
-    except:
+    except Exception:
         res = response
     finally:
         return res
@@ -71,8 +71,8 @@ def setup():
     print(res)
 
     '''
-              | |                             | |           
-           ___| |__  _   _   _ __   __ _ _ __ | |_ ___  ___ 
+              | |                             | |
+           ___| |__  _   _   _ __   __ _ _ __ | |_ ___  ___
           / __| '_ \| | | | | '_ \ / _` | '_ \| __/ _ \/ __|
          | (__| | | | |_| | | | | | (_| | | | | ||  __/\__ \
           \___|_| |_|\__,_| |_| |_|\__,_|_| |_|\__\___||___/
@@ -83,7 +83,7 @@ def setup():
     args = {
         'name': 'ISIC 2018',
         'openerHash': 'ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994',
-        'openerStorageAddress':'http://chunantes.substrabac:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener/',
+        'openerStorageAddress': 'http://chunantes.substrabac:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener/',
         'type': 'Images',
         'descriptionHash': '7a90514f88c70002608a9868681dd1589ea598e78d00a8cd7783c3ea0f9ceb09',
         'descriptionStorageAddress': 'http://chunantes.substrabac:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description/',
@@ -101,7 +101,6 @@ def setup():
     res = queryChaincode('queryDataset', [json.dumps({'key': datamanager_chunantes_key})], 'chu-nantes', [cli.get_peer('peer1-chu-nantes')])
     print(res)
 
-
     # register train data on dataset chu nantes (will take dataset creator as worker)
     fcn = 'registerDataSample'
     args = {
@@ -116,8 +115,7 @@ def setup():
     # debug purpose only
     else:
         data_chunantes_train_keys_1 = ["62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a",
-                                  "42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9"]
-
+                                       "42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9"]
 
     # register test data on datamanager_chunantes
     args = {
@@ -132,13 +130,13 @@ def setup():
     # debug purpose only
     else:
         data_chunantes_test_keys_1 = ["61b113ac7142bdd1cc8a824cd29940ce0e22e2381b25e0efe34f64cad5a5ff9b",
-                     "0e597cec32d7f5b147c78002b134062923782ccac0e9cbfdd06a0298e7949172"]
+                                      "0e597cec32d7f5b147c78002b134062923782ccac0e9cbfdd06a0298e7949172"]
 
     # create datamanager, test data and challenge on owkin
     '''
-                    | |  (_)      
-        _____      _| | ___ _ __  
-       / _ \ \ /\ / / |/ / | '_ \ 
+                    | |  (_)
+        _____      _| | ___ _ __
+       / _ \ \ /\ / / |/ / | '_ \
       | (_) \ V  V /|   <| | | | |
        \___/ \_/\_/ |_|\_\_|_| |_|
     '''
@@ -206,8 +204,8 @@ def setup():
     objective_owkin = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
     '''
-              | |                             | |           
-           ___| |__  _   _   _ __   __ _ _ __ | |_ ___  ___ 
+              | |                             | |
+           ___| |__  _   _   _ __   __ _ _ __ | |_ ___  ___
           / __| '_ \| | | | | '_ \ / _` | '_ \| __/ _ \/ __|
          | (__| | | | |_| | | | | | (_| | | | | ||  __/\__ \
           \___|_| |_|\__,_| |_| |_|\__,_|_| |_|\__\___||___/
@@ -329,9 +327,9 @@ def setup():
     invokeChainCode('logSuccessTrain', [json.dumps(args)], 'chu-nantes', [cli.get_peer('peer1-chu-nantes')])
     # go back to owkin for creating testtuple
     '''
-                    | |  (_)      
-        _____      _| | ___ _ __  
-       / _ \ \ /\ / / |/ / | '_ \ 
+                    | |  (_)
+        _____      _| | ___ _ __
+       / _ \ \ /\ / / |/ / | '_ \
       | (_) \ V  V /|   <| | | | |
        \___/ \_/\_/ |_|\_\_|_| |_|
     '''
@@ -346,8 +344,8 @@ def setup():
     testtuple = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
     '''
-              | |                             | |           
-           ___| |__  _   _   _ __   __ _ _ __ | |_ ___  ___ 
+              | |                             | |
+           ___| |__  _   _   _ __   __ _ _ __ | |_ ___  ___
           / __| '_ \| | | | | '_ \ / _` | '_ \| __/ _ \/ __|
          | (__| | | | |_| | | | | | (_| | | | | ||  __/\__ \
           \___|_| |_|\__,_| |_| |_|\__,_|_| |_|\__\___||___/
@@ -392,7 +390,7 @@ def run(cli):
         call(['touch', '/substra/data/log/fixtures.successful'])
     else:
         print('Loading fixtures failed.', flush=True)
-        call(['touch','/substra/data/log/fixtures.fail'])
+        call(['touch', '/substra/data/log/fixtures.fail'])
 
 
 if __name__ == "__main__":

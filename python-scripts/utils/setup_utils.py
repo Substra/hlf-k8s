@@ -54,7 +54,7 @@ def configLocalMSP(org, user_name):
                org['ca']['logfile'],
                [org['ca']['certfile']['internal']])
 
-        msg = f"Enrolling user '{user['name']}' for organization {org['name']} with {org['ca']['host']} and home directory {org_user_home}..."
+        msg = f"Enrolling user '{user['name']}' for organization {org['name']} with {org['ca']['host']} and home directory {org_user_home}..."   # noqa
         print(msg, flush=True)
 
         # admincerts is required for configtxgen binary
@@ -77,7 +77,7 @@ def enrollCABootstrapAdmin(org):
         org['users']['bootstrap_admin'], org, org_user_msp_dir, admincerts=False)
     return bootstrap_admin
 
-    # following commented code is better, but it is easier to save bootstrap_admin cert/key for not working with fabric-sdk-py.
+    # following commented code is better, but it is easier to save bootstrap_admin cert/key for not working with fabric-sdk-py.  # noqa
     # TODO: deplace bootstrap_admin outside the users dict of the organization
 
     # # create ca-cert.pem file
@@ -150,7 +150,7 @@ def registerUsers(conf):
     org_admin_msp_dir = os.path.join(conf['users']['admin']['home'], 'msp')
 
     if conf['type'] == 'client':
-        # will create admin and user folder with an msp folder and populate it. Populate admincerts for configtxgen to work
+        # will create admin and user folder with an msp folder and populate it. Populate admincerts for configtxgen to work  # noqa
         # https://hyperledger-fabric.readthedocs.io/en/release-1.2/msp.html?highlight=admincerts#msp-setup-on-the-peer-orderer-side
         # https://stackoverflow.com/questions/48221810/what-is-difference-between-admincerts-and-signcerts-in-hyperledge-fabric-msp
 
@@ -235,9 +235,9 @@ def genTLSCert(node, org, cert_file, key_file, ca_file):
     ])).add_extension(
         # Describe what sites we want this certificate for.
         x509.SubjectAlternativeName([
-              # Describe what sites we want this certificate for.
-                x509.DNSName(node['host']),
-            ]),
+            # Describe what sites we want this certificate for.
+            x509.DNSName(node['host']),
+        ]),
         critical=False,
         # Sign the CSR with our private key.
     ).sign(pkey, hashes.SHA256(), default_backend())
@@ -269,7 +269,7 @@ def generateGenesis(conf):
     # Note: For some unknown reason (at least for now) the block file can't be
     # named orderer.genesis.block or the orderer will fail to launch
 
-    # configtxgen -profile OrgsOrdererGenesis -channelID substrasystemchannel -outputBlock /substra/data/genesis/genesis.block
+    # configtxgen -profile OrgsOrdererGenesis -channelID substrasystemchannel -outputBlock /substra/data/genesis/genesis.block   # noqa
     call(['configtxgen',
           '-profile', 'OrgsOrdererGenesis',
           '-channelID', conf['misc']['system_channel_name'],

@@ -7,10 +7,12 @@ from yaml import load, FullLoader
 
 from subprocess import call
 
-from utils.common_utils import dowait, create_directory, remove_chaincode_docker_images, remove_chaincode_docker_containers
+from utils.common_utils import (dowait, create_directory, remove_chaincode_docker_images,
+                                remove_chaincode_docker_containers)
 from utils.config_utils import (create_configtx, create_ca_server_config, create_ca_client_config, create_peer_config,
-                                 create_orderer_config, create_substrabac_config)
-from utils.docker_utils import generate_docker_compose_org, generate_docker_compose_orderer, generate_fixtures_docker, generate_revoke_docker
+                                create_orderer_config, create_substrabac_config)
+from utils.docker_utils import (generate_docker_compose_org, generate_docker_compose_orderer, generate_fixtures_docker,
+                                generate_revoke_docker)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -61,7 +63,8 @@ def start(conf, docker_compose):
     # RCA
     print('Start Root Certificate Authority', flush=True)
     services = [name for name, _ in docker_compose['substra_services']['rca']]
-    call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d'] + services)
+    call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d'] +
+         services)
 
     call(['docker', 'ps', '-a', '--format', 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'])
 
@@ -69,7 +72,8 @@ def start(conf, docker_compose):
     print(conf['misc']['setup_success_file'])
     if not os.path.exists(conf['misc']['setup_success_file']):
         print('Launch setup')
-        call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d', 'setup'])
+        call(['docker-compose', '-f', docker_compose['path'], '--project-directory',
+             project_directory, 'up', '-d', 'setup'])
         call(['docker', 'ps', '-a', '--format', 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'])
         # Wait for the setup container to complete
         dowait('the \'setup\' container to finish registering identities and other artifacts',

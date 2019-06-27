@@ -8,6 +8,7 @@ from utils.cli import init_cli
 
 SUBSTRA_PATH = '/substra'
 
+
 def queryChaincode(fcn, args, org_name, peers):
     print(f"Query chaincode on org {org_name}", flush=True)
 

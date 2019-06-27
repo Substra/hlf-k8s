@@ -50,6 +50,7 @@ def dowait(what, secs, logFile, files):
             print('.', end='', flush=True)
     print('')
 
+
 # Remove chaincode docker images
 def remove_chaincode_docker_images():
     chaincodeImages = check_output('docker images | grep "^dev-peer" | awk \'{print $3}\'', shell=True)

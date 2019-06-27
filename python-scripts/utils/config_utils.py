@@ -71,20 +71,22 @@ def create_configtx(org, filename, raft=True):
     }
 
     if 'orderers' in org:
-        yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = [f"{x['host']}:{x['port']['internal']}" for x in org['orderers']]
+        yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = [f"{x['host']}:{x['port']['internal']}"
+                                                                               for x in org['orderers']]
         yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Organizations'] = [configtx_org]
 
         # Raft
         if raft:
             yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['OrdererType'] = 'etcdraft'
-            yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['EtcdRaft'] = {'Consenters': [
-                {'Host': x['host'],
-                 'Port': x['port']['internal'],
-                 # As we launch configtx.yaml in the setup.py we use external tls paths
-                 'ClientTLSCert':f"{x['tls']['dir']['external']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",
-                 'ServerTLSCert': f"{x['tls']['dir']['external']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}
+            yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['EtcdRaft'] = {
+                'Consenters': [{
+                    'Host': x['host'],
+                    'Port': x['port']['internal'],
+                    # As we launch configtx.yaml in the setup.py we use external tls paths
+                    'ClientTLSCert':f"{x['tls']['dir']['external']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",  # noqa
+                    'ServerTLSCert': f"{x['tls']['dir']['external']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}  # noqa
 
-                for x in org['orderers']]
+                    for x in org['orderers']]
             }
 
     if 'peers' in org:
@@ -164,7 +166,6 @@ def create_orderer_config(orderer_conf):
 
     for orderer in org['orderers']:
         tls_server_dir = f"{orderer['tls']['dir']['internal']}/{orderer['tls']['server']['dir']}"
-        tls_client_dir = f"{orderer['tls']['dir']['internal']}/{orderer['tls']['client']['dir']}"
 
         # override template here
         yaml_data['General']['TLS']['Certificate'] = os.path.join(tls_server_dir, orderer['tls']['server']['cert'])

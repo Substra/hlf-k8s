@@ -125,6 +125,7 @@ def updateConfigBlock(config_tx_file):
         org_admin,
         config_tx=config_tx_file))
 
+
 def queryAsRevokedUser():
     org_user = cli.get_user(org['name'], org['users']['user']['name'])
     peers = [x['name'] for x in org['peers']]
