@@ -158,7 +158,8 @@ def revokeFirstOrgUser():
     updateConfigBlock(config_tx_file)
 
     # wait for block being fetched by endorsing peer
-    # TODO wait for channel_update waitForEvent in fabric-sdk-py
+    # TODO wait for channel_update waitForEvent in fabric-sdk-py,
+    #  need fix on block with empty txID for working with raft
     time.sleep(2)
 
     if queryAsRevokedUser():

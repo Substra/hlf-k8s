@@ -26,8 +26,8 @@ def create_ca_server_config(org):
     yaml_data['csr']['hosts'] += org['csr']['hosts']
     yaml_data['csr']['names'] = org['csr']['names']
 
-    yaml_data['registry']['identities'][0]['name'] = org['users']['bootstrap_admin']['name']
-    yaml_data['registry']['identities'][0]['pass'] = org['users']['bootstrap_admin']['pass']
+    yaml_data['registry']['identities'][0]['name'] = org['ca']['users']['bootstrap_admin']['name']
+    yaml_data['registry']['identities'][0]['pass'] = org['ca']['users']['bootstrap_admin']['pass']
     yaml_data['affiliations'] = org['ca']['affiliations']
 
     filename = org['ca']['server-config-path']

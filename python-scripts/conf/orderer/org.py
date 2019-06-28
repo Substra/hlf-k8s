@@ -42,10 +42,12 @@ orderer = {
         'client-config-path': '/substra/conf/orderer/fabric-ca-client-config.yaml',
         'affiliations': {
             'owkin': ['paris']
-        }
+        },
+        'users': {
+            'bootstrap_admin': bootstrap_admin,
+        },
     },
     'users': {
-        'bootstrap_admin': bootstrap_admin,
         'admin': admin,
     },
     'csr': {

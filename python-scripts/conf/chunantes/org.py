@@ -39,10 +39,12 @@ chunantes = {
         'client-config-path': '/substra/conf/chu-nantes/fabric-ca-client-config.yaml',
         'affiliations': {
             'chu-nantes': ['nantes']
-        }
+        },
+        'users': {
+            'bootstrap_admin': bootstrap_admin,
+        },
     },
     'users': {
-        'bootstrap_admin': bootstrap_admin,
         'admin': admin,
         'user': user,
     },

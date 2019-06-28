@@ -13,67 +13,70 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
     FABRIC_CA_HOME = '/etc/hyperledger/fabric-ca-server'
 
     # Docker compose config
-    docker_compose = {'substra_services': {'rca': [],
-                                           'svc': []},
-                      'substra_tools': {'setup': {'container_name': f'setup-{org["name"]}',
-                                                  'image': 'substra/substra-ca-tools',
-                                                  'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{org["name"]}.log"',
-                                                  'environment': [],
-                                                  'volumes': ['./python-scripts:/scripts',
-                                                              f'{substra_path}/data/log:{substra_path}/data/log',
-                                                              f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
-                                                              # TODO remove when deal correctly with fabric-sdk-py
-                                                              # Bootstrap Admin MSP
-                                                              f'{org["users"]["bootstrap_admin"]["home"]}:{org["users"]["bootstrap_admin"]["home"]}',
-                                                              # Admin MSP
-                                                              f'{org["users"]["admin"]["home"]}:{org["users"]["admin"]["home"]}',
-                                                              # User MSP
-                                                              f'{org["users"]["user"]["home"]}:{org["users"]["user"]["home"]}',
+    docker_compose = {
+        'substra_services': {
+            'rca': [],
+            'svc': []},
+        'substra_tools': {
+            'setup': {
+                'container_name': f'setup-{org["name"]}',
+                'image': 'substra/substra-ca-tools',
+                'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{org["name"]}.log"',
+                'environment': [],
+                'volumes': ['./python-scripts:/scripts',
+                            f'{substra_path}/data/log:{substra_path}/data/log',
+                            f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
 
-                                                              # CA
-                                                              f'{org["ca"]["certfile"]["external"]}:{org["ca"]["certfile"]["internal"]}'],
-                                                  'networks': [network],
-                                                  'depends_on': [],
-                                                  },
+                            # Admin MSP
+                            f'{org["users"]["admin"]["home"]}:{org["users"]["admin"]["home"]}',
+                            # User MSP
+                            f'{org["users"]["user"]["home"]}:{org["users"]["user"]["home"]}',
 
-                                        'run': {'container_name': f'run-{org["name"]}',
-                                                #'image': 'substra/substra-ca-tools',
-                                                # debug version of fabric-sdk-py
-                                                'image': 'substra/substra-ca-tools',
-                                                'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 | tee {substra_path}/data/log/run-{org["name"]}.log"',
-                                                'environment': ['GOPATH=/opt/gopath',
-                                                                f'ORG={org["name"]}',
-                                                                'ENV=internal'],
-                                                'volumes': [
-                                                            # docker in docker
-                                                            '/var/run/docker.sock:/var/run/docker.sock',
+                            # CA
+                            f'{org["ca"]["certfile"]["external"]}:{org["ca"]["certfile"]["internal"]}'],
+                'networks': [network],
+                'depends_on': [],
+            },
 
-                                                            # scripts
-                                                            './python-scripts:/scripts',
+            'run': {'container_name': f'run-{org["name"]}',
+                    # 'image': 'substra/substra-ca-tools',
+                    # debug version of fabric-sdk-py
+                    'image': 'substra/substra-ca-tools',
+                    'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 | tee {substra_path}/data/log/run-{org["name"]}.log"',
+                    'environment': ['GOPATH=/opt/gopath',
+                                    f'ORG={org["name"]}',
+                                    'ENV=internal'],
+                    'volumes': [
+                        # docker in docker
+                        '/var/run/docker.sock:/var/run/docker.sock',
 
-                                                            # logs
-                                                            f'{substra_path}/data/log/:{substra_path}/data/log/',
+                        # scripts
+                        './python-scripts:/scripts',
 
-                                                            # chaincode
-                                                            '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode',
+                        # logs
+                        f'{substra_path}/data/log/:{substra_path}/data/log/',
 
-                                                            # channel
-                                                            f'{substra_path}/data/channel/:{substra_path}/data/channel/',
+                        # chaincode
+                        '../substra-chaincode/chaincode:/opt/gopath/src/github.com/hyperledger/chaincode',
 
-                                                            # run need to access all informations in multiple orgs
-                                                            f'{substra_path}/data/orgs/:{substra_path}/data/orgs/',
+                        # channel
+                        f'{substra_path}/data/channel/:{substra_path}/data/channel/',
 
-                                                            # conf files
-                                                            f'{substra_path}/conf/:{substra_path}/conf/',
+                        # run need to access all informations in multiple orgs
+                        f'{substra_path}/data/orgs/:{substra_path}/data/orgs/',
 
-                                                            # tls external
-                                                            f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
-                                                ],
-                                                'networks': [network],
-                                                'depends_on': [],
-                                                }
-                                        },
-                      'path': os.path.join(substra_path, 'dockerfiles', f'docker-compose-{org["name"]}.yaml')}
+                        # conf files
+                        f'{substra_path}/conf/:{substra_path}/conf/',
+
+                        # tls external
+                        f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
+                    ],
+                    'networks': [network],
+                    'depends_on': [],
+                    }
+                          },
+        'path': os.path.join(substra_path, 'dockerfiles', f'docker-compose-{org["name"]}.yaml')}
+
     # Extra dir for setup and run
     for index, peer in enumerate(org['peers']):
         # User MSP
@@ -185,36 +188,35 @@ def generate_docker_compose_orderer(org, substra_path, network):
     FABRIC_CA_HOME = '/etc/hyperledger/fabric-ca-server'
 
     # Docker compose config
-    docker_compose = {'substra_services': {'rca': [],
-                                           'svc': []},
-                      'substra_tools': {'setup': {'container_name': f'setup-{org["name"]}',
-                                                  'image': 'substra/substra-ca-tools',
-                                                  'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{org["name"]}.log"',
-                                                  'environment': [],
-                                                  'volumes': ['./python-scripts:/scripts',
-                                                              f'{substra_path}/data/log:{substra_path}/data/log',
-                                                              f'{substra_path}/data/genesis:{substra_path}/data/genesis',
-                                                              f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
-                                                              # access to config tx file
-                                                              f'{substra_path}/data/orgs/{org["name"]}/:{substra_path}/data/orgs/{org["name"]}',
+    docker_compose = {
+        'substra_services': {
+            'rca': [],
+            'svc': []},
+        'substra_tools': {
+            'setup': {
+                'container_name': f'setup-{org["name"]}',
+                'image': 'substra/substra-ca-tools',
+                'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{ org["name"]}.log"',
+                'environment': [],
+                'volumes': ['./python-scripts:/scripts',
+                            f'{substra_path}/data/log:{substra_path}/data/log',
+                            f'{substra_path}/data/genesis:{substra_path}/data/genesis',
+                            f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
+                            # access to config tx file
+                            f'{substra_path}/data/orgs/{org["name"]}/:{substra_path}/data/orgs/{org["name"]}',
 
-                                                              # TODO remove when deal correctly with fabric-sdk-py
-                                                              # Bootstrap Admin MSP
-                                                              f'{org["users"]["bootstrap_admin"]["home"]}:{org["users"]["bootstrap_admin"]["home"]}',
+                            # Admin MSP
+                            f'{org["users"]["admin"]["home"]}:{org["users"]["admin"]["home"]}',
+                            # CA
+                            f'{org["ca"]["certfile"]["external"]}:{org["ca"]["certfile"]["internal"]}',
 
-                                                              # Admin MSP
-                                                              f'{org["users"]["admin"]["home"]}:{org["users"]["admin"]["home"]}',
-                                                              # CA
-                                                              f'{org["ca"]["certfile"]["external"]}:{org["ca"]["certfile"]["internal"]}',
+                            # broadcast dir
+                            f'{org["broadcast_dir"]["external"]}:{org["broadcast_dir"]["internal"]}',
 
-                                                              # broadcast dir
-                                                              f'{org["broadcast_dir"]["external"]}:{org["broadcast_dir"]["internal"]}',
-
-                                                              ],
-                                                  'networks': [network],
-                                                  'depends_on': []}},
-                      'path': os.path.join(substra_path, 'dockerfiles', f'docker-compose-{org["name"]}.yaml')}
-
+                            ],
+                'networks': [network],
+                'depends_on': []}},
+        'path': os.path.join(substra_path, 'dockerfiles', f'docker-compose-{org["name"]}.yaml')}
     # Extra dir for setup
     for index, orderer in enumerate(org['orderers']):
         # User MSP

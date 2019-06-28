@@ -39,10 +39,12 @@ clb = {
         'client-config-path': '/substra/conf/clb/fabric-ca-client-config.yaml',
         'affiliations': {
             'clb': ['lyon']
-        }
+        },
+        'users': {
+            'bootstrap_admin': bootstrap_admin,
+        },
     },
     'users': {
-        'bootstrap_admin': bootstrap_admin,
         'admin': admin,
         'user': user,
     },

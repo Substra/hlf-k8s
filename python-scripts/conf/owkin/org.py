@@ -39,10 +39,12 @@ owkin = {
         'client-config-path': '/substra/conf/owkin/fabric-ca-client-config.yaml',
         'affiliations': {
             'owkin': ['paris', 'nantes']
-        }
+        },
+        'users': {
+            'bootstrap_admin': bootstrap_admin,
+        },
     },
     'users': {
-        'bootstrap_admin': bootstrap_admin,
         'admin': admin,
         'user': user,
     },
