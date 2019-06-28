@@ -31,6 +31,7 @@ def add_org():
         # TODO
         # channel already exists, need to do a discovery with local=True of the network for getting conf_externals
         # we then can be able to generate the new channel update and get current chaincode version
+        # EDIT: Discovery bring nothing, use the result of the getChannelConfigBlockWithOrderer for knowing the config and add nissing org in the cli
 
         discovery_results = get_hfc_client(client)
         print(discovery_results)
@@ -88,10 +89,10 @@ if __name__ == "__main__":
     conf = json.load(open(f'/substra/conf/config/conf-{org_name}.json', 'r'))
     conf_orderer = json.load(open('/substra/conf/config/conf-orderer.json', 'r'))
 
-    # TODO use Discovery API
     if os.path.exists(conf['misc']['channel_tx_file']):
         files = glob.glob('/substra/conf/config/conf-*.json')
 
+        # TODO remove hack
         # Hack to get running org
         runs = glob.glob('/substra/data/log/run-*.successful')
         successful_orgs = [file_path.split('/substra/data/log/run-')[-1].split('.successful')[0] for file_path in runs]
