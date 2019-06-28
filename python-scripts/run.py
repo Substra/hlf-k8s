@@ -27,6 +27,9 @@ def add_org():
         # make peers join channel
         client.peersJoinChannel()
     except ChannelAlreadyExist:
+        # make new org know channel already created
+        client.cli.new_channel(conf['misc']['channel_name'])
+
         # TODO
         # channel already exists, need to do a discovery with local=True of the network for getting conf_externals
         # we then can be able to generate the new channel update and get current chaincode version
@@ -64,15 +67,15 @@ def add_org():
 
         # Instantiate chaincode on peers (could be done on only one peer)
         client.instanciateChaincode()
-    finally:
-        # Query chaincode from the 1st peer of the 1st org
-        if client.queryChaincodeFromPeers() == 'null':
-            print('Congratulations! Ledger has been correctly initialized.', flush=True)
-            call(['touch', conf['misc']['run_success_file']])
-        else:
-            print('Fail to initialize ledger.', flush=True)
-            call(['touch', conf['misc']['run_fail_file']])
 
+
+    # Query chaincode
+    if client.queryChaincodeFromPeers() == 'null':
+        print('Congratulations! Ledger has been correctly initialized.', flush=True)
+        call(['touch', conf['misc']['run_success_file']])
+    else:
+        print('Fail to initialize ledger.', flush=True)
+        call(['touch', conf['misc']['run_fail_file']])
 
 
 if __name__ == "__main__":
@@ -96,13 +99,8 @@ if __name__ == "__main__":
         conf_externals = [json.load(open(file_path, 'r')) for file_path in files]
 
         cli = init_cli(conf_externals + [conf, conf_orderer])
-
-        # make new org know channel already created
-        cli.new_channel(conf['misc']['channel_name'])
-
-        client = Client(cli, conf, conf_orderer)
-        add_org()
     else:
         cli = init_cli([conf, conf_orderer])
-        client = Client(cli, conf, conf_orderer)
-        add_org()
+
+    client = Client(cli, conf, conf_orderer)
+    add_org()
