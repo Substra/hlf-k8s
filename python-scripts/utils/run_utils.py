@@ -26,6 +26,7 @@ class Client(object):
         self.system_channel_name = conf['misc']['system_channel_name']
         self.channel_name = conf['misc']['channel_name']
         self.channel_tx_file = conf['misc']['channel_tx_file']
+        self.config_tx_path = conf['misc']['configtx-config-path']
         self.chaincode_name = conf['misc']['chaincode_name']
         self.chaincode_path = conf['misc']['chaincode_path']
         self.chaincode_version = conf['misc']['chaincode_version']
@@ -36,6 +37,7 @@ class Client(object):
         print(f"Generating channel configuration transaction at {self.channel_tx_file}", flush=True)
 
         call(['configtxgen',
+              '-configPath', self.config_tx_path,
               '-profile', 'OrgsChannel',
               '-outputCreateChannelTx', self.channel_tx_file,
               '-channelID', self.channel_name])
@@ -44,12 +46,12 @@ class Client(object):
 
         call(['configtxgen',
               '-profile', 'OrgsChannel',
+              '-configPath', self.config_tx_path,
               '-outputAnchorPeersUpdate', self.config_tx,
               '-channelID', self.channel_name,
               '-asOrg', self.org._name])
 
     # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
-    # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
     # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
     def createChannel(self):
         res = self.loop.run_until_complete(self.cli.channel_create(
@@ -74,7 +76,10 @@ class Client(object):
         ))
 
     def createChannelConfig(self, with_anchor=True):
-        org_config = check_output(['configtxgen', '-printOrg', self.org._name])
+        org_config = check_output(['configtxgen',
+                                   '-configPath', self.config_tx_path,
+                                   '-printOrg', self.org._name
+                                   ])
         org_config = json.loads(org_config.decode('utf-8'))
 
         if with_anchor:
@@ -268,7 +273,8 @@ class Client(object):
         print(f'Upgraded chaincode with policy: {policy} and result: "{res}"')
 
     def queryChaincodeFromPeers(self):
-        print(f"Try to query chaincode from peer {[x.name for x in self.org_peers]} on org {self.org._name}", flush=True)
+        print(f"Try to query chaincode from peer {[x.name for x in self.org_peers]} on org {self.org._name}",
+              flush=True)
 
         response = self.loop.run_until_complete(self.cli.chaincode_query(
             requestor=self.org_admin,
@@ -297,7 +303,8 @@ class Client(object):
               '--output', 'systemchannelold.block'])
 
         # Update useful part
-        system_channel_config['channel_group']['groups']['Consortiums']['groups']['SampleConsortium']['groups'][self.org._name] = org_config
+        system_channel_config['channel_group']['groups']['Consortiums']['groups']['SampleConsortium']['groups'][
+            self.org._name] = org_config
         json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
         call(['configtxlator',
               'proto_encode',

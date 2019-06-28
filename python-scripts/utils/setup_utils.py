@@ -272,5 +272,6 @@ def generateGenesis(conf):
     # configtxgen -profile OrgsOrdererGenesis -channelID substrasystemchannel -outputBlock /substra/data/genesis/genesis.block   # noqa
     call(['configtxgen',
           '-profile', 'OrgsOrdererGenesis',
+          '-configPath', conf['misc']['configtx-config-path'],
           '-channelID', conf['misc']['system_channel_name'],
           '-outputBlock', conf['misc']['genesis_bloc_file']['external']])

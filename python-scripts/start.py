@@ -129,7 +129,7 @@ def substra_org(org, orderer=None):
     create_ca_client_config(org)
 
     # Configtx file
-    config_filepath = org['misc']['configtx-config-path']
+    config_filepath = os.path.join(org['misc']['configtx-config-path'], 'configtx.yaml')
     create_configtx(org, config_filepath, raft=True)
 
     # Org Config files

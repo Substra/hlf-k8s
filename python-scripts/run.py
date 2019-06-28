@@ -12,24 +12,27 @@ SUBSTRA_PATH = '/substra'
 
 
 def add_org_with_channel():
-
-    client.generateChannelArtifacts()
+    # make current org in consortium of system channel for being able to create channel
     config_tx_file = client.createSystemUpdateProposal()
     client.signAndPushSystemUpdateProposal(config_tx_file)
+    time.sleep(2)  # raft time
 
-    time.sleep(2)
-
+    # generate channel configuration from configtx.yaml + anchor peer configuration for future update
+    client.generateChannelArtifacts()
+    # create channel
     client.createChannel()
+    time.sleep(2)  # raft time
 
-    time.sleep(2)
-
+    # make peers join channel
     client.peersJoinChannel()
+
+    # update anchor peers
     client.updateAnchorPeers()
 
     # Install chaincode on peer in each org
     client.installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
 
-    # Instantiate chaincode on the 1st peer of the 1st org
+    # Instantiate chaincode on peers (could be done on only one peer)
     client.instanciateChaincode()
 
     # Query chaincode from the 1st peer of the 1st org
@@ -42,25 +45,28 @@ def add_org_with_channel():
 
 
 def add_org():
+    # update channel for making it know new org (anhcor peers are directly included)
     client.generateChannelUpdate(conf, conf_externals)
+    time.sleep(2)  # raft time
 
-    time.sleep(2)
-
+    # make peers join channel
     client.peersJoinChannel()
 
+    # update chaincode version, as new org
     chaincode_version = client.getChaincodeVersion(conf_externals[0])
     new_chaincode_version = '%.1f' % (chaincode_version + 1.0)
 
     # Install chaincode on peer in each org
     orgs_mspid = []
-
     for conf_org in [conf] + conf_externals:
         client.installChainCodeOnPeers(conf_org, new_chaincode_version)
         orgs_mspid.append(conf_org['mspid'])
 
+    # upgrade chaincode with new policy
     client.upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')
 
-    if client.queryChaincodeFromPeers():
+    # Query chaincode from the 1st peer of the 1st org
+    if client.queryChaincodeFromPeers() == 'null':
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
         call(['touch', conf['misc']['run_success_file']])
     else:
