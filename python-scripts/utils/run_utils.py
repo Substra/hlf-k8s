@@ -72,7 +72,6 @@ class Client(object):
             channel_name=self.channel_name,
             peers=self.org_peers,
             orderer=self.orderer,
-            orderer_admin=self.orderer_admin
         ))
 
     def createChannelConfig(self, with_anchor=True):

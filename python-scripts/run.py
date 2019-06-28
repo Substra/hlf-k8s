@@ -86,7 +86,6 @@ if __name__ == "__main__":
         files = glob.glob('/substra/conf/config/conf-*.json')
 
         # Hack to get running org
-        # TODO use Discovery API
         runs = glob.glob('/substra/data/log/run-*.successful')
         successful_orgs = [file_path.split('/substra/data/log/run-')[-1].split('.successful')[0] for file_path in runs]
 
