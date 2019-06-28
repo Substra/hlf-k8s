@@ -23,9 +23,7 @@ def add_org():
     # create channel
     try:
         client.createChannel()
-
-        # make peers join channel
-        client.peersJoinChannel()
+        time.sleep(2)  # raft time
     except ChannelAlreadyExist:
         # make new org know channel already created
         client.cli.new_channel(conf['misc']['channel_name'])
@@ -41,6 +39,9 @@ def add_org():
         client.generateChannelUpdate(conf, conf_externals)
         time.sleep(2)  # raft time
 
+        # make peers join channel
+        client.peersJoinChannel()
+
         # update chaincode version, as new org
         chaincode_version = client.getChaincodeVersion(conf_externals[0])
         new_chaincode_version = '%.1f' % (chaincode_version + 1.0)
@@ -55,8 +56,10 @@ def add_org():
         client.upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')
 
     else:
-        time.sleep(2)  # raft time
         # channel is created
+
+        # make peers join channel
+        client.peersJoinChannel()
 
         # update anchor peers
         # TODO directly put it into generateChannelArtifacts
