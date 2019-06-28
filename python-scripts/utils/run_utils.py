@@ -8,6 +8,9 @@ from subprocess import call, check_output
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+class ChannelAlreadyExist(Exception):
+    pass
+
 
 class Client(object):
 
@@ -62,7 +65,7 @@ class Client(object):
         print('channel creation: ', res)
 
         if res is not True:
-            raise Exception('Failed to create channel')
+            raise ChannelAlreadyExist('Failed to create channel')
 
     def peersJoinChannel(self):
         print(f"Join channel {[x.name for x in self.org_peers]} ...", flush=True)

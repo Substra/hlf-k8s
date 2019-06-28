@@ -4,14 +4,15 @@ import json
 import time
 from subprocess import call
 
-
+from utils.discovery import get_hfc_client
 from utils.cli import init_cli
-from utils.run_utils import Client
+from utils.run_utils import Client, ChannelAlreadyExist
 
+# TODO put in env
 SUBSTRA_PATH = '/substra'
 
 
-def add_org_with_channel():
+def add_org():
     # make current org in consortium of system channel for being able to create channel
     config_tx_file = client.createSystemUpdateProposal()
     client.signAndPushSystemUpdateProposal(config_tx_file)
@@ -20,65 +21,65 @@ def add_org_with_channel():
     # generate channel configuration from configtx.yaml + anchor peer configuration for future update
     client.generateChannelArtifacts()
     # create channel
-    client.createChannel()
-    time.sleep(2)  # raft time
+    try:
+        client.createChannel()
 
-    # make peers join channel
-    client.peersJoinChannel()
+        # make peers join channel
+        client.peersJoinChannel()
+    except ChannelAlreadyExist:
+        # TODO
+        # channel already exists, need to do a discovery with local=True of the network for getting conf_externals
+        # we then can be able to generate the new channel update and get current chaincode version
 
-    # update anchor peers
-    client.updateAnchorPeers()
+        discovery_results = get_hfc_client(client)
+        print(discovery_results)
 
-    # Install chaincode on peer in each org
-    client.installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
+        # update channel for making it know new org (anchor peers are directly included)
+        client.generateChannelUpdate(conf, conf_externals)
+        time.sleep(2)  # raft time
 
-    # Instantiate chaincode on peers (could be done on only one peer)
-    client.instanciateChaincode()
+        # update chaincode version, as new org
+        chaincode_version = client.getChaincodeVersion(conf_externals[0])
+        new_chaincode_version = '%.1f' % (chaincode_version + 1.0)
 
-    # Query chaincode from the 1st peer of the 1st org
-    if client.queryChaincodeFromPeers() == 'null':
-        print('Congratulations! Ledger has been correctly initialized.', flush=True)
-        call(['touch', conf['misc']['run_success_file']])
+        # Install chaincode on peer in each org
+        orgs_mspid = []
+        for conf_org in [conf] + conf_externals:
+            client.installChainCodeOnPeers(conf_org, new_chaincode_version)
+            orgs_mspid.append(conf_org['mspid'])
+
+        # upgrade chaincode with new policy
+        client.upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')
+
     else:
-        print('Fail to initialize ledger.', flush=True)
-        call(['touch', conf['misc']['run_fail_file']])
+        time.sleep(2)  # raft time
+        # channel is created
 
+        # update anchor peers
+        # TODO directly put it into generateChannelArtifacts
+        client.updateAnchorPeers()
 
-def add_org():
-    # update channel for making it know new org (anhcor peers are directly included)
-    client.generateChannelUpdate(conf, conf_externals)
-    time.sleep(2)  # raft time
+        # Install chaincode on peer in each org
+        client.installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
 
-    # make peers join channel
-    client.peersJoinChannel()
+        # Instantiate chaincode on peers (could be done on only one peer)
+        client.instanciateChaincode()
+    finally:
+        # Query chaincode from the 1st peer of the 1st org
+        if client.queryChaincodeFromPeers() == 'null':
+            print('Congratulations! Ledger has been correctly initialized.', flush=True)
+            call(['touch', conf['misc']['run_success_file']])
+        else:
+            print('Fail to initialize ledger.', flush=True)
+            call(['touch', conf['misc']['run_fail_file']])
 
-    # update chaincode version, as new org
-    chaincode_version = client.getChaincodeVersion(conf_externals[0])
-    new_chaincode_version = '%.1f' % (chaincode_version + 1.0)
-
-    # Install chaincode on peer in each org
-    orgs_mspid = []
-    for conf_org in [conf] + conf_externals:
-        client.installChainCodeOnPeers(conf_org, new_chaincode_version)
-        orgs_mspid.append(conf_org['mspid'])
-
-    # upgrade chaincode with new policy
-    client.upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')
-
-    # Query chaincode from the 1st peer of the 1st org
-    if client.queryChaincodeFromPeers() == 'null':
-        print('Congratulations! Ledger has been correctly initialized.', flush=True)
-        call(['touch', conf['misc']['run_success_file']])
-    else:
-        print('Fail to initialize ledger.', flush=True)
-        call(['touch', conf['misc']['run_fail_file']])
 
 
 if __name__ == "__main__":
 
     org_name = os.environ.get("ORG")
 
-    conf = json.load(open('/substra/conf/config/conf-%s.json' % org_name, 'r'))
+    conf = json.load(open(f'/substra/conf/config/conf-{org_name}.json', 'r'))
     conf_orderer = json.load(open('/substra/conf/config/conf-orderer.json', 'r'))
 
     # TODO use Discovery API
@@ -104,4 +105,4 @@ if __name__ == "__main__":
     else:
         cli = init_cli([conf, conf_orderer])
         client = Client(cli, conf, conf_orderer)
-        add_org_with_channel()
+        add_org()
