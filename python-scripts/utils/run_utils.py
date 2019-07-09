@@ -696,7 +696,7 @@ def queryChaincodeFromFirstPeerFirstOrg(conf):
                                   peer)
         # data should be null
         print(data, flush=True)
-        if data is None:
+        if data == []:
             print('Correctly initialized', flush=True)
             return True
 
