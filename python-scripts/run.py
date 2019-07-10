@@ -4,44 +4,65 @@ import json
 import time
 from subprocess import call
 
-from utils.discovery import get_hfc_client
-from utils.cli import init_cli
+from utils.cli import init_cli, update_cli
 from utils.run_utils import Client, ChannelAlreadyExist
 
-# TODO put in env
-SUBSTRA_PATH = '/substra'
+
+# We need to retry as we cannot know when the channel is created and its genesis block is available
+# Unfortunately, there is currently no other way to know when a channel has been created
+def waitForPeersToJoinchannel():
+    timeout = 30
+    start = 0
+
+    print('Wait For Peers to join channel')
+    print(f"Join channel {[x.name for x in client.org_peers]} ...", flush=True)
+
+    while start < timeout:
+        # make peers join channel
+        try:
+            client.peersJoinChannel()
+        except Exception as e:
+            print(e)
+            print('Will retry to make peers join channel', flush=True, end='')
+            start += 1
+            time.sleep(1)
+        else:
+            break
 
 
 def add_org():
     # make current org in consortium of system channel for being able to create channel
-    config_tx_file = client.createSystemUpdateProposal()
+    config_tx_file, system_channel_config = client.createSystemUpdateProposal()
     client.signAndPushSystemUpdateProposal(config_tx_file)
-    time.sleep(2)  # raft time
+    time.sleep(2)  # raft time, TODO add polling
 
     # generate channel configuration from configtx.yaml + anchor peer configuration for future update
     client.generateChannelArtifacts()
     # create channel
     try:
         client.createChannel()
-        time.sleep(2)  # raft time
     except ChannelAlreadyExist:
         # make new org know channel already created
         client.cli.new_channel(conf['misc']['channel_name'])
 
-        # TODO
-        # channel already exists, need to do a discovery with local=True of the network for getting conf_externals
-        # we then can be able to generate the new channel update and get current chaincode version
-        # EDIT: Discovery bring nothing, use the result of the getChannelConfigBlockWithOrderer for knowing the config and add nissing org in the cli
+        # load external conf of org already in consortiums
+        external_orgs = [x for x in
+                         system_channel_config['channel_group']['groups']['Consortiums']['groups']['SampleConsortium'][
+                             'groups'].keys() if x != org_name]
+        print('external_orgs: ', external_orgs)
+        files = glob.glob('/substra/conf/config/conf-*.json')
+        files = [file_path for file_path in files
+                 if file_path.split('/substra/conf/config/conf-')[-1].split('.json')[0] in external_orgs]
 
-        discovery_results = get_hfc_client(client)
-        print(discovery_results)
+        conf_externals = [json.load(open(file_path, 'r')) for file_path in files]
+        # add conf_externals in cli
+        update_cli(cli, conf_externals)
 
         # update channel for making it know new org (anchor peers are directly included)
         client.generateChannelUpdate(conf, conf_externals)
-        time.sleep(2)  # raft time
 
         # make peers join channel
-        client.peersJoinChannel()
+        waitForPeersToJoinchannel()
 
         # update chaincode version, as new org
         chaincode_version = client.getChaincodeVersion(conf_externals[0])
@@ -60,7 +81,7 @@ def add_org():
         # channel is created
 
         # make peers join channel
-        client.peersJoinChannel()
+        waitForPeersToJoinchannel()
 
         # update anchor peers
         # TODO directly put it into generateChannelArtifacts
@@ -72,9 +93,8 @@ def add_org():
         # Instantiate chaincode on peers (could be done on only one peer)
         client.instanciateChaincode()
 
-
     # Query chaincode
-    if client.queryChaincodeFromPeers() == 'null':
+    if client.queryChaincodeFromPeers() == '[]':
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
         call(['touch', conf['misc']['run_success_file']])
     else:
@@ -83,28 +103,11 @@ def add_org():
 
 
 if __name__ == "__main__":
-
     org_name = os.environ.get("ORG")
 
     conf = json.load(open(f'/substra/conf/config/conf-{org_name}.json', 'r'))
     conf_orderer = json.load(open('/substra/conf/config/conf-orderer.json', 'r'))
 
-    if os.path.exists(conf['misc']['channel_tx_file']):
-        files = glob.glob('/substra/conf/config/conf-*.json')
-
-        # TODO remove hack
-        # Hack to get running org
-        runs = glob.glob('/substra/data/log/run-*.successful')
-        successful_orgs = [file_path.split('/substra/data/log/run-')[-1].split('.successful')[0] for file_path in runs]
-
-        files = [file_path for file_path in files
-                 if file_path.split('/substra/conf/config/conf-')[-1].split('.json')[0] in successful_orgs]
-
-        conf_externals = [json.load(open(file_path, 'r')) for file_path in files]
-
-        cli = init_cli(conf_externals + [conf, conf_orderer])
-    else:
-        cli = init_cli([conf, conf_orderer])
-
+    cli = init_cli([conf, conf_orderer])
     client = Client(cli, conf, conf_orderer)
     add_org()

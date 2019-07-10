@@ -10,10 +10,7 @@ from hfc.util.keyvaluestore import FileKeyValueStore
 SUBSTRA_PATH = '/substra'
 
 
-def init_cli(orgs):
-    cli = Client()
-    cli._state_store = FileKeyValueStore('/tmp/kvs/')
-
+def update_cli(cli, orgs):
     for org in orgs:
 
         # add organization
@@ -70,3 +67,10 @@ def init_cli(orgs):
             cli.new_channel(system_channel_name)
 
     return cli
+
+
+def init_cli(orgs):
+    cli = Client()
+    cli._state_store = FileKeyValueStore('/tmp/kvs/')
+
+    return update_cli(cli, orgs)

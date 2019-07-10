@@ -68,8 +68,6 @@ class Client(object):
             raise ChannelAlreadyExist('Failed to create channel')
 
     def peersJoinChannel(self):
-        print(f"Join channel {[x.name for x in self.org_peers]} ...", flush=True)
-
         self.loop.run_until_complete(self.cli.channel_join(
             requestor=self.org_admin,
             channel_name=self.channel_name,
@@ -340,7 +338,7 @@ class Client(object):
               '--type', 'common.Envelope',
               '--output', config_tx_file])
 
-        return config_tx_file
+        return config_tx_file, system_channel_config
 
     def getChannelConfigBlockWithOrderer(self, channel_name):
         print('Will getChannelConfigBlockWithOrderer', flush=True)
