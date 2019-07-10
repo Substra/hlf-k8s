@@ -5,7 +5,7 @@ from orderer import orderer
 from owkin import owkin
 
 misc.update({
-    'fixtures_path': 'fixtures2orgs.py'
+    'fixtures_path': 'fixtures1org.py'
 })
 
 

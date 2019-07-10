@@ -4,7 +4,7 @@ from misc import misc
 from orderer import orderer
 from owkin import owkin
 from chunantes import chunantes
-from chunantes import clb
+from clb import clb
 
 misc.update({
     'fixtures_path': 'fixtures2orgs.py'
