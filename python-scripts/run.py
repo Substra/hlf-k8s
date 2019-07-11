@@ -1,62 +1,105 @@
 import glob
 import os
 import json
+import time
 from subprocess import call
 
-from utils.run_utils import (createChannel, peersJoinChannel, updateAnchorPeers, installChainCodeOnPeers, instanciateChaincode,
-                             waitForInstantiation, queryChaincodeFromFirstPeerFirstOrg, generateChannelUpdate, upgradeChainCode,
-                             createSystemUpdateProposal, signAndPushSystemUpdateProposal, getChaincodeVersion, generateChannelArtifacts)
+from utils.cli import init_cli, update_cli
+from utils.run_utils import Client, ChannelAlreadyExist
+from utils.common_utils import remove_chaincode_docker_containers
 
 
-def add_org(conf, conf_externals, orderer):
-    generateChannelUpdate(conf, conf_externals, orderer)
-    peersJoinChannel(conf)
+# We need to retry as we cannot know when the channel is created and its genesis block is available
+# Unfortunately, there is currently no other way to know when a channel has been created
+def waitForPeersToJoinchannel():
+    timeout = 30
+    start = 0
 
-    chaincode_version = getChaincodeVersion(conf_externals[0], orderer)
-    new_chaincode_version = '%.1f' % (chaincode_version + 1.0)
+    print('Wait For Peers to join channel', flush=True)
+    print(f"Join channel {client.channel_name} with peers {[x.name for x in client.org_peers]} ...", flush=True)
 
-    # Install chaincode on peer in each org
-    orgs_mspid = []
-    for conf_org in [conf] + conf_externals:
-        installChainCodeOnPeers(conf_org, new_chaincode_version)
-        orgs_mspid.append(conf_org['msp_id'])
-
-    upgradeChainCode(conf_externals[0], '{"Args":["init"]}', orderer, orgs_mspid, new_chaincode_version)
-
-    if queryChaincodeFromFirstPeerFirstOrg(conf):
-        print('Congratulations! Ledger has been correctly initialized.', flush=True)
-        call(['touch', conf['misc']['run_success_file']])
-    else:
-        print('Fail to initialize ledger.', flush=True)
-        call(['touch', conf['misc']['run_fail_file']])
+    while start < timeout:
+        # make peers join channel
+        try:
+            client.peersJoinChannel()
+        except Exception as e:
+            print(e)
+            print('Will retry to make peers join channel', flush=True)
+            start += 1
+            time.sleep(1)
+        else:
+            print(f'Peers {[x.name for x in client.org_peers]} successfully joined channel {client.channel_name}')
+            break
 
 
-def add_org_with_channel(conf, conf_orderer):
+def add_org():
+    # make current org in consortium of system channel for being able to create channel
+    config_tx_file = client.createSystemUpdateProposal()
+    client.signAndPushSystemUpdateProposal(config_tx_file)
 
-    res = True
+    # generate channel configuration from configtx.yaml
+    client.generateChannelArtifacts()
 
-    generateChannelArtifacts(conf)
-    createSystemUpdateProposal(conf, conf_orderer)
-    signAndPushSystemUpdateProposal(conf_orderer)
+    try: # create channel
+        client.createChannel()
+    except ChannelAlreadyExist:  # add new org in channel, upgrade chaincode
+        # make new org know channel already created
+        client.cli.new_channel(client.channel_name)
 
-    createChannel(conf, conf_orderer)
+        ####
+        # load external confs of orgs already in consortium
+        ####
 
-    peersJoinChannel(conf)
-    updateAnchorPeers(conf, conf_orderer)
+        # get channel config on application channel
+        old_channel_config_envelope = client.getChannelConfigBlockWithOrderer(client.channel_name)
+        external_orgs = old_channel_config_envelope['config']['channel_group']['groups']['Application']['groups'].keys()
+        print('external_orgs: ', list(external_orgs))
 
-    # Install chaincode on peer in each org
-    installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
+        # get conf files
+        files = glob.glob(f'{substra_path}/conf/config/conf-*.json')
+        files = [file_path for file_path in files
+                 if file_path.split(f'{substra_path}/conf/config/conf-')[-1].split('.json')[0] in external_orgs]
+        conf_externals = [json.load(open(file_path, 'r')) for file_path in files]
+        # add conf_externals in cli
+        update_cli(client.cli, conf_externals)
 
-    # Instantiate chaincode on the 1st peer of the 2nd org
-    instanciateChaincode(conf, conf_orderer)
+        # update channel for making it know new org
+        client.generateChannelUpdate(conf, conf_externals, old_channel_config_envelope['config'])
 
-    # Wait chaincode is correctly instantiated and initialized
-    res = res and waitForInstantiation(conf, conf_orderer)
+        # make peers join channel
+        waitForPeersToJoinchannel()
 
-    # Query chaincode from the 1st peer of the 1st org
-    res = res and queryChaincodeFromFirstPeerFirstOrg(conf)
+        # update chaincode version, as new org
+        chaincode_version = client.getChaincodeVersion(conf_externals[0])
+        new_chaincode_version = '%.1f' % (chaincode_version + 1.0)
 
-    if res:
+        # Install chaincode on peer in each org
+        orgs_mspid = []
+        for conf_org in [conf] + conf_externals:
+            client.installChainCodeOnPeers(conf_org, new_chaincode_version)
+            orgs_mspid.append(conf_org['mspid'])
+
+        # upgrade chaincode with new policy
+        client.upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')
+
+        remove_chaincode_docker_containers(chaincode_version)
+
+    else:  # channel is created, install + instantiate chaincode
+
+        # make peers join channel
+        waitForPeersToJoinchannel()
+
+        # update anchor peers if needed (normally already present in configtx.yaml)
+        #client.updateAnchorPeers()
+
+        # Install chaincode on peer in each org
+        client.installChainCodeOnPeers(conf, conf['misc']['chaincode_version'])
+
+        # Instantiate chaincode on peers (could be done on only one peer)
+        client.instanciateChaincode()
+
+    # Query chaincode
+    if client.queryChaincodeFromPeers() == '[]':
         print('Congratulations! Ledger has been correctly initialized.', flush=True)
         call(['touch', conf['misc']['run_success_file']])
     else:
@@ -65,24 +108,14 @@ def add_org_with_channel(conf, conf_orderer):
 
 
 if __name__ == "__main__":
+    org_name = os.environ.get('ORG')
+    substra_path = os.environ.get('SUBSTRA_PATH')
 
-    org_name = os.environ.get("ORG")
+    print(os.path.join(substra_path, 'conf/config', f'conf-{org_name}.json'))
 
-    conf = json.load(open('/substra/conf/config/conf-%s.json' % org_name, 'r'))
-    conf_orderer = json.load(open('/substra/conf/config/conf-orderer.json', 'r'))
+    conf = json.load(open(os.path.join(substra_path, 'conf/config', f'conf-{org_name}.json'), 'r'))
+    conf_orderer = json.load(open(os.path.join(substra_path, 'conf/config', f'conf-orderer.json'), 'r'))
 
-    if os.path.exists(conf['misc']['channel_tx_file']):
-        files = glob.glob('/substra/conf/config/conf-*.json')
-
-        # Hack to get running org
-        runs = glob.glob('/substra/data/log/run-*.successful')
-        successful_orgs = [file_path.split('/substra/data/log/run-')[-1].split('.successful')[0] for file_path in runs]
-
-        files = [file_path for file_path in files
-                 if file_path.split('/substra/conf/config/conf-')[-1].split('.json')[0] in successful_orgs]
-
-        conf_externals = [json.load(open(file_path, 'r')) for file_path in files]
-
-        add_org(conf, conf_externals, conf_orderer)
-    else:
-        add_org_with_channel(conf, conf_orderer)
+    cli = init_cli([conf, conf_orderer])
+    client = Client(cli, conf, conf_orderer)
+    add_org()

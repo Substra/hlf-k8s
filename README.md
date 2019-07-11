@@ -18,8 +18,8 @@ This project is developed under the Apache License, Version 2.0 (Apache-2.0), lo
 
 ### Bootstrap
 
-Run the `bootstrap.sh` script.  
-:warning: If you are on linux and want to play with the substrabac projects, please read its documentation first. 
+Run the `bootstrap.sh` script.
+:warning: If you are on linux and want to play with the substrabac projects, please read its documentation first.
 
 It will pull from the hyperledger registry the right docker images and then will build our own docker images from it.
 
@@ -32,24 +32,28 @@ $> sudo chown guillaume:guillaume /substra
 ```
 Replace `guillaume:guillaume` by your `user:group`.
 
+
+!> Please make sure that substra-chaincode code is cloned and present beside substra-network project directory
+
 ```
-$> python3 start.py --config conf1org.py --no-backup
+$> python3 python-scripts/start.py --no-backup
 ```
 
-:warning:
-Launching `start.py` without the config option, will make a call of `python3 conf2orgs.py` internally.
+- For launching it with a configuration file, pass the `--config` or `-c` option. By default `python-scripts/conf/2orgs.py` will be used
+- For launching a network from scratch,  without ising backup files, use `--no-backup` option (recommended in development mode).
+- For loading fixtures, pass the `--fixtures` or `-f` option. This is equivalent to an e2e test.
+- For revoking an user, pass the `--revoke` or `-r` option. This will revoke user-owkin and try to make a query as a revoked user.
 
-- For launching a network from scratch,  without ising backup files, use `--no-backup` option (recommended in development mode).  
-- For loading fixtures, test and revoke containers, pass the `--fixtures` or `-f` option.  
-- If you do not want to call the `revoke` container, please comment it in the `start.py` file.
+Roughly speaking, it will generate several docker-compose files in /substra/dockerfiles, build the network and run init config.
 
-Roughly speaking, it will generate a docker-compose file (docker-compose-dynamic.yaml), build the network and run init config.
-
-The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.  
-The `fixtures` docker instance container will create some challenges, algo, dataset, train data, test data, traintuples on orgs.  
-The `revoke` docker instance allow you to revoke an user.  
+The `run` docker container will create channel, make peers joins channel, install chaincode and instantiate chaincode.
+The `fixtures` docker instance container will create some objectives, algo, datamanager, train data samples, test data samples, traintuples, testtuples on orgs.
+The `revoke` docker instance allow you to revoke an user, and query with an expected `access denied` response.
 
 You now will be able to play with the network ! :tada:
+
+:warning: Debugging: Make sure you have set a file named `substra-network.pth` in your virtualenv `lib/python3.6/site-packages` folder containing the absolute path to `substra-network/python-scripts` for being able to run fixtures scripts manually.
+
 
 ### Network
 

@@ -26,8 +26,8 @@ def create_ca_server_config(org):
     yaml_data['csr']['hosts'] += org['csr']['hosts']
     yaml_data['csr']['names'] = org['csr']['names']
 
-    yaml_data['registry']['identities'][0]['name'] = org['users']['bootstrap_admin']['name']
-    yaml_data['registry']['identities'][0]['pass'] = org['users']['bootstrap_admin']['pass']
+    yaml_data['registry']['identities'][0]['name'] = org['ca']['users']['bootstrap_admin']['name']
+    yaml_data['registry']['identities'][0]['pass'] = org['ca']['users']['bootstrap_admin']['pass']
     yaml_data['affiliations'] = org['ca']['affiliations']
 
     filename = org['ca']['server-config-path']
@@ -66,25 +66,27 @@ def create_configtx(org, filename, raft=True):
 
     configtx_org = {
         'Name': org['name'],
-        'ID': org['msp_id'],
+        'ID': org['mspid'],
         'MSPDir': f"{org['users']['admin']['home']}/msp",
     }
 
     if 'orderers' in org:
-        yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = [f"{x['host']}:{x['port']['internal']}" for x in org['orderers']]
+        yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Addresses'] = [f"{x['host']}:{x['port']['internal']}"
+                                                                               for x in org['orderers']]
         yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['Organizations'] = [configtx_org]
 
         # Raft
         if raft:
             yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['OrdererType'] = 'etcdraft'
-            yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['EtcdRaft'] = {'Consenters': [
-                {'Host': x['host'],
-                 'Port': x['port']['internal'],
-                 # As we launch configtx.yaml in the setup.py we use external tls paths
-                 'ClientTLSCert':f"{x['tls']['dir']['external']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",
-                 'ServerTLSCert': f"{x['tls']['dir']['external']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}
+            yaml_data['Profiles']['OrgsOrdererGenesis']['Orderer']['EtcdRaft'] = {
+                'Consenters': [{
+                    'Host': x['host'],
+                    'Port': x['port']['internal'],
+                    # As we launch configtx.yaml in the setup.py we use external tls paths
+                    'ClientTLSCert':f"{x['tls']['dir']['external']}/{x['tls']['client']['dir']}/{x['tls']['client']['cert']}",
+                    'ServerTLSCert': f"{x['tls']['dir']['external']}/{x['tls']['server']['dir']}/{x['tls']['server']['cert']}"}
 
-                for x in org['orderers']]
+                    for x in org['orderers']]
             }
 
     if 'peers' in org:
@@ -113,7 +115,7 @@ def create_core_config(org, peer):
 
     yaml_data['peer']['id'] = peer['host']
     yaml_data['peer']['address'] = f"{peer['host']}:{peer['port']['internal']}"
-    yaml_data['peer']['localMspId'] = org['msp_id']
+    yaml_data['peer']['localMspId'] = org['mspid']
 
     yaml_data['peer']['mspConfigPath'] = f'{org["core_dir"]["internal"]}/msp'
 
@@ -148,8 +150,9 @@ def create_core_config(org, peer):
 
 
 def create_peer_config(org):
-    for peer in org['peers']:
-        create_core_config(org, peer)
+    if 'peers' in org:
+        for peer in org['peers']:
+            create_core_config(org, peer)
 
 
 def create_orderer_config(orderer_conf):
@@ -163,11 +166,10 @@ def create_orderer_config(orderer_conf):
 
     for orderer in org['orderers']:
         tls_server_dir = f"{orderer['tls']['dir']['internal']}/{orderer['tls']['server']['dir']}"
-        tls_client_dir = f"{orderer['tls']['dir']['internal']}/{orderer['tls']['client']['dir']}"
 
         # override template here
-        yaml_data['General']['TLS']['Certificate'] = f"{tls_server_dir}/{orderer['tls']['server']['cert']}"
-        yaml_data['General']['TLS']['PrivateKey'] = f"{tls_server_dir}/{orderer['tls']['server']['key']}"
+        yaml_data['General']['TLS']['Certificate'] = os.path.join(tls_server_dir, orderer['tls']['server']['cert'])
+        yaml_data['General']['TLS']['PrivateKey'] = os.path.join(tls_server_dir, orderer['tls']['server']['key'])
         yaml_data['General']['TLS']['Enabled'] = 'true'
         # passing this to true triggers a SSLV3_ALERT_BAD_CERTIFICATE when querying
         # from the py sdk if peer clientCert/clientKey is not set correctly
@@ -178,14 +180,14 @@ def create_orderer_config(orderer_conf):
         yaml_data['General']['ListenAddress'] = '0.0.0.0'
         yaml_data['General']['GenesisMethod'] = 'file'
         yaml_data['General']['GenesisFile'] = genesis_bloc_file
-        yaml_data['General']['LocalMSPID'] = org['msp_id']
-        yaml_data['General']['LocalMSPDir'] = f"{org['core_dir']['internal']}/msp"
+        yaml_data['General']['LocalMSPID'] = org['mspid']
+        yaml_data['General']['LocalMSPDir'] = os.path.join(org['core_dir']['internal'], 'msp')
 
         yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']['internal']
 
-        dir = f'{SUBSTRA_PATH}/conf/{org["name"]}/{orderer["name"]}'
+        dir = os.path.join(SUBSTRA_PATH, 'conf', org['name'], orderer['name'])
         create_directory(dir)
-        filename = f"{dir}/orderer.yaml"
+        filename = os.path.join(dir, 'orderer.yaml')
         with open(filename, 'w+') as f:
             f.write(dump(yaml_data, default_flow_style=False))
 
@@ -224,7 +226,7 @@ def create_substrabac_config(org, orderer_conf):
             'state_store': '/tmp/hfc-cvs',
             'key_path': org['users']['user']['home'] + '/msp/keystore/*',
             'cert_path': org['users']['user']['home'] + '/msp/signcerts/cert.pem',
-            'msp_id': org['msp_id']
+            'msp_id': org['mspid']
         },
         'peer': {
             'name': peer['name'],

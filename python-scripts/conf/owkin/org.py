@@ -5,8 +5,9 @@ from .users.bootstrap_admin import bootstrap_admin
 from .users.user import user
 
 owkin = {
+    'type': 'client',
     'name': 'owkin',
-    'msp_id': 'owkinMSP',
+    'mspid': 'owkinMSP',
     'anchor_tx_file': '/substra/data/orgs/owkin/anchors.tx',
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in
@@ -38,10 +39,12 @@ owkin = {
         'client-config-path': '/substra/conf/owkin/fabric-ca-client-config.yaml',
         'affiliations': {
             'owkin': ['paris', 'nantes']
-        }
+        },
+        'users': {
+            'bootstrap_admin': bootstrap_admin,
+        },
     },
     'users': {
-        'bootstrap_admin': bootstrap_admin,
         'admin': admin,
         'user': user,
     },

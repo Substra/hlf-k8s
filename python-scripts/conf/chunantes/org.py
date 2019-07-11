@@ -5,8 +5,9 @@ from .users.bootstrap_admin import bootstrap_admin
 from .users.user import user
 
 chunantes = {
+    'type': 'client',
     'name': 'chu-nantes',
-    'msp_id': 'chu-nantesMSP',
+    'mspid': 'chu-nantesMSP',
     'anchor_tx_file': '/substra/data/orgs/chu-nantes/anchors.tx',
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in
@@ -38,10 +39,12 @@ chunantes = {
         'client-config-path': '/substra/conf/chu-nantes/fabric-ca-client-config.yaml',
         'affiliations': {
             'chu-nantes': ['nantes']
-        }
+        },
+        'users': {
+            'bootstrap_admin': bootstrap_admin,
+        },
     },
     'users': {
-        'bootstrap_admin': bootstrap_admin,
         'admin': admin,
         'user': user,
     },

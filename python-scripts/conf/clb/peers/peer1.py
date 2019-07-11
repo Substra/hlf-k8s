@@ -1,5 +1,5 @@
 peer1 = {
-    'name': 'peer1',
+    'name': 'peer1-clb',
     'pass': 'peer1pw',
     'host': 'peer1-clb',
     'port': {

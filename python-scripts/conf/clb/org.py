@@ -5,8 +5,9 @@ from .users.bootstrap_admin import bootstrap_admin
 from .users.user import user
 
 clb = {
+    'type': 'client',
     'name': 'clb',
-    'msp_id': 'clbMSP',
+    'mspid': 'clbMSP',
     'anchor_tx_file': '/substra/data/orgs/clb/anchors.tx',
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in
@@ -38,10 +39,12 @@ clb = {
         'client-config-path': '/substra/conf/clb/fabric-ca-client-config.yaml',
         'affiliations': {
             'clb': ['lyon']
-        }
+        },
+        'users': {
+            'bootstrap_admin': bootstrap_admin,
+        },
     },
     'users': {
-        'bootstrap_admin': bootstrap_admin,
         'admin': admin,
         'user': user,
     },

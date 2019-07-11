@@ -7,10 +7,12 @@ from yaml import load, FullLoader
 
 from subprocess import call
 
-from utils.common_utils import dowait, create_directory, remove_chaincode_docker_images, remove_chaincode_docker_containers
+from utils.common_utils import (dowait, create_directory, remove_chaincode_docker_images,
+                                remove_chaincode_docker_containers)
 from utils.config_utils import (create_configtx, create_ca_server_config, create_ca_client_config, create_peer_config,
                                 create_orderer_config, create_substrabac_config)
-from utils.docker_utils import generate_docker_compose_org, generate_docker_compose_orderer
+from utils.docker_utils import (generate_docker_compose_org, generate_docker_compose_orderer, generate_fixtures_docker,
+                                generate_revoke_docker)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -28,11 +30,12 @@ def remove_all_docker():
     for docker_compose_path in docker_compose_paths:
         with open(docker_compose_path) as dockercomposefile:
             dockercomposeconf = load(dockercomposefile, Loader=FullLoader)
-            services = list(dockercomposeconf['services'].keys())
 
-            # Force removal (quicker)
-            if services:
-                call(['docker', 'rm', '-f'] + services)
+            if 'services' in dockercomposeconf:
+                services = list(dockercomposeconf['services'].keys())
+                # Force removal (quicker)
+                if services:
+                    call(['docker', 'rm', '-f'] + services)
 
             down_cmds.append(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
 
@@ -54,13 +57,14 @@ def intern_stop(docker_compose):
 
 def start(conf, docker_compose):
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'True'
-    project_directory = os.path.join(dir_path, '../')
+    project_directory = os.path.join(dir_path, os.pardir)
     print('Start docker-compose', flush=True)
 
     # RCA
     print('Start Root Certificate Authority', flush=True)
     services = [name for name, _ in docker_compose['substra_services']['rca']]
-    call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d'] + services)
+    call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d'] +
+         services)
 
     call(['docker', 'ps', '-a', '--format', 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'])
 
@@ -68,7 +72,8 @@ def start(conf, docker_compose):
     print(conf['misc']['setup_success_file'])
     if not os.path.exists(conf['misc']['setup_success_file']):
         print('Launch setup')
-        call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d', 'setup'])
+        call(['docker-compose', '-f', docker_compose['path'], '--project-directory',
+             project_directory, 'up', '-d', 'setup'])
         call(['docker', 'ps', '-a', '--format', 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'])
         # Wait for the setup container to complete
         dowait('the \'setup\' container to finish registering identities and other artifacts',
@@ -81,7 +86,8 @@ def start(conf, docker_compose):
     # SVC
     services = [name for name, _ in docker_compose['substra_services']['svc']]
     print('Start services %s' % services, flush=True)
-    call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d', '--no-deps'] + services)
+    call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d',
+          '--no-deps'] + services)
 
     if 'orgs' in conf:
         peers_orgs_files = [peer['tls']['clientCert']
@@ -98,14 +104,15 @@ def start(conf, docker_compose):
 
     if has_run and 'run_success_file' in conf['misc']:
         if not os.path.exists(conf['misc']['run_success_file']):
-            call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d', '--no-deps', 'run'])
+            call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d',
+                  '--no-deps', 'run'])
 
             # Wait for the run container to start and complete
             dowait('the docker \'run\' container to run and complete',
                    160, conf['misc']['run_logfile'],
                    [conf['misc']['run_success_file']])
         else:
-            print('Run not launched because %s exists.' % conf['misc']['run_success_file'])
+            print(f"Run not launched because {conf['misc']['run_success_file']} exists.")
 
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
 
@@ -122,11 +129,11 @@ def substra_org(org, orderer=None):
     create_ca_client_config(org)
 
     # Configtx file
-    config_filepath = org['misc']['configtx-config-path']
-    create_configtx(org, config_filepath)
+    config_filepath = os.path.join(org['misc']['configtx-config-path'], 'configtx.yaml')
+    create_configtx(org, config_filepath, raft=True)
 
     # Org Config files
-    if 'peers' in org:
+    if org['type'] == 'client':
         create_peer_config(org)
         # create_fabric_ca_peer_config(org)
         # Docker-compose for org
@@ -135,7 +142,8 @@ def substra_org(org, orderer=None):
         start(org, docker_compose)
 
     # Orderer Config files
-    if 'orderers' in org:
+    if org['type'] == 'orderer':
+        create_peer_config(org)
         create_orderer_config(org)
         docker_compose = generate_docker_compose_orderer(org,
                                                          SUBSTRA_PATH,
@@ -144,7 +152,7 @@ def substra_org(org, orderer=None):
         start(org, docker_compose)
 
 
-def substra_network(orgs):
+def substra_network(org):
 
     # Stop all
     docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
@@ -158,11 +166,11 @@ def substra_network(orgs):
     # Create Network
     call(['docker', 'network', 'create', SUBSTRA_NETWORK])
 
-    for orderer in [x for x in orgs if 'orderers' in x]:
+    for orderer in [x for x in orgs if x['type'] == 'orderer']:
         substra_org(orderer)
     else:
         # Prepare each org
-        for org in [x for x in orgs if 'peers' in x]:
+        for org in [x for x in orgs if x['type'] == 'client']:
             substra_org(org, orderer)
             # substrabac
             create_directory(f"{SUBSTRA_PATH}/dryrun/{org['name']}")
@@ -176,6 +184,10 @@ if __name__ == '__main__':
                         help="JSON config file to be used")
     parser.add_argument('--no-backup', action='store_true', default=False,
                         help="Remove backup binded volume. Launch from scratch")
+    parser.add_argument('-f', '--fixtures', action='store_true', default=False,
+                        help="Add fixtures")
+    parser.add_argument('-r', '--revoke', action='store_true', default=False,
+                        help="Revoke user and test querying")
     args = vars(parser.parse_args())
 
     # Stop all docker
@@ -212,3 +224,25 @@ if __name__ == '__main__':
     print('', flush=True)
 
     substra_network(orgs)
+
+    if args['fixtures']:
+        suffix = 's' if len(orgs) - 1 > 1 else ''
+        fixtures_path = f'fixtures{len(orgs) - 1}org{suffix}.py'
+        docker_compose_path = generate_fixtures_docker(SUBSTRA_PATH, fixtures_path, SUBSTRA_NETWORK)
+        project_directory = os.path.join(dir_path, os.pardir)
+        call(['docker-compose', '-f', docker_compose_path, '--project-directory', project_directory, 'up', '-d',
+              '--no-deps', 'fixtures'])
+        # Wait for the run container to start and complete
+        dowait('the docker fixtures container to run and complete',
+               160, '/substra/data/log/fixtures.log',
+               ['/substra/data/log/fixtures.successful'])
+
+    if args['revoke']:
+        docker_compose_path = generate_revoke_docker(SUBSTRA_PATH, SUBSTRA_NETWORK)
+        project_directory = os.path.join(dir_path, os.pardir)
+        call(['docker-compose', '-f', docker_compose_path, '--project-directory', project_directory, 'up', '-d',
+              '--no-deps', 'revoke'])
+        # Wait for the run container to start and complete
+        dowait('the docker revoke container to run and complete',
+               160, '/substra/data/log/revoke.log',
+               ['/substra/data/log/revoke.successful'])

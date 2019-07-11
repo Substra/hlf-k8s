@@ -5,7 +5,7 @@ from orderer import orderer
 from owkin import owkin
 
 misc.update({
-    'fixtures_path': 'fixtures1orgs.py'
+    'fixtures_path': 'fixtures1org.py'
 })
 
 
@@ -19,7 +19,7 @@ def main():
 
     service_name = orderer['name']
     orderer['misc']['setup_logfile'] = f'/substra/data/log/setup-{service_name}.log',
-    orderer['misc']['configtx-config-path'] = f'/substra/data/configtx-{service_name}.yaml'
+    orderer['misc']['configtx-config-path'] = f'/substra/data/orgs/{service_name}'
     orderer['misc']['setup_success_file'] = f'/substra/data/log/setup-{service_name}.successful'
 
     with open(f'/substra/conf/config/conf-{service_name}.json', 'w+') as write_file:
@@ -31,7 +31,7 @@ def main():
         })
 
         service_name = org['name']
-        org['misc']['configtx-config-path'] = f'/substra/data/configtx-{service_name}.yaml'
+        org['misc']['configtx-config-path'] = f'/substra/data/orgs/{service_name}'
 
         org['misc']['setup_logfile'] = f'/substra/data/log/setup-{service_name}.log',
         org['misc']['setup_success_file'] = f'/substra/data/log/setup-{service_name}.successful'

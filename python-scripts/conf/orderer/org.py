@@ -3,8 +3,9 @@ from .users.admin import admin
 from orderer.orderers.orderer1 import orderer1
 
 orderer = {
+    'type': 'orderer',
     'name': 'orderer',
-    'msp_id': 'ordererMSP',
+    'mspid': 'ordererMSP',
     'broadcast_dir': {
             'external': '/substra/data/log/broadcast',
             'internal': '/etc/hyperledger/fabric/broadcast'
@@ -41,10 +42,12 @@ orderer = {
         'client-config-path': '/substra/conf/orderer/fabric-ca-client-config.yaml',
         'affiliations': {
             'owkin': ['paris']
-        }
+        },
+        'users': {
+            'bootstrap_admin': bootstrap_admin,
+        },
     },
     'users': {
-        'bootstrap_admin': bootstrap_admin,
         'admin': admin,
     },
     'csr': {

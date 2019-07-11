@@ -1,5 +1,5 @@
 orderer1 = {
-    'name': 'orderer1',
+    'name': 'orderer1-orderer',
     'pass': 'ordererpw',
     'host': 'orderer1-orderer',
     'port': {
