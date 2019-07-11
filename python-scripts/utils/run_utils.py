@@ -8,6 +8,7 @@ from subprocess import call, check_output
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+
 class ChannelAlreadyExist(Exception):
     pass
 
@@ -45,26 +46,17 @@ class Client(object):
               '-outputCreateChannelTx', self.channel_tx_file,
               '-channelID', self.channel_name])
 
-        print(f"Generating anchor peer update transaction for {self.org._name} at {self.config_tx}", flush=True)
-
-        call(['configtxgen',
-              '-profile', 'OrgsChannel',
-              '-configPath', self.config_tx_path,
-              '-outputAnchorPeersUpdate', self.config_tx,
-              '-channelID', self.channel_name,
-              '-asOrg', self.org._name])
-
     # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
     # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
     def createChannel(self):
-        res = self.loop.run_until_complete(self.cli.channel_create(
-            self.orderer,
-            self.channel_name,
-            self.org_admin,
-            config_tx=self.channel_tx_file))
-        print('channel creation: ', res)
-
-        if res is not True:
+        try:
+            res = self.loop.run_until_complete(self.cli.channel_create(
+                self.orderer,
+                self.channel_name,
+                self.org_admin,
+                config_tx=self.channel_tx_file))
+            print('channel creation: ', res)
+        except:
             raise ChannelAlreadyExist('Failed to create channel')
 
     def peersJoinChannel(self):
@@ -75,22 +67,12 @@ class Client(object):
             orderer=self.orderer,
         ))
 
-    def createChannelConfig(self, with_anchor=True):
+    def createChannelConfig(self):
         org_config = check_output(['configtxgen',
                                    '-configPath', self.config_tx_path,
                                    '-printOrg', self.org._name
                                    ])
-        org_config = json.loads(org_config.decode('utf-8'))
-
-        if with_anchor:
-            # Add Anchor peer
-            peer = random.choice(self.org_peers)
-            org_config['values']['AnchorPeers'] = {'mod_policy': 'Admins',
-                                                   'value': {'anchor_peers': [{'host': peer.endpoint.split(':')[0],
-                                                                               'port': peer.endpoint.split(':')[1]}]},
-                                                   'version': '0'}
-
-        return org_config
+        return json.loads(org_config.decode('utf-8'))
 
     def createUpdateProposal(self, conf, new_channel_config, old_channel_config):
 
@@ -164,11 +146,23 @@ class Client(object):
                 config_tx=config_tx_file,
                 signatures=signatures))
 
-    def generateChannelUpdate(self, conf, conf_externals):
+    def generateChannelUpdate(self, conf, conf_externals, old_channel_config):
         new_channel_config = self.createChannelConfig()
 
-        old_channel_config_envelope = self.getChannelConfigBlockWithOrderer(self.channel_name)
-        old_channel_config = old_channel_config_envelope['config']
+        # Add Anchor peer
+        peer = random.choice(self.org_peers)
+        host, port = peer.endpoint.split(':')
+        new_channel_config['values']['AnchorPeers'] = {
+            'mod_policy': 'Admins',
+            'value': {
+                'anchor_peers': [
+                    {
+                        'host': host,
+                        'port': port
+                    }
+                ]},
+            'version': '0'
+        }
 
         config_tx_file = self.createUpdateProposal(conf, new_channel_config, old_channel_config)
         self.signAndPushUpdateProposal(conf_externals, config_tx_file)
@@ -291,7 +285,7 @@ class Client(object):
     def createSystemUpdateProposal(self):
         # https://console.bluemix.net/docs/services/blockchain/howto/orderer_operate.html?locale=en#orderer-operate
 
-        org_config = self.createChannelConfig(with_anchor=False)
+        org_config = self.createChannelConfig()
         system_channel_config_envelope = self.getChannelConfigBlockWithOrderer(self.system_channel_name)
         system_channel_config = system_channel_config_envelope['config']
 
@@ -338,7 +332,7 @@ class Client(object):
               '--type', 'common.Envelope',
               '--output', config_tx_file])
 
-        return config_tx_file, system_channel_config
+        return config_tx_file
 
     def getChannelConfigBlockWithOrderer(self, channel_name):
         print('Will getChannelConfigBlockWithOrderer', flush=True)
@@ -354,7 +348,7 @@ class Client(object):
         return config_envelope
 
     def signAndPushSystemUpdateProposal(self, config_tx_file):
-        print('signAndPushSystemUpdateProposal')
+        print('signAndPushSystemUpdateProposal', flush=True)
 
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.cli.channel_update(
