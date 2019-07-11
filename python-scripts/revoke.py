@@ -1,4 +1,3 @@
-import pprint
 import json
 import glob
 import os
@@ -14,7 +13,6 @@ from hfc.fabric_ca.caservice import ca_service
 from hfc.fabric.block_decoder import decode_config
 
 SUBSTRA_PATH = '/substra'
-pp = pprint.PrettyPrinter(indent=2)
 
 
 def revokeFabricUserAndGenerateCRL():
@@ -158,8 +156,6 @@ def revokeFirstOrgUser():
     updateConfigBlock(config_tx_file)
 
     # wait for block being fetched by endorsing peer
-    # TODO wait for channel_update waitForEvent in fabric-sdk-py,
-    #  need fix on block with empty txID for working with raft
     time.sleep(2)
 
     if queryAsRevokedUser():
