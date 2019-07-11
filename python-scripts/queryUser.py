@@ -12,7 +12,7 @@ SUBSTRA_PATH = '/substra'
 def queryChaincode(fcn, args, org_name, peers):
     print(f"Query chaincode on org {org_name}", flush=True)
 
-    requestor = cli.get_user(org_name, 'admin')
+    requestor = cli.get_user(org_name, 'user')
     channel_name = 'substrachannel'
     chaincode_name = 'substracc'
 

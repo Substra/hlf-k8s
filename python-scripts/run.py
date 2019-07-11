@@ -35,7 +35,6 @@ def add_org():
     # make current org in consortium of system channel for being able to create channel
     config_tx_file = client.createSystemUpdateProposal()
     client.signAndPushSystemUpdateProposal(config_tx_file)
-    time.sleep(2)
 
     # generate channel configuration from configtx.yaml
     client.generateChannelArtifacts()

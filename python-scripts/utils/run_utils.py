@@ -24,6 +24,7 @@ class Client(object):
         self.org_peers = [p for p in self.cli._peers.values() if p.name in [x['name'] for x in conf['peers']]]
 
         self.org_admin = self.cli.get_user(conf['name'], conf['users']['admin']['name'])
+        self.org_user = self.cli.get_user(conf['name'], conf['users']['user']['name'])
         self.config_tx = conf['anchor_tx_file']
         self.mspid = conf['mspid']
 
@@ -271,7 +272,7 @@ class Client(object):
               flush=True)
 
         response = self.loop.run_until_complete(self.cli.chaincode_query(
-            requestor=self.org_admin,
+            requestor=self.org_user,
             channel_name=self.channel_name,
             peers=self.org_peers,
             fcn='queryObjectives',
