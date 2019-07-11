@@ -243,11 +243,11 @@ ldap:
 # which are always stored in lower case.
 #############################################################################
 affiliations:
-  org1:
-    - department1
-    - department2
-  org2:
-    - department1
+   org1:
+      - department1
+      - department2
+   org2:
+      - department1
 
 #############################################################################
 #  Signing section
@@ -312,12 +312,11 @@ csr:
      algo: ecdsa
      size: 256
    names:
-     - C: FR
-       ST: "Loire-Atlantique"
-       L: Nantes
-       O: owkin
-       OU:
-
+      - C: US
+        ST: "North Carolina"
+        L:
+        O: Hyperledger
+        OU: Fabric
    hosts:
      - localhost
    ca:
@@ -338,13 +337,13 @@ idemix:
   # by the prover to prove to the verifier that her credential is not revoked.
   rhpoolsize: 1000
 
-   # The Idemix credential issuance is a two step process. First step is to  get a nonce from the issuer
+  # The Idemix credential issuance is a two step process. First step is to  get a nonce from the issuer
   # and second step is send credential request that is constructed using the nonce to the isuser to
   # request a credential. This configuration property specifies expiration for the nonces. By default is
   # nonces expire after 15 seconds. The value is expressed in the time.Duration format (see https://golang.org/pkg/time/#ParseDuration).
   nonceexpiration: 15s
 
-   # Specifies interval at which expired nonces are removed from datastore. Default value is 15 minutes.
+  # Specifies interval at which expired nonces are removed from datastore. Default value is 15 minutes.
   #  The value is expressed in the time.Duration format (see https://golang.org/pkg/time/#ParseDuration)
   noncesweepinterval: 15m
 
@@ -453,41 +452,38 @@ cfg:
     allowremove: true
     passwordattempts: 10
 
-
 ###############################################################################
 #
 #    Operations section
-#    https://hyperledger-fabric-ca.readthedocs.io/en/latest/users-guide.html#operations-service
 #
 ###############################################################################
-# operations:
-#     # host and port for the operations server
-#     listenAddress: 127.0.0.1:9443
-
-#     # TLS configuration for the operations endpoint
-#     tls:
-#         # TLS enabled
-#         enabled: false
-
-#         # path to PEM encoded server certificate for the operations server
-#         cert:
-#             file:
-
-#         # path to PEM encoded server key for the operations server
-#         key:
-#             file:
-
-#         # require client certificate authentication to access all resources
-#         clientAuthRequired: false
-
-#         # paths to PEM encoded ca certificates to trust for client authentication
-#         clientRootCAs:
-#             files: []
+#operations:
+#    # host and port for the operations server
+#    listenAddress: 127.0.0.1:9443
+#
+#    # TLS configuration for the operations endpoint
+#    tls:
+#        # TLS enabled
+#        enabled: false
+#
+#        # path to PEM encoded server certificate for the operations server
+#        cert:
+#            file:
+#
+#        # path to PEM encoded server key for the operations server
+#        key:
+#            file:
+#
+#        # require client certificate authentication to access all resources
+#        clientAuthRequired: false
+#
+#        # paths to PEM encoded ca certificates to trust for client authentication
+#        clientRootCAs:
+#            files: []
 
 ###############################################################################
 #
 #    Metrics section
-#    https://hyperledger-fabric-ca.readthedocs.io/en/latest/users-guide.html#metrics
 #
 ###############################################################################
 metrics:
