@@ -6,6 +6,8 @@ import random
 
 from subprocess import call, check_output
 
+from hfc.util.policies import s2d
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -213,24 +215,11 @@ class Client(object):
             raise Exception(f'Could not find valid chaincode version, expected version: "{self.chaincode_name}"')
 
     def makePolicy(self, orgs_mspid):
-        policy = {
-            'identities': [],
-            'policy': {}
-        }
+        roles =[f"'{x}.member'" for x in orgs_mspid]
+        policy = f"OR({', '.join(roles)})"
+        print('policy: ', policy, flush=True)
 
-        for index, org_mspid in enumerate(orgs_mspid):
-            policy['identities'].append({'role': {'name': 'member', 'mspId': org_mspid}})
-
-            if len(orgs_mspid) == 1:
-                policy['policy'] = {'signed-by': index}
-            else:
-                if not '1-of' in policy['policy']:
-                    policy['policy']['1-of'] = []
-                policy['policy']['1-of'].append({'signed-by': index})
-
-        print(f'policy: {policy}', flush=True)
-
-        return policy
+        return s2d().parse(policy)
 
     def instanciateChaincode(self, args=None):
 
