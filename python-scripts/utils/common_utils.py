@@ -61,8 +61,11 @@ def remove_chaincode_docker_images():
 
 
 # Remove chaincode docker containers
-def remove_chaincode_docker_containers():
-    chaincodeContainers = check_output('docker ps -a | grep "dev-peer" | awk \'{print $1}\'', shell=True)
+def remove_chaincode_docker_containers(version=None):
+    if version is None:
+        chaincodeContainers = check_output('docker ps -a | grep "dev-peer" | awk \'{print $1}\'', shell=True)
+    else:
+        chaincodeContainers = check_output('docker ps -a | grep "dev-peer" | grep "%s"| awk \'{print $1}\'' % version, shell=True)
 
     if chaincodeContainers:
         print('Removing chaincode docker containers ...', flush=True)

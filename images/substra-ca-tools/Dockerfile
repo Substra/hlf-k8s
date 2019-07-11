@@ -10,7 +10,7 @@ RUN echo "deb http://cn.archive.ubuntu.com/ubuntu bionic-updates main multiverse
 RUN echo "deb http://cn.archive.ubuntu.com/ubuntu bionic-security main multiverse restricted universe" >> /etc/apt/sources.list
 RUN echo "deb http://cn.archive.ubuntu.com/ubuntu bionic-proposed main multiverse restricted universe" >> /etc/apt/sources.list
 RUN apt-get update
-RUN apt-get install -y curl netcat python3-pip python3.6-dev libssl-dev python3-setuptools python3-pip libffi-dev
+RUN apt-get install -y curl netcat python3-pip python3.6-dev libssl-dev python3-setuptools python3-pip libffi-dev docker.io
 
 COPY ./bootstrap-binaries.sh /tmp
 RUN cd /tmp; sh bootstrap-binaries.sh;

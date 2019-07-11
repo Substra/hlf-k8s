@@ -6,6 +6,7 @@ from subprocess import call
 
 from utils.cli import init_cli, update_cli
 from utils.run_utils import Client, ChannelAlreadyExist
+from utils.common_utils import remove_chaincode_docker_containers
 
 
 # We need to retry as we cannot know when the channel is created and its genesis block is available
@@ -80,6 +81,8 @@ def add_org():
 
         # upgrade chaincode with new policy
         client.upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')
+
+        remove_chaincode_docker_containers(chaincode_version)
 
     else:  # channel is created, install + instantiate chaincode
 
