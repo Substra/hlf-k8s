@@ -7,7 +7,7 @@ from yaml import load, dump, FullLoader
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-SUBSTRA_PATH = '/substra'
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
 
 
 def create_ca_server_config(org):
@@ -204,7 +204,7 @@ def create_substrabac_config(org, orderer_conf):
     create_directory(dir_path)
 
     peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
+    peer_core = f'{SUBSTRA_PATH}/conf/{org["name"]}/{peer["name"]}'
 
     orderer = orderer_conf['orderers'][0]
 

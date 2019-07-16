@@ -1,3 +1,8 @@
+import os
+
+
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
+
 orderer1 = {
     'name': 'orderer1-orderer',
     'pass': 'ordererpw',
@@ -8,7 +13,7 @@ orderer1 = {
     },
     'tls': {
         'dir': {
-            'external': '/substra/data/orgs/orderer/tls/orderer1',
+            'external': f'{SUBSTRA_PATH}/data/orgs/orderer/tls/orderer1',
             'internal': '/etc/hyperledger/fabric/tls'
         },
         'client': {

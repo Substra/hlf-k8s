@@ -1,13 +1,16 @@
+import os
 from .users.bootstrap_admin import bootstrap_admin
 from .users.admin import admin
 from orderer.orderers.orderer1 import orderer1
+
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
 
 orderer = {
     'type': 'orderer',
     'name': 'orderer',
     'mspid': 'ordererMSP',
     'broadcast_dir': {
-            'external': '/substra/data/log/broadcast',
+            'external': f'{SUBSTRA_PATH}/data/log/broadcast',
             'internal': '/etc/hyperledger/fabric/broadcast'
     },
     'tls': {
@@ -16,7 +19,7 @@ orderer = {
         # image, do not forget to remove these examples files in your
         # docker CMD overriding if naming the same way
         'certfile': {
-            'external': '/substra/data/orgs/orderer/tls-ca-cert.pem',
+            'external': f'{SUBSTRA_PATH}/data/orgs/orderer/tls-ca-cert.pem',
             'internal': '/etc/hyperledger/fabric/ca/tls-ca-cert.pem'
         },
         'clientkey': ''
@@ -25,11 +28,11 @@ orderer = {
         'name': 'rca-orderer',
         'host': 'rca-orderer',
         'certfile': {
-            'external': '/substra/data/orgs/orderer/ca-cert.pem',
+            'external': f'{SUBSTRA_PATH}/data/orgs/orderer/ca-cert.pem',
             'internal': '/etc/hyperledger/fabric/ca/ca-cert.pem'
         },
         'keyfile': {
-            'external': '/substra/data/orgs/orderer/ca-key.pem',
+            'external': f'{SUBSTRA_PATH}/data/orgs/orderer/ca-key.pem',
             'internal': '/etc/hyperledger/fabric/ca/ca-key.pem'
         },
         'port': {
@@ -37,9 +40,9 @@ orderer = {
             'external': 9054
         },
         'url': 'https://rca-orderer:7054',
-        'logfile': '/substra/data/log/rca-orderer.log',
-        'server-config-path': '/substra/conf/orderer/fabric-ca-server-config.yaml',
-        'client-config-path': '/substra/conf/orderer/fabric-ca-client-config.yaml',
+        'logfile': f'{SUBSTRA_PATH}/data/log/rca-orderer.log',
+        'server-config-path': f'{SUBSTRA_PATH}/conf/orderer/fabric-ca-server-config.yaml',
+        'client-config-path': f'{SUBSTRA_PATH}/conf/orderer/fabric-ca-client-config.yaml',
         'affiliations': {
             'owkin': ['paris']
         },

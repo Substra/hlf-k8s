@@ -16,7 +16,7 @@ from utils.docker_utils import (generate_docker_compose_org, generate_docker_com
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-SUBSTRA_PATH = '/substra'
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
 SUBSTRA_NETWORK = 'net_substra'
 
 
@@ -234,8 +234,8 @@ if __name__ == '__main__':
               '--no-deps', 'fixtures'])
         # Wait for the run container to start and complete
         dowait('the docker fixtures container to run and complete',
-               160, '/substra/data/log/fixtures.log',
-               ['/substra/data/log/fixtures.successful'])
+               160, f'{SUBSTRA_PATH}/data/log/fixtures.log',
+               [f'{SUBSTRA_PATH}/data/log/fixtures.successful'])
 
     if args['revoke']:
         docker_compose_path = generate_revoke_docker(SUBSTRA_PATH, SUBSTRA_NETWORK)
@@ -244,5 +244,5 @@ if __name__ == '__main__':
               '--no-deps', 'revoke'])
         # Wait for the run container to start and complete
         dowait('the docker revoke container to run and complete',
-               160, '/substra/data/log/revoke.log',
-               ['/substra/data/log/revoke.successful'])
+               160, f'{SUBSTRA_PATH}/data/log/revoke.log',
+               [f'{SUBSTRA_PATH}/data/log/revoke.successful'])

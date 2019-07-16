@@ -7,7 +7,7 @@ from subprocess import call
 
 from utils.cli import init_cli
 
-SUBSTRA_PATH = '/substra'
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
 
 
 def queryChaincode(fcn, args, org_name, peers):
@@ -387,10 +387,10 @@ def run(cli):
 
     if res:
         print('Congratulations! The fixtures have been loaded successfully.', flush=True)
-        call(['touch', '/substra/data/log/fixtures.successful'])
+        call(['touch', f'{SUBSTRA_PATH}/data/log/fixtures.successful'])
     else:
         print('Loading fixtures failed.', flush=True)
-        call(['touch', '/substra/data/log/fixtures.fail'])
+        call(['touch', f'{SUBSTRA_PATH}/data/log/fixtures.fail'])
 
 
 if __name__ == "__main__":

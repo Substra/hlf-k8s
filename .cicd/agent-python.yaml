@@ -6,8 +6,11 @@ spec:
     image: python:3.7
     command: [cat]
     tty: true
+    env:
+    - name: SUBSTRA_PATH
+      value: "/tmp/substra"
     volumeMounts:
-      - { name: substra, mountPath: /substra }
+      - { name: substra, mountPath: /tmp/substra }
       - { name: docker, mountPath: /var/run/docker.sock }
     resources:
       requests:
@@ -18,6 +21,6 @@ spec:
         memory: 4096Mi
   volumes:
     - name: substra
-      hostPath: { path: /substra, type: DirectoryOrCreate }
+      hostPath: { path: /tmp/substra, type: DirectoryOrCreate }
     - name: docker
       hostPath: { path: /var/run/docker.sock, type: File }

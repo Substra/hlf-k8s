@@ -1,7 +1,12 @@
+import os
+
+
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
+
 user = {
     'name': 'user-owkin',
     'pass': 'user-owkinpw',
-    'home': '/substra/data/orgs/owkin/user',
-    'cert': '/substra/data/orgs/owkin/user/msp/signcerts/cert.pem',
-    'private_key': '/substra/data/orgs/owkin/user/msp/keystore/key.pem',
+    'home': f'{SUBSTRA_PATH}/data/orgs/owkin/user',
+    'cert': f'{SUBSTRA_PATH}/data/orgs/owkin/user/msp/signcerts/cert.pem',
+    'private_key': f'{SUBSTRA_PATH}/data/orgs/owkin/user/msp/keystore/key.pem',
 }
