@@ -23,8 +23,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                 'image': 'substra/substra-ca-tools',
                 'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{org["name"]}.log"',
                 'environment': [],
-                'volumes': ['./python-scripts:/scripts',
-                            f'{substra_path}/data/log:{substra_path}/data/log',
+                'volumes': [f'{substra_path}/data/log:{substra_path}/data/log',
                             f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
 
                             # Admin MSP
@@ -49,9 +48,6 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                 'volumes': [
                     # docker in docker
                     '/var/run/docker.sock:/var/run/docker.sock',
-
-                    # scripts
-                    './python-scripts:/scripts',
 
                     # logs
                     f'{substra_path}/data/log/:{substra_path}/data/log/',
@@ -198,8 +194,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
                 'image': 'substra/substra-ca-tools',
                 'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{ org["name"]}.log"',
                 'environment': [],
-                'volumes': ['./python-scripts:/scripts',
-                            f'{substra_path}/data/log:{substra_path}/data/log',
+                'volumes': [f'{substra_path}/data/log:{substra_path}/data/log',
                             f'{substra_path}/data/genesis:{substra_path}/data/genesis',
                             f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
                             # access to config tx file
@@ -316,8 +311,7 @@ def generate_fixtures_docker(substra_path, fixtures_path, network):
                   'image': 'substra/substra-ca-tools',
                   'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/{fixtures_path} 2>&1 | tee {substra_path}/data/log/fixtures.log"',
                   'environment': ['ENV=internal'],
-                  'volumes': ['./python-scripts:/scripts',
-                              f'{substra_path}/data/:{substra_path}/data/',
+                  'volumes': [f'{substra_path}/data/:{substra_path}/data/',
                               f'{substra_path}/conf/:{substra_path}/conf/',
                               ],
                   'networks': [network],
@@ -346,8 +340,7 @@ def generate_revoke_docker(substra_path, network):
                   'image': 'substra/substra-ca-tools',
                   'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/revoke.py 2>&1 | tee {substra_path}/data/log/revoke.log"',
                   'environment': ['ENV=internal'],
-                  'volumes': ['./python-scripts:/scripts',
-                              f'{substra_path}/data/:{substra_path}/data/',
+                  'volumes': [f'{substra_path}/data/:{substra_path}/data/',
                               f'{substra_path}/conf/:{substra_path}/conf/',
                               ],
                   'networks': [network],

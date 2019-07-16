@@ -20,3 +20,6 @@ RUN chmod +x /usr/local/bin/fabric-ca-client
 
 COPY requirements.txt /requirements.txt
 RUN pip3 install -r requirements.txt
+
+RUN mkdir /scripts/
+COPY ./python-scripts/ /scritps/
