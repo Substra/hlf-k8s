@@ -18,7 +18,6 @@ spec:
         memory: 4096Mi
   volumes:
     - name: substra
-      persistentVolumeClaim:
-        claimName: substra-data
+      hostPath: { path: /substra, type: DirectoryOrCreate }
     - name: docker
       hostPath: { path: /var/run/docker.sock, type: File }

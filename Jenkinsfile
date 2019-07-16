@@ -16,22 +16,6 @@ pipeline {
       }
     }
 
-    stage('Prepare substra volume'){
-      agent {
-        kubernetes {
-          label 'kubectl'
-          defaultContainer 'kubectl'
-          yamlFile '.cicd/agent-kubectl.yaml'
-        }
-      }
-
-      steps {
-        checkout scm
-        sh "kubectl delete -f .cicd/substra-volume-claim.yaml --ignore-not-found=true --wait=true"
-        sh "kubectl apply -f .cicd/substra-volume-claim.yaml"
-      }
-    }
-
     stage('Test') {
       agent {
         kubernetes {
