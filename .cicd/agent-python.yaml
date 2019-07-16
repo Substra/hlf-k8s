@@ -9,6 +9,8 @@ spec:
     env:
     - name: SUBSTRA_PATH
       value: "/tmp/substra"
+    - name: SUBSTRA_CHAINCODE_PATH
+      value: "/tmp/substra/substra-chaincode"
     volumeMounts:
       - { name: substra, mountPath: /tmp/substra }
       - { name: docker, mountPath: /var/run/docker.sock }

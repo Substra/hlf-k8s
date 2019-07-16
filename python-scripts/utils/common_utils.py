@@ -28,7 +28,7 @@ def waitPort(what, secs, logFile, host, port):
 
             if int(time.time()) - starttime > secs:
                 print('Failed waiting for %(what)s; see %(logFile)s' % {'what': what, 'logFile': logFile}, flush=True)
-                break
+                exit(1)
 
             print('.', end='', flush=True)
 
@@ -47,6 +47,7 @@ def dowait(what, secs, logFile, files):
             if int(time.time()) - starttime > secs:
                 print('Failed waiting for %(what)s; see %(logFile)s\n' % {'what': what, 'logFile': logFile}, flush=True)
                 break
+                exit(1)
             print('.', end='', flush=True)
     print('')
 

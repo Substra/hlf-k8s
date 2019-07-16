@@ -46,10 +46,13 @@ pipeline {
             ])
         }
 
+        sh "cp -r substra-chaincode /tmp/substra/substra-chaincode "
+
         dir("substra-network") {
           checkout scm
           sh "pip install -r python-scripts/requirements.txt"
           sh "./bootstrap.sh"
+          sh "export SUBSTRA_PATH=/tmp/substra/"
           sh "python3 python-scripts/start.py --no-backup --fixtures --revoke"
         }
 
@@ -58,6 +61,7 @@ pipeline {
       post {
         always {
           dir("substra-network") {
+            sh "export SUBSTRA_PATH=/tmp/substra/"
             sh "python3 python-scripts/stop.py"
           }
         }

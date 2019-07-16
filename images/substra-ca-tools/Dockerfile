@@ -12,14 +12,14 @@ RUN echo "deb http://cn.archive.ubuntu.com/ubuntu bionic-proposed main multivers
 RUN apt-get update
 RUN apt-get install -y curl netcat python3-pip python3.6-dev libssl-dev python3-setuptools python3-pip libffi-dev docker.io
 
-COPY ./bootstrap-binaries.sh /tmp
+COPY images/substra-ca-tools/bootstrap-binaries.sh /tmp
 RUN cd /tmp; sh bootstrap-binaries.sh;
 
 RUN cp /tmp/bin/fabric-ca-client /usr/local/bin/
 RUN chmod +x /usr/local/bin/fabric-ca-client
 
-COPY requirements.txt /requirements.txt
+COPY images/substra-ca-tools/requirements.txt /requirements.txt
 RUN pip3 install -r requirements.txt
 
 RUN mkdir /scripts/
-COPY ./python-scripts/ /scritps/
+COPY ./python-scripts /scripts/

@@ -5,6 +5,8 @@ HLF_VERSION = '1.4.1'
 
 fabric_base_directory = '/etc/hyperledger/fabric'
 
+SUBSTRA_CHAINCODE_PATH = os.getenv('SUBSTRA_CHAINCODE_PATH', '../substra-chaincode/chaincode')
+
 
 def generate_docker_compose_org(org, conf_orderer, substra_path, network):
 
@@ -22,7 +24,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                 'container_name': f'setup-{org["name"]}',
                 'image': 'substra/substra-ca-tools',
                 'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{org["name"]}.log"',
-                'environment': [],
+                'environment': [f'SUBSTRA_PATH={substra_path}'],
                 'volumes': [f'{substra_path}/data/log:{substra_path}/data/log',
                             f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
 
@@ -53,7 +55,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                     f'{substra_path}/data/log/:{substra_path}/data/log/',
 
                     # chaincode
-                    '../substra-chaincode/chaincode:/opt/gopath/src/chaincode',
+                    f'{SUBSTRA_CHAINCODE_PATH}:/opt/gopath/src/chaincode',
 
                     # channel
                     f'{substra_path}/data/channel/:{substra_path}/data/channel/',
@@ -193,7 +195,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
                 'container_name': f'setup-{org["name"]}',
                 'image': 'substra/substra-ca-tools',
                 'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{ org["name"]}.log"',
-                'environment': [],
+                'environment': [f'SUBSTRA_PATH={substra_path}'],
                 'volumes': [f'{substra_path}/data/log:{substra_path}/data/log',
                             f'{substra_path}/data/genesis:{substra_path}/data/genesis',
                             f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
@@ -310,7 +312,7 @@ def generate_fixtures_docker(substra_path, fixtures_path, network):
                  {'container_name': 'fixtures',
                   'image': 'substra/substra-ca-tools',
                   'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/{fixtures_path} 2>&1 | tee {substra_path}/data/log/fixtures.log"',
-                  'environment': ['ENV=internal'],
+                  'environment': ['ENV=internal', f'SUBSTRA_PATH={substra_path}'],
                   'volumes': [f'{substra_path}/data/:{substra_path}/data/',
                               f'{substra_path}/conf/:{substra_path}/conf/',
                               ],
@@ -339,7 +341,7 @@ def generate_revoke_docker(substra_path, network):
                  {'container_name': 'revoke',
                   'image': 'substra/substra-ca-tools',
                   'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/revoke.py 2>&1 | tee {substra_path}/data/log/revoke.log"',
-                  'environment': ['ENV=internal'],
+                  'environment': ['ENV=internal', f'SUBSTRA_PATH={substra_path}'],
                   'volumes': [f'{substra_path}/data/:{substra_path}/data/',
                               f'{substra_path}/conf/:{substra_path}/conf/',
                               ],
