@@ -17,72 +17,70 @@ pipeline {
     }
 
     stage('Test') {
-      lock('network') {
-        agent {
-          kubernetes {
-            label 'python'
-            defaultContainer 'python'
-            yamlFile '.cicd/agent-python.yaml'
-          }
+      agent {
+        kubernetes {
+          label 'python'
+          defaultContainer 'python'
+          yamlFile '.cicd/agent-python.yaml'
+        }
+      }
+
+      steps {
+        sh """
+          apt update
+          apt install -y curl
+          mkdir -p /tmp/download
+          curl -L https://download.docker.com/linux/static/stable/x86_64/docker-18.06.3-ce.tgz | tar -xz -C /tmp/download
+          mv /tmp/download/docker/docker /usr/local/bin/
+          apt install -y docker-compose
+        """
+
+        dir('substra-chaincode') {
+            checkout([
+              $class: 'GitSCM',
+              branches: [[name: '*/dev']],
+              doGenerateSubmoduleConfigurations: false,
+              extensions: [],
+              submoduleCfg: [],
+              userRemoteConfigs: [[credentialsId: 'substra-deploy', url: 'https://github.com/SubstraFoundation/substra-chaincode']]
+            ])
         }
 
-        steps {
-          sh """
-            apt update
-            apt install -y curl
-            mkdir -p /tmp/download
-            curl -L https://download.docker.com/linux/static/stable/x86_64/docker-18.06.3-ce.tgz | tar -xz -C /tmp/download
-            mv /tmp/download/docker/docker /usr/local/bin/
-            apt install -y docker-compose
-          """
+        sh """
+          rm -rf /tmp/substra/substra-chaincode
+          mkdir -p /tmp/substra/substra-chaincode
+          cp -r substra-chaincode/chaincode/* /tmp/substra/substra-chaincode/
+        """
 
-          dir('substra-chaincode') {
-              checkout([
-                $class: 'GitSCM',
-                branches: [[name: '*/dev']],
-                doGenerateSubmoduleConfigurations: false,
-                extensions: [],
-                submoduleCfg: [],
-                userRemoteConfigs: [[credentialsId: 'substra-deploy', url: 'https://github.com/SubstraFoundation/substra-chaincode']]
-              ])
-          }
+        dir("substra-network") {
+          checkout scm
+          sh "pip install -r python-scripts/requirements.txt"
+          sh "./bootstrap.sh"
+          sh "export SUBSTRA_PATH=/tmp/substra/"
+          sh "python3 python-scripts/start.py --no-backup --fixtures --revoke"
+        }
 
-          sh """
-            rm -rf /tmp/substra/substra-chaincode
-            mkdir -p /tmp/substra/substra-chaincode
-            cp -r substra-chaincode/chaincode/* /tmp/substra/substra-chaincode/
-          """
+        // Verify that the start.py go well.
+        // Todo: improve this part
+        sh """
+          if [ -f /tmp/substra/data/log/fixtures.fail ]; then echo "Fixture fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/revoke.fail ]; then echo "Revoke fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then echo "Run chu-nantes fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/run-owkin.fail ]; then echo "Run owkin fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/setup-chu-nantes.fail ]; then echo "Setup chu-nantes fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/setup-orderer.fail ]; then echo "Setup orderer fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/setup-owkin.fail ]; then echo "Setup owkin fails" && exit 1; fi
+        """
 
+      }
+
+      post {
+        always {
           dir("substra-network") {
-            checkout scm
-            sh "pip install -r python-scripts/requirements.txt"
-            sh "./bootstrap.sh"
             sh "export SUBSTRA_PATH=/tmp/substra/"
-            sh "python3 python-scripts/start.py --no-backup --fixtures --revoke"
+            sh "python3 python-scripts/stop.py"
           }
-
-          // Verify that the start.py go well.
-          // Todo: improve this part
-          sh """
-            if [ -f /tmp/substra/data/log/fixtures.fail ]; then echo "Fixture fails" && exit 1; fi
-            if [ -f /tmp/substra/data/log/revoke.fail ]; then echo "Revoke fails" && exit 1; fi
-            if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then echo "Run chu-nantes fails" && exit 1; fi
-            if [ -f /tmp/substra/data/log/run-owkin.fail ]; then echo "Run owkin fails" && exit 1; fi
-            if [ -f /tmp/substra/data/log/setup-chu-nantes.fail ]; then echo "Setup chu-nantes fails" && exit 1; fi
-            if [ -f /tmp/substra/data/log/setup-orderer.fail ]; then echo "Setup orderer fails" && exit 1; fi
-            if [ -f /tmp/substra/data/log/setup-owkin.fail ]; then echo "Setup owkin fails" && exit 1; fi
-          """
-
-        }
-
-        post {
-          always {
-            dir("substra-network") {
-              sh "export SUBSTRA_PATH=/tmp/substra/"
-              sh "python3 python-scripts/stop.py"
-            }
-            sh "rm -rf /tmp/substra/* "
-          }
+          sh "rm -rf /tmp/substra/* "
         }
       }
     }
