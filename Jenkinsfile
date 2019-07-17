@@ -47,7 +47,7 @@ pipeline {
         }
 
         sh """
-          rm -r /tmp/substra/substra-chaincode
+          rm -rf /tmp/substra/substra-chaincode
           mkdir -p /tmp/substra/substra-chaincode
           cp -r substra-chaincode/chaincode/* /tmp/substra/substra-chaincode/
         """
@@ -60,6 +60,18 @@ pipeline {
           sh "python3 python-scripts/start.py --no-backup --fixtures --revoke"
         }
 
+        // Verify that the start.py go well.
+        // Todo: improve this part
+        sh """
+          if [ -f /tmp/substra/data/log/fixtures.fail ]; then echo "Fixture fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/revoke.fail ]; then echo "Revoke fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then echo "Run chu-nantes fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/run-owkin.fail ]; then echo "Run owkin fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/setup-chu-nantes.fail ]; then echo "Setup chu-nantes fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/setup-orderer.fail ]; then echo "Setup orderer fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/setup-owkin.fail ]; then echo "Setup owkin fails" && exit 1; fi
+        """
+
       }
 
       post {
@@ -68,6 +80,7 @@ pipeline {
             sh "export SUBSTRA_PATH=/tmp/substra/"
             sh "python3 python-scripts/stop.py"
           }
+          sh "rm -rf /tmp/substra/* "
         }
       }
     }
