@@ -46,7 +46,11 @@ pipeline {
             ])
         }
 
-        sh "cp -r substra-chaincode /tmp/substra/substra-chaincode "
+        sh """
+          rm -r /tmp/substra/substra-chaincode
+          mkdir -p /tmp/substra/substra-chaincode
+          cp -r substra-chaincode/chaincode/* /tmp/substra/substra-chaincode/
+        """
 
         dir("substra-network") {
           checkout scm
