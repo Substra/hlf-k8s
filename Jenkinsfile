@@ -4,6 +4,7 @@ pipeline {
     timeout(time: 1, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '5'))
     skipDefaultCheckout true
+    lock('substranetwork')
   }
 
   agent none
