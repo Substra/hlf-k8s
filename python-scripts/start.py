@@ -66,7 +66,8 @@ def start(conf, docker_compose):
     check_call(['docker-compose', '-f', docker_compose['path'], '--project-directory', project_directory, 'up', '-d'] +
                services)
 
-    check_call(['docker', 'ps', '-a', '--format', 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'])
+    check_call(['docker', 'ps', '-a', '--format', 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}',
+                '--filter', 'label=substra'])
 
     # Setup
     print(conf['misc']['setup_success_file'])
@@ -74,7 +75,8 @@ def start(conf, docker_compose):
         print('Launch setup')
         check_call(['docker-compose', '-f', docker_compose['path'], '--project-directory',
                    project_directory, 'up', '-d', 'setup'])
-        check_call(['docker', 'ps', '-a', '--format', 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'])
+        check_call(['docker', 'ps', '-a', '--format', 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}',
+                    '--filter', 'label=substra'])
         # Wait for the setup container to complete
         success = dowait('the \'setup\' container to finish registering identities and other artifacts',
                          90,

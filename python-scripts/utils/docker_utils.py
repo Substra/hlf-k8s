@@ -22,6 +22,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
         'substra_tools': {
             'setup': {
                 'container_name': f'setup-{org["name"]}',
+                'labels': ['substra'],
                 'image': 'substra/substra-ca-tools',
                 'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{org["name"]}.log"',
                 'environment': [f'SUBSTRA_PATH={substra_path}'],
@@ -41,6 +42,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
 
             'run': {
                 'container_name': f'run-{org["name"]}',
+                'labels': ['substra'],
                 'image': 'substra/substra-ca-tools',
                 'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 | tee {substra_path}/data/log/run-{org["name"]}.log"',
                 'environment': ['GOPATH=/opt/gopath',
@@ -93,6 +95,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
     # RCA
     rca = {
         'container_name': org['ca']['host'],
+        'labels': ['substra'],
         'image': f'hyperledger/fabric-ca:{HLF_VERSION}',
         'restart': 'unless-stopped',
         'working_dir': '/etc/hyperledger/',
@@ -116,6 +119,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
     for _, peer in enumerate(org['peers']):
         svc = {
             'container_name': peer['host'],
+            'labels': ['substra'],
             'image': f'hyperledger/fabric-peer:{HLF_VERSION}',
             'restart': 'unless-stopped',
             'command': '/bin/bash -c "peer node start 2>&1"',
@@ -193,6 +197,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
         'substra_tools': {
             'setup': {
                 'container_name': f'setup-{org["name"]}',
+                'labels': ['substra'],
                 'image': 'substra/substra-ca-tools',
                 'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{ org["name"]}.log"',
                 'environment': [f'SUBSTRA_PATH={substra_path}'],
@@ -228,6 +233,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
     # RCA
     rca = {
         'container_name': org['ca']['host'],
+        'labels': ['substra'],
         'image': f'hyperledger/fabric-ca:{HLF_VERSION}',
         'restart': 'unless-stopped',
         'working_dir': '/etc/hyperledger/',
@@ -251,6 +257,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
     for _, orderer in enumerate(org['orderers']):
         svc = {
             'container_name': orderer['host'],
+            'labels': ['substra'],
             'image': f'hyperledger/fabric-orderer:{HLF_VERSION}',
             'restart': 'unless-stopped',
             'working_dir': fabric_base_directory,
@@ -310,6 +317,7 @@ def generate_fixtures_docker(substra_path, fixtures_path, network):
         'services':
             {'fixtures':
                  {'container_name': 'fixtures',
+                  'labels': ['substra'],
                   'image': 'substra/substra-ca-tools',
                   'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/{fixtures_path} 2>&1 | tee {substra_path}/data/log/fixtures.log"',
                   'environment': ['ENV=internal', f'SUBSTRA_PATH={substra_path}'],
@@ -339,6 +347,7 @@ def generate_revoke_docker(substra_path, network):
         'services':
             {'revoke':
                  {'container_name': 'revoke',
+                  'labels': ['substra'],
                   'image': 'substra/substra-ca-tools',
                   'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/revoke.py 2>&1 | tee {substra_path}/data/log/revoke.log"',
                   'environment': ['ENV=internal', f'SUBSTRA_PATH={substra_path}'],
