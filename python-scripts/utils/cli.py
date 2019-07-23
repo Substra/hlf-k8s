@@ -17,7 +17,7 @@ def update_cli(cli, orgs):
         cli._organizations.update({org['name']: create_org(org['name'], org, cli.state_store)})
 
         # register users except rca boostrap admin
-        for user_name in [x for x in org['users'].keys() if x != 'boostrap_admin']:
+        for user_name in org['users'].keys():
             org_user = org['users'][user_name]
             org_user_home = org_user['home']
             org_user_msp_dir = os.path.join(org_user_home, 'msp')
