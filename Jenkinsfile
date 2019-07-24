@@ -58,7 +58,7 @@ pipeline {
           sh "pip install -r python-scripts/requirements.txt"
           sh "./bootstrap.sh"
           sh "export SUBSTRA_PATH=/tmp/substra/"
-          sh "python3 python-scripts/start.py --no-backup --fixtures --revoke"
+          sh "python3 python-scripts/start.py --no-backup --fixtures --revoke --query"
         }
 
         // Verify that the start.py go well.

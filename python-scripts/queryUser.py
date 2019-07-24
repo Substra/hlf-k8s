@@ -4,6 +4,7 @@ import json
 import os
 
 from utils.cli import init_cli
+from subprocess import check_call
 
 
 SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
@@ -30,8 +31,17 @@ def queryChaincode(fcn, args, org_name, peers):
 
 
 def run():
+
     res = queryChaincode('queryObjectives', None, 'owkin', [cli.get_peer('peer1-owkin')])
+
     print(res)
+
+    if res:
+        print('Query Success')
+        check_call(['touch', f'{SUBSTRA_PATH}/data/log/query.successful'])
+    else:
+        print('Query Fail')
+        check_call(['touch', f'{SUBSTRA_PATH}/data/log/query.fail'])
 
 
 if __name__ == "__main__":

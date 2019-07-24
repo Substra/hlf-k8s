@@ -12,7 +12,7 @@ from utils.common_utils import (dowait, create_directory, remove_chaincode_docke
 from utils.config_utils import (create_configtx, create_ca_server_config, create_ca_client_config, create_peer_config,
                                 create_orderer_config, create_substrabac_config)
 from utils.docker_utils import (generate_docker_compose_org, generate_docker_compose_orderer, generate_fixtures_docker,
-                                generate_revoke_docker)
+                                generate_revoke_docker, generate_query_docker)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -197,6 +197,8 @@ if __name__ == '__main__':
                         help="Add fixtures")
     parser.add_argument('-r', '--revoke', action='store_true', default=False,
                         help="Revoke user and test querying")
+    parser.add_argument('-q', '--query', action='store_true', default=False,
+                        help="Query with user")
     args = vars(parser.parse_args())
 
     # Stop all docker
@@ -234,6 +236,8 @@ if __name__ == '__main__':
 
     substra_network(orgs)
 
+    os.environ['COMPOSE_IGNORE_ORPHANS'] = 'True'
+
     if args['fixtures']:
         suffix = 's' if len(orgs) - 1 > 1 else ''
         fixtures_path = f'fixtures{len(orgs) - 1}org{suffix}.py'
@@ -247,6 +251,21 @@ if __name__ == '__main__':
                          [f'{SUBSTRA_PATH}/data/log/fixtures.successful'])
 
         if not success:
+            os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
+            exit(1)
+
+    if args['query']:
+        docker_compose_path = generate_query_docker(SUBSTRA_PATH, SUBSTRA_NETWORK)
+        project_directory = os.path.join(dir_path, os.pardir)
+        check_call(['docker-compose', '-f', docker_compose_path, '--project-directory', project_directory, 'up', '-d',
+                   '--no-deps', 'query'])
+        # Wait for the run container to start and complete
+        success = dowait('the docker query container to run and complete',
+                         160, f'{SUBSTRA_PATH}/data/log/query.log',
+                         [f'{SUBSTRA_PATH}/data/log/query.successful'])
+
+        if not success:
+            os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
             exit(1)
 
     if args['revoke']:
@@ -260,4 +279,7 @@ if __name__ == '__main__':
                          [f'{SUBSTRA_PATH}/data/log/revoke.successful'])
 
         if not success:
+            os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
             exit(1)
+
+    os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'

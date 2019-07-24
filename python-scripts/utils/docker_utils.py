@@ -310,61 +310,61 @@ def generate_docker_compose_orderer(org, substra_path, network):
     return docker_compose
 
 
-def generate_fixtures_docker(substra_path, fixtures_path, network):
-    path = os.path.join(substra_path, 'dockerfiles', f'docker-compose-fixtures.yaml')
+def generate_docker(substra_path, specs, network):
+    path = os.path.join(substra_path, 'dockerfiles', f'docker-compose-{specs["name"]}.yaml')
 
     COMPOSITION = {
         'services':
-            {'fixtures':
-                 {'container_name': 'fixtures',
-                  'labels': ['substra'],
-                  'image': 'substra/substra-ca-tools',
-                  'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/{fixtures_path} 2>&1 | tee {substra_path}/data/log/fixtures.log"',
-                  'environment': ['ENV=internal', f'SUBSTRA_PATH={substra_path}'],
-                  'volumes': [f'{substra_path}/data/:{substra_path}/data/',
-                              f'{substra_path}/conf/:{substra_path}/conf/',
-                              ],
-                  'networks': [network],
-                  'depends_on': []
-                  },
+            {specs['name']:
+                {'container_name': specs['name'],
+                 'labels': ['substra'],
+                 'image': 'substra/substra-ca-tools',
+                 'command': f'/bin/bash -c "set -o pipefail;python3 {specs["filepath"]} 2>&1 | '
+                            f'tee {substra_path}/data/log/{specs["name"]}.log"',
+                 'environment': ['ENV=internal', f'SUBSTRA_PATH={substra_path}'],
+                 'volumes': [
+                    f'{substra_path}/data/:{substra_path}/data/',
+                    f'{substra_path}/conf/:{substra_path}/conf/'],
+                 'networks': [network],
+                 'depends_on': []
+                 },
              },
         'version': '2',
         'networks': {
-            network: {'external': True}
-        }
+            network: {'external': True}}
     }
 
     with open(path, 'w+') as f:
         f.write(yaml.dump(COMPOSITION, default_flow_style=False, indent=4, line_break=None))
 
     return path
+
+
+def generate_fixtures_docker(substra_path, fixtures_path, network):
+
+    specs = {
+        'name': 'fixtures',
+        'filepath': f'/scripts/{fixtures_path}',
+    }
+
+    return generate_docker(substra_path, specs, network)
 
 
 def generate_revoke_docker(substra_path, network):
-    path = os.path.join(substra_path, 'dockerfiles', f'docker-compose-revoke.yaml')
 
-    COMPOSITION = {
-        'services':
-            {'revoke':
-                 {'container_name': 'revoke',
-                  'labels': ['substra'],
-                  'image': 'substra/substra-ca-tools',
-                  'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/revoke.py 2>&1 | tee {substra_path}/data/log/revoke.log"',
-                  'environment': ['ENV=internal', f'SUBSTRA_PATH={substra_path}'],
-                  'volumes': [f'{substra_path}/data/:{substra_path}/data/',
-                              f'{substra_path}/conf/:{substra_path}/conf/',
-                              ],
-                  'networks': [network],
-                  'depends_on': []
-                  },
-             },
-        'version': '2',
-        'networks': {
-            network: {'external': True}
-        }
+    specs = {
+        'name': 'revoke',
+        'filepath': f'/scripts/revoke.py',
     }
 
-    with open(path, 'w+') as f:
-        f.write(yaml.dump(COMPOSITION, default_flow_style=False, indent=4, line_break=None))
+    return generate_docker(substra_path, specs, network)
 
-    return path
+
+def generate_query_docker(substra_path, network):
+
+    specs = {
+        'name': 'query',
+        'filepath': f'/scripts/queryUser.py',
+    }
+
+    return generate_docker(substra_path, specs, network)
