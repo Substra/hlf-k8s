@@ -98,15 +98,14 @@ def registerOrdererIdentities(org):
 
     print(f"Registering admin identity with {org['ca']['name']}", flush=True)
     attrs = [{'name': 'admin', 'value': 'true:ecert'}]
-    badmin.register(org['users']['admin']['name'], org['users']
-                    ['admin']['pass'], maxEnrollments=-1, attrs=attrs)
+    badmin.register(org['users']['admin']['name'],
+                    org['users']['admin']['pass'], maxEnrollments=-1, attrs=attrs)
 
 
 def registerPeerIdentities(org):
     badmin = enrollCABootstrapAdmin(org)
     for peer in org['peers']:
-        print(
-            f"Registering {peer['name']} with {org['ca']['name']}\n", flush=True)
+        print(f"Registering {peer['name']} with {org['ca']['name']}\n", flush=True)
         badmin.register(peer['name'], peer['pass'], 'peer', maxEnrollments=-1)
 
     print(f"Registering admin identity with {org['ca']['name']}", flush=True)
@@ -119,8 +118,8 @@ def registerPeerIdentities(org):
         {'name': 'admin', 'value': 'true:ecert'},
         {'name': 'abac.init', 'value': 'true:ecert'}
     ]
-    badmin.register(org['users']['admin']['name'], org['users']
-                    ['admin']['pass'], maxEnrollments=-1, attrs=attrs)
+    badmin.register(org['users']['admin']['name'],
+                    org['users']['admin']['pass'], maxEnrollments=-1, attrs=attrs)
 
     print(f"Registering user identity with {org['ca']['name']}\n", flush=True)
     if 'user' in org['users']:

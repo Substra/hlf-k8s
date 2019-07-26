@@ -4,6 +4,8 @@ import json
 import time
 from subprocess import call
 
+from hfc.fabric_ca.caservice import ca_service
+
 from utils.cli import init_cli, update_cli
 from utils.run_utils import Client, ChannelAlreadyExist
 from utils.common_utils import remove_chaincode_docker_containers
@@ -81,6 +83,70 @@ def add_org():
 
         # upgrade chaincode with new policy
         client.upgradeChainCode(conf_externals[0], orgs_mspid, new_chaincode_version, 'init')
+
+        # TODO deplace in substrabac with a discovery
+        # for each external node, make them create an account for us to authent to them
+        for conf_org in conf_externals:
+            target = f"https://{conf_org['ca']['host']}:{conf_org['ca']['port']['internal']}"
+            cacli = ca_service(target=target,
+                               ca_certs_path=conf_org['ca']['certfile']['external'],  # TODO, make it available internal
+                               ca_name=conf_org['ca']['name'])
+            bootstrap_admin = cacli.enroll(conf_org['ca']['users']['bootstrap_admin']['name'],
+                                           conf_org['ca']['users']['bootstrap_admin']['pass'])
+            print(f"Will register {conf['external']['user']['name']} with {conf['external']['user']['pass']} on {target}", flush=True)
+            secret = bootstrap_admin.register(conf['external']['user']['name'], conf['external']['user']['pass'], maxEnrollments=-1)
+            print(secret, flush=True)
+
+            # make this username/pass available in a file for substrabac to load it and can compute cert for its mapping
+            external_path = conf_org['external']['path']
+            try:
+                with open(external_path, 'r+') as f:
+                    data = json.load(f)
+            except:
+                data = {conf['name']: {}}
+
+            if conf['name'] not in data:
+                data = {conf['name']: {}}
+
+            data[conf['name']].update({
+                conf['external']['user']['name']: conf['external']['user']['pass']
+            })
+            os.makedirs(os.path.dirname(external_path), exist_ok=True)
+            with open(external_path, 'w+') as f:
+                json.dump(data, f)
+
+        # create an account for all users of external orgs for them to authent to us too
+        target = f"https://{conf['ca']['host']}:{conf['ca']['port']['internal']}"
+        cacli = ca_service(target=target,
+                           ca_certs_path=conf['ca']['certfile']['external'],  # TODO, make it available internal
+                           ca_name=conf['ca']['name'])
+        bootstrap_admin = cacli.enroll(conf['ca']['users']['bootstrap_admin']['name'],
+                                       conf['ca']['users']['bootstrap_admin']['pass'])
+        for conf_org in conf_externals:
+            print(
+                f"Will register {conf_org['external']['user']['name']} with {conf_org['external']['user']['pass']} on {target}",
+                flush=True)
+            secret = bootstrap_admin.register(conf_org['external']['user']['name'], conf_org['external']['user']['pass'],
+                                     maxEnrollments=-1)
+            print(secret, flush=True)
+
+            # make this username/pass available in a file for substrabac to load it and can compute cert for its mapping
+            external_path = conf['external']['path']
+            try:
+                with open(external_path, 'r+') as f:
+                    data = json.load(f)
+            except:
+                data = {conf_org['name']: {}}
+
+            if conf_org['name'] not in data:
+                data = {conf_org['name']: {}}
+
+            data[conf_org['name']].update({
+                conf_org['external']['user']['name']: conf_org['external']['user']['pass']
+            })
+            os.makedirs(os.path.dirname(external_path), exist_ok=True)
+            with open(external_path, 'w+') as f:
+                json.dump(data, f)
 
         remove_chaincode_docker_containers(chaincode_version)
 

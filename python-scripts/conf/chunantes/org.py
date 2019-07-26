@@ -67,5 +67,12 @@ chunantes = {
     'core_dir': {
         'internal': '/etc/hyperledger/fabric',
     },
-    'peers': [peer1, peer2]
+    'peers': [peer1, peer2],
+    'external': {
+        'user': {
+            'name': 'chu-nantes',
+            'pass': 'chu-nantespw'
+        },
+        'path': '/substra/conf/chu-nantes/substrabac/users-list.json'
+    }
 }

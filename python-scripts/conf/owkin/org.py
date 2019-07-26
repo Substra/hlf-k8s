@@ -66,5 +66,12 @@ owkin = {
     'core_dir': {
         'internal': '/etc/hyperledger/fabric',
     },
-    'peers': [peer1, peer2]
+    'peers': [peer1, peer2],
+    'external': {
+        'user': {
+            'name': 'owkin',
+            'pass': 'owkinpw'
+        },
+        'path': '/substra/conf/owkin/substrabac/users-list.json'
+    }
 }

@@ -67,5 +67,12 @@ clb = {
     'core_dir': {
         'internal': '/etc/hyperledger/fabric',
     },
-    'peers': [peer1, peer2]
+    'peers': [peer1, peer2],
+    'external': {
+        'user': {
+            'name': 'clb',
+            'pass': 'clbpw'
+        },
+        'path': '/substra/conf/clb/substrabac/users-list.json'
+    }
 }

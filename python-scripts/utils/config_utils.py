@@ -1,3 +1,4 @@
+import glob
 import os
 import json
 
@@ -204,28 +205,34 @@ def create_substrabac_config(org, orderer_conf):
     create_directory(dir_path)
 
     peer = org['peers'][0]
-    peer_core = f'{SUBSTRA_PATH}/conf/{org["name"]}/{peer["name"]}'
+    peer_core = os.path.join(f'{SUBSTRA_PATH}/conf', org['name'], peer['name'])
 
     orderer = orderer_conf['orderers'][0]
 
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
+    tls_peer_client_dir = os.path.join(peer['tls']['dir']['external'], peer['tls']['client']['dir'])
+    tls_orderer_client_dir = os.path.join(orderer['tls']['dir']['external'], orderer['tls']['client']['dir'])
 
     filename = f"{SUBSTRA_PATH}/conf/{org['name']}/substrabac/conf.json"
 
     res = {
         'name': org['name'],
-        'signcert': org['users']['user']['home'] + '/msp/signcerts/cert.pem',
-        'core_peer_mspconfigpath': org['users']['user']['home'] + '/msp',
+        'signcert': os.path.join(org['users']['user']['home'], 'msp/signcerts/cert.pem'),
+        'core_peer_mspconfigpath': os.path.join(org['users']['user']['home'], 'msp'),
         'channel_name': org['misc']['channel_name'],
         'chaincode_name': org['misc']['chaincode_name'],
         'chaincode_version': org['misc']['chaincode_version'],
+        'ca': {
+            'host': org['ca']['host'],
+            'port': org['ca']['port'],
+            'certfile': org['ca']['certfile'],
+            'name': org['ca']['name']
+        },
         'client': {
             'name': org['users']['user']['name'],
             'org': org['name'],
             'state_store': '/tmp/hfc-cvs',
-            'key_path': org['users']['user']['home'] + '/msp/keystore/*',
-            'cert_path': org['users']['user']['home'] + '/msp/signcerts/cert.pem',
+            'key_path': os.path.join(org['users']['user']['home'], 'msp/keystore/key.pem'),
+            'cert_path': os.path.join(org['users']['user']['home'], 'msp/signcerts/cert.pem'),
             'msp_id': org['mspid']
         },
         'peer': {
@@ -233,9 +240,9 @@ def create_substrabac_config(org, orderer_conf):
             'host': peer['host'],
             'port': peer['port'],
             'docker_core_dir': peer_core,
-            'tlsCACerts': tls_peer_client_dir + '/' + peer['tls']['client']['ca'],
-            'clientCert': tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-            'clientKey': tls_peer_client_dir + '/' + peer['tls']['client']['key'],
+            'tlsCACerts': os.path.join(tls_peer_client_dir, peer['tls']['client']['ca']),
+            'clientCert': os.path.join(tls_peer_client_dir, peer['tls']['client']['cert']),
+            'clientKey': os.path.join(tls_peer_client_dir, peer['tls']['client']['key']),
             'grpcOptions': {
                 'grpc-max-send-message-length': 15,
                 'grpc.ssl_target_name_override': peer['host']
@@ -245,11 +252,12 @@ def create_substrabac_config(org, orderer_conf):
             'name': orderer['name'],
             'host': orderer['host'],
             'port': orderer['port']['external'],
-            'ca': tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
+            'ca': os.path.join(tls_orderer_client_dir, orderer['tls']['client']['ca']),
             'grpcOptions': {
                 'grpc-max-send-message-length': 15,
                 'grpc.ssl_target_name_override': orderer['host']
             }
-        }
+        },
+        'external': org['external']
     }
     json.dump(res, open(filename, 'w+'), indent=4)
