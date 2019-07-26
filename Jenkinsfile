@@ -7,6 +7,13 @@ pipeline {
     lock('substranetwork')
   }
 
+  parameters {
+    string(name: 'CHAINCODE', defaultValue: 'dev', description: 'chaincode branch')
+    string(name: 'BACKEND', defaultValue: 'jenkins', description: 'substrabac branch')
+    string(name: 'CLI', defaultValue: 'dev', description: 'substra-cli branch')
+
+    }
+
   agent none
 
   stages {
@@ -17,7 +24,7 @@ pipeline {
       }
     }
 
-    stage('Test') {
+    stage('Test substra network and chaincode') {
       agent {
         kubernetes {
           label 'python'
@@ -39,7 +46,7 @@ pipeline {
         dir('substra-chaincode') {
             checkout([
               $class: 'GitSCM',
-              branches: [[name: '*/dev']],
+              branches: [[name: "*/${params.CHAINCODE}"]],
               doGenerateSubmoduleConfigurations: false,
               extensions: [],
               submoduleCfg: [],
@@ -86,7 +93,7 @@ pipeline {
       }
     }
 
-    stage('Test with backend') {
+    stage('Test substra-network, chaincode and substra backend') {
       agent {
         kubernetes {
           label 'python'
@@ -108,7 +115,7 @@ pipeline {
         dir('substra-chaincode') {
             checkout([
               $class: 'GitSCM',
-              branches: [[name: '*/dev']],
+              branches: [[name: "*/${params.CHAINCODE}"]],
               doGenerateSubmoduleConfigurations: false,
               extensions: [],
               submoduleCfg: [],
@@ -125,7 +132,7 @@ pipeline {
         dir('substra-cli') {
             checkout([
               $class: 'GitSCM',
-              branches: [[name: '*/dev']],
+              branches: [[name: "*/${params.CLI}"]],
               doGenerateSubmoduleConfigurations: false,
               extensions: [],
               submoduleCfg: [],
@@ -162,7 +169,7 @@ pipeline {
         dir('substrabac') {
             checkout([
               $class: 'GitSCM',
-              branches: [[name: '*/jenkins']],
+              branches: [[name: "*/${params.BACKEND}"]],
               doGenerateSubmoduleConfigurations: false,
               extensions: [],
               submoduleCfg: [],
