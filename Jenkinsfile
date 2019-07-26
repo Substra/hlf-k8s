@@ -177,7 +177,7 @@ pipeline {
               sleep 120
               echo \$MY_HOST_IP owkin.substrabac >> /etc/hosts
               echo \$MY_HOST_IP chunantes.substrabac >> /etc/hosts
-              cd ../ && python3 populate.py -a
+              cd ../ && python3 populate.py
 
             """
         }
