@@ -263,7 +263,7 @@ def generateGenesis(conf):
     # Note: For some unknown reason (at least for now) the block file can't be
     # named orderer.genesis.block or the orderer will fail to launch
 
-    # configtxgen -profile OrgsOrdererGenesis -channelID substrasystemchannel -outputBlock /substra/data/genesis/genesis.block   # noqa
+    # configtxgen -profile OrgsOrdererGenesis -channelID substrasystemchannel -outputBlock ${SUBSTRA_PATH}/data/genesis/genesis.block   # noqa
     call(['configtxgen',
           '-profile', 'OrgsOrdererGenesis',
           '-configPath', conf['misc']['configtx-config-path'],

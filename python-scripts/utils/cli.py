@@ -7,7 +7,7 @@ from hfc.fabric.peer import Peer
 from hfc.fabric.user import create_user
 from hfc.util.keyvaluestore import FileKeyValueStore
 
-SUBSTRA_PATH = '/substra'
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
 
 
 def update_cli(cli, orgs):
@@ -17,7 +17,7 @@ def update_cli(cli, orgs):
         cli._organizations.update({org['name']: create_org(org['name'], org, cli.state_store)})
 
         # register users except rca boostrap admin
-        for user_name in [ x for x in org['users'].keys() if x != 'boostrap_admin']:
+        for user_name in org['users'].keys():
             org_user = org['users'][user_name]
             org_user_home = org_user['home']
             org_user_msp_dir = os.path.join(org_user_home, 'msp')
@@ -33,7 +33,7 @@ def update_cli(cli, orgs):
                                cert_path=user_cert_path,
                                key_path=user_key_path)
 
-            cli._organizations[org['name']]._users.update( {org_user['name']: user})
+            cli._organizations[org['name']]._users.update({org_user['name']: user})
 
         # register orderer
         if 'orderers' in org:
@@ -43,7 +43,7 @@ def update_cli(cli, orgs):
                                   endpoint=f"{o['host']}:{o['port']['internal']}",
                                   tls_ca_cert_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['ca']),
                                   client_cert_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['cert']),
-                                  client_key_file=os.path.join( tls_orderer_client_dir, o['tls']['client']['key']),
+                                  client_key_file=os.path.join(tls_orderer_client_dir, o['tls']['client']['key']),
                                   )
 
                 cli._orderers.update({o['name']: orderer})

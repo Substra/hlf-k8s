@@ -1,3 +1,8 @@
+import os
+
+
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
+
 peer2 = {
     'name': 'peer2-clb',
     'pass': 'peer2pw',
@@ -9,7 +14,7 @@ peer2 = {
     'anchor': False,
     'tls': {
         'dir': {
-            'external': '/substra/data/orgs/clb/tls/peer2',
+            'external': f'{SUBSTRA_PATH}/data/orgs/clb/tls/peer2',
             'internal': '/etc/hyperledger/fabric/tls'
         },
         'client': {

@@ -5,6 +5,8 @@ from subprocess import call
 from utils.setup_utils import registerIdentities, registerUsers, generateGenesis, enrollWithFiles, genTLSCert, writeFile
 from utils.common_utils import create_directory
 
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
+
 
 def generateMSPandTLS(node, org, msp_dir, admincerts=False):
     ##################################################################################################################
@@ -70,7 +72,7 @@ def init(conf, enrollmentAdmin):
 
 if __name__ == '__main__':
 
-    conf = json.load(open('/substra/conf.json', 'r'))
+    conf = json.load(open(f'{SUBSTRA_PATH}/conf.json', 'r'))
     registerIdentities(conf)
     enrollmentAdmin = registerUsers(conf)
     init(conf, enrollmentAdmin)

@@ -12,7 +12,7 @@ from utils.cli import init_cli
 from hfc.fabric_ca.caservice import ca_service
 from hfc.fabric.block_decoder import decode_config
 
-SUBSTRA_PATH = '/substra'
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
 
 
 def revokeFabricUserAndGenerateCRL():
@@ -160,10 +160,10 @@ def revokeFirstOrgUser():
 
     if queryAsRevokedUser():
         print('Revokation Success')
-        call(['touch', '/substra/data/log/revoke.successful'])
+        call(['touch', f'{SUBSTRA_PATH}/data/log/revoke.successful'])
     else:
         print('Revokation Fail')
-        call(['touch', '/substra/data/log/revoke.fail'])
+        call(['touch', f'{SUBSTRA_PATH}/data/log/revoke.fail'])
 
 
 if __name__ == "__main__":

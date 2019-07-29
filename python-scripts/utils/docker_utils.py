@@ -5,6 +5,8 @@ HLF_VERSION = '1.4.2'
 
 fabric_base_directory = '/etc/hyperledger/fabric'
 
+SUBSTRA_CHAINCODE_PATH = os.getenv('SUBSTRA_CHAINCODE_PATH', '../substra-chaincode/chaincode')
+
 
 def generate_docker_compose_org(org, conf_orderer, substra_path, network):
 
@@ -20,11 +22,11 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
         'substra_tools': {
             'setup': {
                 'container_name': f'setup-{org["name"]}',
+                'labels': ['substra'],
                 'image': 'substra/substra-ca-tools',
                 'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{org["name"]}.log"',
-                'environment': [],
-                'volumes': ['./python-scripts:/scripts',
-                            f'{substra_path}/data/log:{substra_path}/data/log',
+                'environment': [f'SUBSTRA_PATH={substra_path}'],
+                'volumes': [f'{substra_path}/data/log:{substra_path}/data/log',
                             f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
 
                             # Admin MSP
@@ -40,6 +42,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
 
             'run': {
                 'container_name': f'run-{org["name"]}',
+                'labels': ['substra'],
                 'image': 'substra/substra-ca-tools',
                 'command': f'/bin/bash -c "set -o pipefail;sleep 3;python3 /scripts/run.py 2>&1 | tee {substra_path}/data/log/run-{org["name"]}.log"',
                 'environment': ['GOPATH=/opt/gopath',
@@ -50,14 +53,11 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
                     # docker in docker
                     '/var/run/docker.sock:/var/run/docker.sock',
 
-                    # scripts
-                    './python-scripts:/scripts',
-
                     # logs
                     f'{substra_path}/data/log/:{substra_path}/data/log/',
 
                     # chaincode
-                    '../substra-chaincode/chaincode:/opt/gopath/src/chaincode',
+                    f'{SUBSTRA_CHAINCODE_PATH}:/opt/gopath/src/chaincode',
 
                     # channel
                     f'{substra_path}/data/channel/:{substra_path}/data/channel/',
@@ -95,6 +95,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
     # RCA
     rca = {
         'container_name': org['ca']['host'],
+        'labels': ['substra'],
         'image': f'hyperledger/fabric-ca:{HLF_VERSION}',
         'restart': 'unless-stopped',
         'working_dir': '/etc/hyperledger/',
@@ -118,6 +119,7 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
     for _, peer in enumerate(org['peers']):
         svc = {
             'container_name': peer['host'],
+            'labels': ['substra'],
             'image': f'hyperledger/fabric-peer:{HLF_VERSION}',
             'restart': 'unless-stopped',
             'command': '/bin/bash -c "peer node start 2>&1"',
@@ -195,11 +197,11 @@ def generate_docker_compose_orderer(org, substra_path, network):
         'substra_tools': {
             'setup': {
                 'container_name': f'setup-{org["name"]}',
+                'labels': ['substra'],
                 'image': 'substra/substra-ca-tools',
                 'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/setup.py 2>&1 | tee {substra_path}/data/log/setup-{ org["name"]}.log"',
-                'environment': [],
-                'volumes': ['./python-scripts:/scripts',
-                            f'{substra_path}/data/log:{substra_path}/data/log',
+                'environment': [f'SUBSTRA_PATH={substra_path}'],
+                'volumes': [f'{substra_path}/data/log:{substra_path}/data/log',
                             f'{substra_path}/data/genesis:{substra_path}/data/genesis',
                             f'{substra_path}/conf/config/conf-{org["name"]}.json:{substra_path}/conf.json',
                             # access to config tx file
@@ -231,6 +233,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
     # RCA
     rca = {
         'container_name': org['ca']['host'],
+        'labels': ['substra'],
         'image': f'hyperledger/fabric-ca:{HLF_VERSION}',
         'restart': 'unless-stopped',
         'working_dir': '/etc/hyperledger/',
@@ -254,6 +257,7 @@ def generate_docker_compose_orderer(org, substra_path, network):
     for _, orderer in enumerate(org['orderers']):
         svc = {
             'container_name': orderer['host'],
+            'labels': ['substra'],
             'image': f'hyperledger/fabric-orderer:{HLF_VERSION}',
             'restart': 'unless-stopped',
             'working_dir': fabric_base_directory,
@@ -306,61 +310,61 @@ def generate_docker_compose_orderer(org, substra_path, network):
     return docker_compose
 
 
-def generate_fixtures_docker(substra_path, fixtures_path, network):
-    path = os.path.join(substra_path, 'dockerfiles', f'docker-compose-fixtures.yaml')
+def generate_docker(substra_path, specs, network):
+    path = os.path.join(substra_path, 'dockerfiles', f'docker-compose-{specs["name"]}.yaml')
 
     COMPOSITION = {
         'services':
-            {'fixtures':
-                 {'container_name': 'fixtures',
-                  'image': 'substra/substra-ca-tools',
-                  'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/{fixtures_path} 2>&1 | tee {substra_path}/data/log/fixtures.log"',
-                  'environment': ['ENV=internal'],
-                  'volumes': ['./python-scripts:/scripts',
-                              f'{substra_path}/data/:{substra_path}/data/',
-                              f'{substra_path}/conf/:{substra_path}/conf/',
-                              ],
-                  'networks': [network],
-                  'depends_on': []
-                  },
+            {specs['name']:
+                {'container_name': specs['name'],
+                 'labels': ['substra'],
+                 'image': 'substra/substra-ca-tools',
+                 'command': f'/bin/bash -c "set -o pipefail;python3 {specs["filepath"]} 2>&1 | '
+                            f'tee {substra_path}/data/log/{specs["name"]}.log"',
+                 'environment': ['ENV=internal', f'SUBSTRA_PATH={substra_path}'],
+                 'volumes': [
+                    f'{substra_path}/data/:{substra_path}/data/',
+                    f'{substra_path}/conf/:{substra_path}/conf/'],
+                 'networks': [network],
+                 'depends_on': []
+                 },
              },
         'version': '2',
         'networks': {
-            network: {'external': True}
-        }
+            network: {'external': True}}
     }
 
     with open(path, 'w+') as f:
         f.write(yaml.dump(COMPOSITION, default_flow_style=False, indent=4, line_break=None))
 
     return path
+
+
+def generate_fixtures_docker(substra_path, fixtures_path, network):
+
+    specs = {
+        'name': 'fixtures',
+        'filepath': f'/scripts/{fixtures_path}',
+    }
+
+    return generate_docker(substra_path, specs, network)
 
 
 def generate_revoke_docker(substra_path, network):
-    path = os.path.join(substra_path, 'dockerfiles', f'docker-compose-revoke.yaml')
 
-    COMPOSITION = {
-        'services':
-            {'revoke':
-                 {'container_name': 'revoke',
-                  'image': 'substra/substra-ca-tools',
-                  'command': f'/bin/bash -c "set -o pipefail;python3 /scripts/revoke.py 2>&1 | tee {substra_path}/data/log/revoke.log"',
-                  'environment': ['ENV=internal'],
-                  'volumes': ['./python-scripts:/scripts',
-                              f'{substra_path}/data/:{substra_path}/data/',
-                              f'{substra_path}/conf/:{substra_path}/conf/',
-                              ],
-                  'networks': [network],
-                  'depends_on': []
-                  },
-             },
-        'version': '2',
-        'networks': {
-            network: {'external': True}
-        }
+    specs = {
+        'name': 'revoke',
+        'filepath': f'/scripts/revoke.py',
     }
 
-    with open(path, 'w+') as f:
-        f.write(yaml.dump(COMPOSITION, default_flow_style=False, indent=4, line_break=None))
+    return generate_docker(substra_path, specs, network)
 
-    return path
+
+def generate_query_docker(substra_path, network):
+
+    specs = {
+        'name': 'query',
+        'filepath': f'/scripts/queryUser.py',
+    }
+
+    return generate_docker(substra_path, specs, network)

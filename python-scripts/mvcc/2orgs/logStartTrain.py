@@ -7,7 +7,7 @@ import time
 
 from utils.cli import init_cli
 
-SUBSTRA_PATH = '/substra'
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
 
 
 def queryChaincode(fcn, args, org_name, peers):

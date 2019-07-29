@@ -10,7 +10,7 @@ BASEDIR=$(dirname "$0")
 createCustomDockerImages() {
     for dir in $BASEDIR/images/*/; do
         dir=`basename $dir`
-        docker build -t substra/$dir $BASEDIR/images/$dir
+        docker build -t substra/$dir -f $BASEDIR/images/$dir/Dockerfile .
     done
 }
 

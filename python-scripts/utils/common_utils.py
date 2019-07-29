@@ -28,7 +28,6 @@ def waitPort(what, secs, logFile, host, port):
 
             if int(time.time()) - starttime > secs:
                 print('Failed waiting for %(what)s; see %(logFile)s' % {'what': what, 'logFile': logFile}, flush=True)
-                break
 
             print('.', end='', flush=True)
 
@@ -43,12 +42,18 @@ def dowait(what, secs, logFile, files):
             if logit:
                 print('Waiting for %s ...\n' % what, flush=True)
                 logit = False
-            call(['sleep', '1'])
+
+            time.sleep(1)
+
             if int(time.time()) - starttime > secs:
                 print('Failed waiting for %(what)s; see %(logFile)s\n' % {'what': what, 'logFile': logFile}, flush=True)
-                break
+                return False
+
             print('.', end='', flush=True)
+
     print('')
+
+    return True
 
 
 # Remove chaincode docker images
