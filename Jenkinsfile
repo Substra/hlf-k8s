@@ -9,7 +9,7 @@ pipeline {
 
   parameters {
     string(name: 'CHAINCODE', defaultValue: 'dev', description: 'chaincode branch')
-    string(name: 'BACKEND', defaultValue: 'jenkins', description: 'substrabac branch')
+    string(name: 'BACKEND', defaultValue: 'dev', description: 'substrabac branch')
     string(name: 'CLI', defaultValue: 'dev', description: 'substra-cli branch')
 
     }
