@@ -177,7 +177,6 @@ pipeline {
             ])
 
             sh """
-              ls -la
               sh ./build-docker-images.sh
               export SUBSTRA_PATH=/tmp/substra/
               cd ./docker && python3 start.py -d --no-backup
