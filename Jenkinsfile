@@ -177,6 +177,7 @@ pipeline {
             ])
 
             sh """
+              pip install -r ./substrabac/requirements.txt
               sh ./build-docker-images.sh
               export SUBSTRA_PATH=/tmp/substra/
               cd ./docker && python3 start.py -d --no-backup
