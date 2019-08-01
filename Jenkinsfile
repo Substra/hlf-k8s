@@ -157,8 +157,8 @@ pipeline {
         // Verify that the start.py go well.
         // Todo: improve this part
         sh """
-          if [ -f /tmp/substra/data/log/fixtures.fail ]; then echo "Fixture fails" && exit 1; fi
-          if [ -f /tmp/substra/data/log/revoke.fail ]; then echo "Revoke fails" && exit 1; fi
+          if [ -f /tmp/substra/data/log/fixtures.fail ]; then cat /tmp/substra/data/log/fixtures.log && exit 1; fi
+          if [ -f /tmp/substra/data/log/revoke.fail ]; then cat /tmp/substra/data/log/revoke.log && exit 1; fi
           if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then cat /tmp/substra/data/log/run-chu-nantes.log && exit 1; fi
           if [ -f /tmp/substra/data/log/run-owkin.fail ]; then cat /tmp/substra/data/log/run-owkin.log && exit 1; fi
           if [ -f /tmp/substra/data/log/setup-chu-nantes.fail ]; then cat /tmp/substra/data/log/setup-chu-nantes.log && exit 1; fi

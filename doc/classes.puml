@@ -3,22 +3,51 @@
 skinparam shadowing false
 
 class Permission {
-    +string name
+    +string  <b>name</b>
 }
 
 class Node {
-    +string name
+    +string  <b>name</b>
 }
 
 class InternalUser {
-    +Permission permission
-    +string modulus
+    +Permission   <b>permission</b>
+    +string  <b>modulus</b>
 }
 
 class ExternalUser {
-    +Node node
-    +string username
-    +string password
+    +Node  <b>node</b>
+    +string  <b>username</b>
+    +string  <b>password</b>
 }
+
+Node  *-- ExternalUser
+Permission *-- InternalUser
+
+note bottom of InternalUser
+Internal User for checking
+against a username/password
+for computing modulus
+and on asset permission
+end note
+
+note bottom of ExternalUser
+External User for getting asset
+with a username/password
+on a specific node
+determined by url of asset
+end note
+
+note top of Node
+Usually an host like
+owkin.substrabac:8000
+end note
+
+note top of Permission
+Usually a permission
+related to chaincode assets
+end note
+
+hide empty members
 
 @enduml

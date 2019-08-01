@@ -1,0 +1,61 @@
+@startuml
+
+skinparam shadowing false
+
+
+package "Node B" as nodeB {
+   rectangle "peer" as peerB {
+    database ledgerB [
+      ledger
+      ----
+      ----
+    ]
+  }
+  rectangle "substrabac" as substrabacB {
+    database localdbB [
+      local db
+      ----
+      ----
+    ]
+    node server as djangoB
+  }
+  rectangle "Fabric CA" as fcaB {
+    rectangle db as fcadbB {
+        database usersB [
+            users
+            ----
+            ----
+        ]
+        file {
+            card USER_B
+            card NODE_B_USER_A
+            card NODE_B_USER_A1 #PHYSICAL
+        }
+    }
+    node server as fcaserverB
+  }
+}
+
+actor "client from Node A\n(which is <b>NODE_B_USER_A1</b>)" as client
+
+USER_B -[hidden]r- NODE_B_USER_A
+NODE_B_USER_A -[hidden]r- NODE_B_USER_A1
+
+fcaserverB <-[#orange]> usersB
+
+client .> djangoB: " " "<font color=red><b>1. credentials in cookies</b></font>"
+
+djangoB .> ledgerB: <font color=red>2. get asset permissions</font>
+djangoB <.[#green]. ledgerB: 3
+
+djangoB .> fcaserverB: " " "<font color=red>4. credentials from cookie</font>"
+djangoB <.[#green]. fcaserverB: <font color=green>5. if permission not all</font>\n<font color=green>Will compute hashed modulus</font>
+
+djangoB <--[#orange]> localdbB: 6. find internal user\nwith permission in\nasset permissions\nand correct hashed\nmodulus\nif ok return object
+
+client <.[#green]. djangoB: 7. return file or raise error
+
+
+
+
+@enduml

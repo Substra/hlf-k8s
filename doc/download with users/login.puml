@@ -1,0 +1,23 @@
+@startuml
+
+skinparam shadowing false
+
+autonumber
+
+actor "USER_A1" as client
+participant "server Node A" as serverA
+database "local db A" as dbA
+
+client -> serverA: login POST\nusername/password
+activate serverA #FFBBBB
+
+serverA -> dbA: create session_id
+activate dbA #FFBBBB
+dbA -[#blue]-> serverA
+deactivate dbA
+
+client <[#blue]-- serverA: give session_id cookie\nor 401 error
+
+deactivate serverA #FFBBBB
+
+@enduml
