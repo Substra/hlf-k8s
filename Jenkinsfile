@@ -8,7 +8,7 @@ pipeline {
   }
 
   parameters {
-    booleanParam(name: 'BACKEND_ONLY', defaultValue: false, description: 'Only launch backend test')
+    booleanParam(name: 'WITH_NET', defaultValue: true, description: 'Only launch backend test')
     string(name: 'CHAINCODE', defaultValue: 'dev', description: 'chaincode branch')
     string(name: 'BACKEND', defaultValue: 'dev', description: 'substrabac branch')
     string(name: 'CLI', defaultValue: 'dev', description: 'substra-cli branch')
@@ -28,7 +28,7 @@ pipeline {
     stage('Test substra network and chaincode') {
 
       when {
-        expression { return params.BACKEND_ONLY }
+        expression { return params.WITH_NET }
       }
 
       agent {
