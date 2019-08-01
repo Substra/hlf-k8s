@@ -53,7 +53,7 @@ djangoB <.[#green]. fcaserverB: <font color=green>5. if permission not all</font
 
 djangoB <--[#orange]> localdbB: 6. find internal user\nwith permission in\nasset permissions\nand correct hashed\nmodulus\nif ok return object
 
-client <.[#green]. djangoB: 7. return file or raise error
+client <.[#green]. djangoB: 7. return file contnet or raise error
 
 
 
