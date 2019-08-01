@@ -183,6 +183,15 @@ pipeline {
               sleep 120
               echo \$MY_HOST_IP owkin.substrabac >> /etc/hosts
               echo \$MY_HOST_IP chunantes.substrabac >> /etc/hosts
+              cd ../substrabac
+              DJANGO_SETTINGS_MODULE=substrabac.settings.dev SUBSTRABAC_ORG=owkin python3 manage.py init_internal_users
+              DJANGO_SETTINGS_MODULE=substrabac.settings.dev SUBSTRABAC_ORG=chu-nantes python3 manage.py init_internal_users
+
+              DJANGO_SETTINGS_MODULE=substrabac.settings.dev SUBSTRABAC_ORG=owkin python3 manage.py add_external_user owkin owkinpw chunantes.substrabac:8001
+              DJANGO_SETTINGS_MODULE=substrabac.settings.dev SUBSTRABAC_ORG=owkin python3 manage.py add_external_user user-owkin user-owkinpw owkin.substrabac:8000
+              DJANGO_SETTINGS_MODULE=substrabac.settings.dev SUBSTRABAC_ORG=chu-nantes python3 manage.py add_external_user chu-nantes chu-nantespw owkin.substrabac:8000
+              DJANGO_SETTINGS_MODULE=substrabac.settings.dev SUBSTRABAC_ORG=chu-nantes python3 manage.py add_external_user user-chu-nantes user-chu-nantespw chunantes.substrabac:8001
+
               cd ../ && python3 populate.py
 
             """
