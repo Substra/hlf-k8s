@@ -46,14 +46,16 @@ fcaserverB <-[#orange]> usersB
 client .> djangoB: " " "<font color=red><b>1. credentials in cookies</b></font>"
 
 djangoB .> ledgerB: <font color=red>2. get asset permissions</font>
-djangoB <.[#green]. ledgerB: 3
+djangoB <.[#green]. ledgerB
 
-djangoB .> fcaserverB: " " "<font color=red>4. credentials from cookie</font>"
-djangoB <.[#green]. fcaserverB: <font color=green>5. if permission not all</font>\n<font color=green>Will compute hashed modulus</font>
+djangoB .> fcaserverB: " " "<font color=red>4. enroll</font>"
+djangoB <.[#green]. fcaserverB
 
-djangoB <--[#orange]> localdbB: 6. find internal user\nwith permission in\nasset permissions\nand correct hashed\nmodulus\nif ok return object
+djangoB .> djangoB: \n\n\n\n\n\n<font color="red">3. if permission not all</font>\n<font color="red">enroll with credentials</font>\n<font color="red">5. check asset permissions</font>\n<font color="red">on Internal User with right</font>\n<font color="red">modulus and permission</font>
 
-client <.[#green]. djangoB: 7. return file contnet or raise error
+djangoB <-[#orange]> localdbB: 6. get object
+
+client <.[#green]. djangoB: 7. return file content or raise error
 
 
 

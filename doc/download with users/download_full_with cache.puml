@@ -4,7 +4,7 @@ skinparam shadowing false
 
 
 package "Node A" as nodeA {
-  rectangle "peer" as peerA {
+   rectangle "peer" as peerA {
     database ledgerA [
       ledger
       ----
@@ -15,6 +15,7 @@ package "Node A" as nodeA {
     database localdbA [
       local db
       ----
+      USER_A1
       ----
     ]
     node server as djangoA
@@ -67,19 +68,37 @@ package "Node B" as nodeB {
   }
 }
 
+actor "client from Node A\n USER_A1" as client
+
+nodeA -[hidden]---> nodeB
+
+USER_B -[hidden]r- NODE_B_USER_A
 USER_A -[hidden]r- NODE_A_USER_B
 
 djangoA <-[#orange]> localdbA
-djangoB <-[#orange]> localdbB
 
-fcaserverA <-[#orange]> usersA
 fcaserverB <-[#orange]> usersB
+fcaserverA <-[#orange]> usersA
 
-NODE_B_USER_A .> djangoA : ask download for processing
-NODE_B_USER_A <.[#green]u. djangoA : get asset
+client .> djangoA: "1. credentials in\nsession_id\nfrom login\n+url in GET\non /download"
 
-djangoA .> ledgerA: " " "\nask own ledger \n for asset \n and get its\n permissions\n\n"
-djangoA <.[#green]u. ledgerA
+djangoA ..> djangoA: \n\n\n<font color="red">2. check session_id</font>\n<font color="red">4. precheck</font>
 
+djangoA -> peerA: 3. get asset for precheck
+djangoA <.[#green]. peerA
+
+djangoA .> djangoB: 5. use credentials from\n Node A (NODE_B_USER_A)
+djangoA <.[#green]. djangoB
+
+djangoB .> ledgerB: 6. get asset for check
+djangoB <.[#green]. ledgerB
+
+djangoB <-> fcaserverB: 7.enroll user
+
+djangoB ..> djangoB: \n\n\n\n<font color="red">8. check asset permissions</font>\n<font color="red">on Internal User with right</font>\n<font color="red">modulus and permission</font>\n<font color="red">10. send file content</font>
+
+djangoB <-[#orange]> localdbB: 9. get local object
+
+client <.[#green]. djangoA: 11. file content
 
 @enduml

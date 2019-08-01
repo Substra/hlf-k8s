@@ -185,13 +185,13 @@ pipeline {
               echo \$MY_HOST_IP owkin.substrabac >> /etc/hosts
               echo \$MY_HOST_IP chunantes.substrabac >> /etc/hosts
 
-              docker exec -it owkin.substrabac python3 manage.py init_internal_users
-              docker exec -it chunantes.substrabac python3 manage.py init_internal_users
+              docker exec owkin.substrabac python3 manage.py init_internal_users
+              docker exec chunantes.substrabac python3 manage.py init_internal_users
 
-              docker exec -it owkin.substrabac python3 manage.py add_external_user owkin owkinpw chunantes.substrabac:8001
-              docker exec -it owkin.substrabac python3 manage.py add_external_user user-owkin user-owkinpw owkin.substrabac:8000
-              docker exec -it chunantes.substrabac python3 manage.py add_external_user chu-nantes chu-nantespw owkin.substrabac:8000
-              docker exec -it chunantes.substrabac python3 manage.py add_external_user user-chu-nantes user-chu-nantespw chunantes.substrabac:8001
+              docker exec owkin.substrabac python3 manage.py add_external_user owkin owkinpw chunantes.substrabac:8001
+              docker exec owkin.substrabac python3 manage.py add_external_user user-owkin user-owkinpw owkin.substrabac:8000
+              docker exec chunantes.substrabac python3 manage.py add_external_user chu-nantes chu-nantespw owkin.substrabac:8000
+              docker exec chunantes.substrabac python3 manage.py add_external_user user-chu-nantes user-chu-nantespw chunantes.substrabac:8001
 
               cd ../ && python3 populate.py
 
