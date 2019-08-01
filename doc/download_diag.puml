@@ -11,12 +11,14 @@ database "local db" as db
 
 client -> server: cookies (username/password)
 server -> ledger: ask asset
+activate ledger #FFBBBB
 server <[#blue]-- ledger: send asset or raise
-server -> db: ask object
-server <[#blue]-- db: send object or raise
+deactivate ledger
 rnote over server: check permission:\n- enroll user on fabric-ca \n with username/password\n- get enrollement cert\n- compute hashed modulus\n- check if internal user with\n right permission is\n related to this modulus
+server -> db: ask object
+activate db #FFBBBB
+server <[#blue]-- db: send object or raise
+deactivate db
 client <[#blue]-- server: content of file or exception
-
-
 
 @enduml

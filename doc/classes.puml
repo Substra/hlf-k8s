@@ -1,0 +1,24 @@
+@startuml
+
+skinparam shadowing false
+
+class Permission {
+    +string name
+}
+
+class Node {
+    +string name
+}
+
+class InternalUser {
+    +Permission permission
+    +string modulus
+}
+
+class ExternalUser {
+    +Node node
+    +string username
+    +string password
+}
+
+@enduml
