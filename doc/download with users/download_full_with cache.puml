@@ -82,23 +82,23 @@ fcaserverA <-[#orange]> usersA
 
 client .> djangoA: "1. credentials in\nsession_id\nfrom login\n+url in GET\non /download"
 
-djangoA ..> djangoA: \n\n\n<font color="red">2. check session_id</font>\n<font color="red">4. precheck</font>
+djangoA ..> djangoA: \n\n\n\n<font color="red">2. check session_id</font>\n<font color="red">3. check if asset in cache</font>\n<font color="red">5. precheck</font>\n<font color="red">12. put in cache</font>
 
-djangoA -> peerA: 3. get asset for precheck
+djangoA -> peerA: 4. get asset for precheck
 djangoA <.[#green]. peerA
 
-djangoA .> djangoB: 5. use credentials from\n Node A (NODE_B_USER_A)
+djangoA .> djangoB: 6. use credentials from\n Node A (NODE_B_USER_A)
 djangoA <.[#green]. djangoB
 
-djangoB .> ledgerB: 6. get asset for check
+djangoB .> ledgerB: 7. get asset for check
 djangoB <.[#green]. ledgerB
 
-djangoB <-> fcaserverB: 7.enroll user
+djangoB <-> fcaserverB: 8.enroll user
 
-djangoB ..> djangoB: \n\n\n\n<font color="red">8. check asset permissions</font>\n<font color="red">on Internal User with right</font>\n<font color="red">modulus and permission</font>\n<font color="red">10. send file content</font>
+djangoB ..> djangoB: \n\n\n\n<font color="red">9. check asset permissions</font>\n<font color="red">on Internal User with right</font>\n<font color="red">modulus and permission</font>\n<font color="red">11. send file content</font>
 
-djangoB <-[#orange]> localdbB: 9. get local object
+djangoB <-[#orange]> localdbB: 10. get local object
 
-client <.[#green]. djangoA: 11. file content
+client <.[#green]. djangoA: 13. file content
 
 @enduml

@@ -186,6 +186,7 @@ pipeline {
               echo \$MY_HOST_IP chunantes.substrabac >> /etc/hosts
 
               docker exec owkin.substrabac python3 manage.py init_internal_users
+              sleep 9999
               docker exec chunantes.substrabac python3 manage.py init_internal_users
 
               docker exec owkin.substrabac python3 manage.py add_external_user owkin owkinpw chunantes.substrabac:8001

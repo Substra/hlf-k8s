@@ -21,16 +21,10 @@ class ExternalUser {
     +string  <b>password</b>
 }
 
-class User {
-    +string  <b>username</b>
-    +string  <b>password</b>
-}
-
 Node  *-- ExternalUser
 Permission *-- InternalUser
 
 InternalUser -[hidden]> ExternalUser
-ExternalUser -[hidden]r-> User
 
 note bottom of InternalUser
 Internal User for checking
@@ -56,9 +50,6 @@ Usually a permission
 related to chaincode assets
 end note
 
-note right of User
-Classic Django User
-end note
 
 hide empty members
 
