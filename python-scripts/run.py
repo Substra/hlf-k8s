@@ -99,16 +99,17 @@ def add_org():
 
             # make this username/pass available in a file for substrabac to load it and can compute cert for its mapping
             external_path = conf_org['external']['path']
+            permission_name = conf['name'].replace('-', '')
             try:
                 with open(external_path, 'r+') as f:
                     data = json.load(f)
             except:
-                data = {conf['name']: {}}
+                data = {permission_name: {}}
 
-            if conf['name'] not in data:
-                data = {conf['name']: {}}
+            if permission_name not in data:
+                data = {permission_name: {}}
 
-            data[conf['name']].update({
+            data[permission_name].update({
                 conf['external']['user']['name']: conf['external']['user']['pass']
             })
             os.makedirs(os.path.dirname(external_path), exist_ok=True)
@@ -132,16 +133,17 @@ def add_org():
 
             # make this username/pass available in a file for substrabac to load it and can compute cert for its mapping
             external_path = conf['external']['path']
+            permission_name = conf_org['name'].replace('-', '')
             try:
                 with open(external_path, 'r+') as f:
                     data = json.load(f)
             except:
-                data = {conf_org['name']: {}}
+                data = {permission_name: {}}
 
-            if conf_org['name'] not in data:
-                data = {conf_org['name']: {}}
+            if permission_name not in data:
+                data = {permission_name: {}}
 
-            data[conf_org['name']].update({
+            data[permission_name].update({
                 conf_org['external']['user']['name']: conf_org['external']['user']['pass']
             })
             os.makedirs(os.path.dirname(external_path), exist_ok=True)

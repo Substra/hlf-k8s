@@ -1,0 +1,22 @@
+@startuml
+
+skinparam shadowing false
+
+autonumber
+
+actor client
+participant server
+participant ledger
+database "local db" as db
+
+client -> server: cookies (username/password)
+server -> ledger: ask asset
+server <[#blue]-- ledger: send asset or raise
+server -> db: ask object
+server <[#blue]-- db: send object or raise
+rnote over server: check permission:\n- enroll user on fabric-ca \n with username/password\n- get enrollement cert\n- compute hashed modulus\n- check if internal user with\n right permission is\n related to this modulus
+client <[#blue]-- server: content of file or exception
+
+
+
+@enduml

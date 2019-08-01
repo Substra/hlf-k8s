@@ -1,0 +1,58 @@
+@startuml
+
+skinparam shadowing false
+
+package "Node A" {
+  rectangle "peer" as peerA {
+    database ledgerA [
+      ledger
+      ----
+      ----
+    ]
+  }
+  rectangle "substrabac" as substrabacA {
+    database localdbA [
+      local db
+      ----
+      ----
+    ]
+  }
+  rectangle "Fabric CA" as fcaA {
+    database usersA [
+      users
+
+      ----
+      USER_A
+      ....
+      NODE_A_USER_B
+    ]
+  }
+}
+
+package "Node B" {
+   rectangle "peer" as peerB {
+    database ledgerB [
+      ledger
+      ----
+      ----
+    ]
+  }
+  rectangle "substrabac" as substrabacB {
+    database localdbB [
+      local db
+      ----
+      ----
+    ]
+  }
+  rectangle "Fabric CA" as fcaB {
+    database usersB [
+      users
+
+      ----
+      USER_B
+      ....
+      NODE_B_USER_A
+    ]
+  }
+}
+@enduml
