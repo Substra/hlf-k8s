@@ -8,6 +8,7 @@ pipeline {
   }
 
   parameters {
+    booleanParam(name: 'BACKEND_ONLY', defaultValue: false, description: 'Only launch backend test')
     string(name: 'CHAINCODE', defaultValue: 'dev', description: 'chaincode branch')
     string(name: 'BACKEND', defaultValue: 'dev', description: 'substrabac branch')
     string(name: 'CLI', defaultValue: 'dev', description: 'substra-cli branch')
@@ -25,6 +26,11 @@ pipeline {
     }
 
     stage('Test substra network and chaincode') {
+
+      when {
+        expression { return params.BACKEND_ONLY }
+      }
+
       agent {
         kubernetes {
           label 'python'
@@ -185,8 +191,8 @@ pipeline {
               echo \$MY_HOST_IP owkin.substrabac >> /etc/hosts
               echo \$MY_HOST_IP chunantes.substrabac >> /etc/hosts
 
-              docker exec owkin.substrabac python3 manage.py init_internal_users
               sleep 9999
+              docker exec owkin.substrabac python3 manage.py init_internal_users
               docker exec chunantes.substrabac python3 manage.py init_internal_users
 
               docker exec owkin.substrabac python3 manage.py add_external_user owkin owkinpw chunantes.substrabac:8001
