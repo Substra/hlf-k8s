@@ -210,9 +210,9 @@ pipeline {
         always {
 
           dir('substrabac') {
-            if [ -d ./docker ]; then
-              sh "cd ./docker; python3 stop.py"
-            fi
+            sh """
+              if [ -d ./docker ]; then  cd ./docker; python3 stop.py; fi
+            """
           }
 
           dir("substra-network") {
