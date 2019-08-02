@@ -191,9 +191,8 @@ pipeline {
               echo \$MY_HOST_IP owkin.substrabac >> /etc/hosts
               echo \$MY_HOST_IP chunantes.substrabac >> /etc/hosts
 
-              sleep 9999
-              docker exec owkin.substrabac python3 manage.py init_internal_users
-              docker exec chunantes.substrabac python3 manage.py init_internal_users
+              docker exec -e SUBSTRA_PATH=/tmp/substra owkin.substrabac python3 manage.py init_internal_users
+              docker exec -e SUBSTRA_PATH=/tmp/substra chunantes.substrabac python3 manage.py init_internal_users
 
               docker exec owkin.substrabac python3 manage.py add_external_user owkin owkinpw chunantes.substrabac:8001
               docker exec owkin.substrabac python3 manage.py add_external_user user-owkin user-owkinpw owkin.substrabac:8000
