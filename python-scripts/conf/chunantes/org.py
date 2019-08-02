@@ -73,6 +73,6 @@ chunantes = {
             'name': 'chu-nantes',
             'pass': 'chu-nantespw'
         },
-        'path': '/substra/conf/chu-nantes/substrabac/users-list.json'
+        'path': f'{SUBSTRA_PATH}/conf/chu-nantes/substrabac/users-list.json'
     }
 }

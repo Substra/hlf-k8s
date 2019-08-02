@@ -72,6 +72,6 @@ owkin = {
             'name': 'owkin',
             'pass': 'owkinpw'
         },
-        'path': '/substra/conf/owkin/substrabac/users-list.json'
+        'path': f'{SUBSTRA_PATH}/conf/owkin/substrabac/users-list.json'
     }
 }

@@ -8,7 +8,7 @@ pipeline {
   }
 
   parameters {
-    booleanParam(name: 'WITH_NET', defaultValue: true, description: 'Only launch backend test')
+    booleanParam(name: 'WITH_NET', defaultValue: true, description: 'Launch network E2E with fixtures')
     string(name: 'CHAINCODE', defaultValue: 'dev', description: 'chaincode branch')
     string(name: 'BACKEND', defaultValue: 'dev', description: 'substrabac branch')
     string(name: 'CLI', defaultValue: 'dev', description: 'substra-cli branch')
@@ -185,7 +185,7 @@ pipeline {
             sh """
               pip install -r ./substrabac/requirements.txt
               sh ./build-docker-images.sh
-              export SUBSTRA_PATH=/tmp/substra/
+              export SUBSTRA_PATH=/tmp/substra
               cd ./docker && python3 start.py -d --no-backup
               sleep 120
               echo \$MY_HOST_IP owkin.substrabac >> /etc/hosts

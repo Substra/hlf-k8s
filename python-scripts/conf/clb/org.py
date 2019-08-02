@@ -73,6 +73,6 @@ clb = {
             'name': 'clb',
             'pass': 'clbpw'
         },
-        'path': '/substra/conf/clb/substrabac/users-list.json'
+        'path': f'{SUBSTRA_PATH}/conf/clb/substrabac/users-list.json'
     }
 }
