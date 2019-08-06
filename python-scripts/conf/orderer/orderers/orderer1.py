@@ -11,6 +11,20 @@ orderer1 = {
         'internal': 7050,
         'external': 7050
     },
+    'operations': {
+        'prometheus': {
+            'port': {
+                'internal': 8443,
+                'external': 8443
+            }
+        },
+        'statsd': {
+            'port': {
+                'internal': 8125,
+                'external': 7125
+            }
+        },
+    },
     'tls': {
         'dir': {
             'external': f'{SUBSTRA_PATH}/data/orgs/orderer/tls/orderer1',

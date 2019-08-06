@@ -104,7 +104,7 @@ def create_configtx(org, filename, raft=True):
         f.write(dump(yaml_data, default_flow_style=False))
 
 
-def create_core_config(org, peer):
+def create_core_config(org, peer, metrics='prometheus'):
     stream = open(os.path.join(dir_path, '../../templates/core.yaml'), 'r')
     yaml_data = load(stream, Loader=FullLoader)
 
@@ -139,6 +139,14 @@ def create_core_config(org, peer):
     yaml_data['peer']['gossip']['externalEndpoint'] = f"{peer['host']}:{peer['port']['internal']}"
     yaml_data['peer']['gossip']['skipHandshake'] = 'true'
 
+    # operations
+    yaml_data['metrics']['provider'] = metrics
+    yaml_data['operations']['listenAddress'] = f"{peer['host']}:{peer['operations'][metrics]['port']['internal']}"
+    if metrics == 'statsd':
+        yaml_data['metrics']['statsd']['address'] = 'graphite:8125'
+        yaml_data['metrics']['statsd']['network'] = 'udp'
+        yaml_data['metrics']['statsd']['prefix'] = peer['host'].upper().replace('-', '_')
+
     yaml_data['vm']['endpoint'] = 'unix:///host/var/run/docker.sock'
     yaml_data['vm']['docker']['hostConfig']['NetworkMode'] = 'net_substra'
 
@@ -155,7 +163,7 @@ def create_peer_config(org):
             create_core_config(org, peer)
 
 
-def create_orderer_config(orderer_conf):
+def create_orderer_config(orderer_conf, metrics='prometheus'):
 
     org = orderer_conf
 
@@ -184,6 +192,14 @@ def create_orderer_config(orderer_conf):
         yaml_data['General']['LocalMSPDir'] = os.path.join(org['core_dir']['internal'], 'msp')
 
         yaml_data['Debug']['BroadcastTraceDir'] = org['broadcast_dir']['internal']
+
+        # operations
+        yaml_data['Metrics']['Provider'] = metrics
+        yaml_data['Operations']['ListenAddress'] = f"{orderer['host']}:{orderer['operations'][metrics]['port']['internal']}"
+        if metrics == 'statsd':
+            yaml_data['Metrics']['Statsd']['Address'] = 'graphite:8125'
+            yaml_data['Metrics']['Statsd']['Network'] = 'udp'
+            yaml_data['Metrics']['Statsd']['Prefix'] = orderer['host'].upper().replace('-', '_')
 
         dir = os.path.join(SUBSTRA_PATH, 'conf', org['name'], orderer['name'])
         create_directory(dir)

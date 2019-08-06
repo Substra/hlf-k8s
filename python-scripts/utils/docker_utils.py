@@ -129,7 +129,9 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
             ],
             'working_dir': fabric_base_directory,
             'ports': [
-                f'{peer["port"]["external"]}:{peer["port"]["internal"]}'
+                f'{peer["port"]["external"]}:{peer["port"]["internal"]}',
+                f'{peer["operations"]["prometheus"]["port"]["external"]}:{peer["operations"]["prometheus"]["port"]["internal"]}',
+                f'{peer["operations"]["statsd"]["port"]["external"]}:{peer["operations"]["statsd"]["port"]["internal"]}',
             ],
             'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
             'volumes': [
@@ -262,7 +264,11 @@ def generate_docker_compose_orderer(org, substra_path, network):
             'restart': 'unless-stopped',
             'working_dir': fabric_base_directory,
             'command': '/bin/bash -c "orderer 2>&1"',
-            'ports': [f"{orderer['port']['external']}:{orderer['port']['internal']}"],
+            'ports': [
+                f"{orderer['port']['external']}:{orderer['port']['internal']}",
+                f'{orderer["operations"]["prometheus"]["port"]["external"]}:{orderer["operations"]["prometheus"]["port"]["internal"]}',
+                f'{orderer["operations"]["statsd"]["port"]["external"]}:{orderer["operations"]["statsd"]["port"]["internal"]}',
+            ],
             'logging': {'driver': 'json-file', 'options': {'max-size': '20m', 'max-file': '5'}},
             'volumes': [
                 # genesis file
