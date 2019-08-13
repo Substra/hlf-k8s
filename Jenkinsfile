@@ -11,6 +11,7 @@ pipeline {
     string(name: 'CHAINCODE', defaultValue: 'dev', description: 'chaincode branch')
     string(name: 'BACKEND', defaultValue: 'dev', description: 'substrabac branch')
     string(name: 'CLI', defaultValue: 'dev', description: 'substra-cli branch')
+    string(name: 'DOC', defaultValue: 'dev', description: 'substra-doc branch')
 
     }
 
@@ -71,9 +72,9 @@ pipeline {
         // Verify that the start.py go well.
         // Todo: improve this part
         sh """
-          if [ -f /tmp/substra/data/log/fixtures.fail ]; then echo "Fixture fails" && exit 1; fi
-          if [ -f /tmp/substra/data/log/revoke.fail ]; then echo "Revoke fails" && exit 1; fi
-          if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then cat /tmp/substra/data/log/run-chu-nantes.fail && exit 1; fi
+          if [ -f /tmp/substra/data/log/fixtures.fail ]; then cat /tmp/substra/data/log/fixtures.log && exit 1; fi
+          if [ -f /tmp/substra/data/log/revoke.fail ];  then cat /tmp/substra/data/log/revoke.log && exit 1; fi
+          if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then cat /tmp/substra/data/log/run-chu-nantes.log && exit 1; fi
           if [ -f /tmp/substra/data/log/run-owkin.fail ]; then cat /tmp/substra/data/log/run-owkin.log && exit 1; fi
           if [ -f /tmp/substra/data/log/setup-chu-nantes.fail ]; then cat /tmp/substra/data/log/setup-chu-nantes.log && exit 1; fi
           if [ -f /tmp/substra/data/log/setup-orderer.fail ]; then cat /tmp/substra/data/log/setup-orderer.log && exit 1; fi
@@ -142,7 +143,7 @@ pipeline {
 
         sh """
           pip install substra-cli/
-          pip install termcolor
+          pip install termcolor pandas sklearn
 
         """
 
@@ -157,9 +158,9 @@ pipeline {
         // Verify that the start.py go well.
         // Todo: improve this part
         sh """
-          if [ -f /tmp/substra/data/log/fixtures.fail ]; then echo "Fixture fails" && exit 1; fi
-          if [ -f /tmp/substra/data/log/revoke.fail ]; then echo "Revoke fails" && exit 1; fi
-          if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then cat /tmp/substra/data/log/run-chu-nantes.fail && exit 1; fi
+          if [ -f /tmp/substra/data/log/fixtures.fail ]; then cat /tmp/substra/data/log/fixtures.log && exit 1; fi
+          if [ -f /tmp/substra/data/log/revoke.fail ];  then cat /tmp/substra/data/log/revoke.log && exit 1; fi
+          if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then cat /tmp/substra/data/log/run-chu-nantes.log && exit 1; fi
           if [ -f /tmp/substra/data/log/run-owkin.fail ]; then cat /tmp/substra/data/log/run-owkin.log && exit 1; fi
           if [ -f /tmp/substra/data/log/setup-chu-nantes.fail ]; then cat /tmp/substra/data/log/setup-chu-nantes.log && exit 1; fi
           if [ -f /tmp/substra/data/log/setup-orderer.fail ]; then cat /tmp/substra/data/log/setup-orderer.log && exit 1; fi
@@ -185,6 +186,21 @@ pipeline {
               echo \$MY_HOST_IP chunantes.substrabac >> /etc/hosts
               cd ../ && python3 populate.py
 
+            """
+        }
+
+        dir('substra-doc') {
+            checkout([
+              $class: 'GitSCM',
+              branches: [[name: "*/${params.DOC}"]],
+              doGenerateSubmoduleConfigurations: false,
+              extensions: [],
+              submoduleCfg: [],
+              userRemoteConfigs: [[credentialsId: 'substra-deploy', url: 'https://github.com/SubstraFoundation/substra-doc']]
+            ])
+
+            sh """
+              cd examples/compute_plan && python3 compute_plan.py
             """
         }
 
