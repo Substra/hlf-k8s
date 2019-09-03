@@ -70,6 +70,8 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
 
                     # tls external
                     f"{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}:{orderer['tls']['dir']['external']}/{orderer['tls']['client']['dir']}",
+
+                    "/home/guillaume/Projects/fabric/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"
                 ],
                 'networks': [network],
                 'depends_on': [],
@@ -125,7 +127,8 @@ def generate_docker_compose_org(org, conf_orderer, substra_path, network):
             'command': '/bin/bash -c "peer node start 2>&1"',
             'environment': [
                 # https://medium.com/@Alibaba_Cloud/hyperledger-fabric-deployment-on-alibaba-cloud-environment-sigsegv-problem-analysis-and-solutions-9a708313f1a4
-                'GODEBUG=netdns=go+1'
+                'GODEBUG=netdns=go+1',
+                'FABRIC_LOGGING_SPEC=DEBUG'
             ],
             'working_dir': fabric_base_directory,
             'ports': [

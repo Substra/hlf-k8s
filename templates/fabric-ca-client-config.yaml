@@ -100,8 +100,8 @@ tls:
 csr:
   cn:
   keyrequest:
-    algo: ecdsa
-    size: 256
+    algo: rsa
+    size: 2048
   serialnumber:
   names:
     - C: US

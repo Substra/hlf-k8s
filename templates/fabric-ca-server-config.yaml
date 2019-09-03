@@ -309,8 +309,8 @@ signing:
 csr:
    cn:
    keyrequest:
-     algo: ecdsa
-     size: 256
+     algo: rsa
+     size: 2048
    names:
       - C: US
         ST: "North Carolina"

@@ -6,6 +6,8 @@ import random
 
 from subprocess import call, check_output
 
+from cryptography.hazmat.primitives.asymmetric import ec
+
 from hfc.util.policies import s2d
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -326,6 +328,8 @@ class Client(object):
 
     def getChannelConfigBlockWithOrderer(self, channel_name):
         print('Will getChannelConfigBlockWithOrderer', flush=True)
+
+        print(self.orderer_admin.cryptoSuite, flush=True)
 
         config_envelope = self.loop.run_until_complete(self.cli.get_channel_config_with_orderer(
             requestor=self.orderer_admin,

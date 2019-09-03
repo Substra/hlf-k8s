@@ -39,7 +39,7 @@ def completeMSPSetup(org_msp_dir):
         # copytree(org_msp_dir + '/intermediatecerts/', org_msp_dir + '/tlsintermediatecerts/')
 
 
-def configLocalMSP(org, user_name):
+def configLocalMSP(org, user_name, orderer=False):
     user = org['users'][user_name]
     org_user_home = user['home']
     org_user_msp_dir = os.path.join(org_user_home, 'msp')
@@ -57,8 +57,61 @@ def configLocalMSP(org, user_name):
         msg = f"Enrolling user '{user['name']}' for organization {org['name']} with {org['ca']['host']} and home directory {org_user_home}..."   # noqa
         print(msg, flush=True)
 
-        # admincerts is required for configtxgen binary
-        return enrollWithFiles(user, org, org_user_msp_dir, admincerts=True)
+        if orderer: # ecdsa
+            # admincerts is required for configtxgen binary
+            return enrollWithFiles(user, org, org_user_msp_dir, admincerts=True)
+        else: #rsa
+            # Generate our key
+            pkey = rsa.generate_private_key(
+                public_exponent=65537,
+                key_size=2048,
+                backend=default_backend())
+
+            name = org['csr']['names'][0]
+            # Generate a CSR
+            csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
+                # Provide various details about who we are.
+                x509.NameAttribute(NameOID.COUNTRY_NAME, name['C']),
+                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, name['ST']),
+                x509.NameAttribute(NameOID.LOCALITY_NAME, name['L']),
+                x509.NameAttribute(NameOID.ORGANIZATION_NAME, name['O']),
+                x509.NameAttribute(NameOID.COMMON_NAME, user['name']),
+            ])).add_extension(
+                # Describe what sites we want this certificate for.
+                x509.SubjectAlternativeName([
+                    # Describe what sites we want this certificate for.
+                    x509.DNSName(user['name']),
+                ]),
+                critical=False,
+                # Sign the CSR with our private key.
+            ).sign(pkey, hashes.SHA256(), default_backend())
+
+            target = f"https://{org['ca']['host']}:{org['ca']['port']['internal']}"
+            cacli = ca_service(target=target,
+                               ca_certs_path=org['ca']['certfile']['internal'],
+                               ca_name=org['ca']['name'])
+            enrollment = cacli.enroll(user['name'], user['pass'], csr=csr)
+
+            # cert
+            cert_file = os.path.join(org_user_msp_dir, 'signcerts', 'cert.pem')
+            writeFile(cert_file, enrollment._cert)
+
+            # private key
+            private_key = pkey.private_bytes(encoding=serialization.Encoding.PEM,
+                                             format=serialization.PrivateFormat.PKCS8,
+                                             encryption_algorithm=serialization.NoEncryption())
+            key_file = os.path.join(org_user_msp_dir, 'keystore', 'key.pem')
+            writeFile(key_file, private_key)
+
+            # ca
+            ca_file = os.path.join(org_user_msp_dir, 'cacerts', 'ca.pem')
+            writeFile(ca_file, enrollment._caCert)
+
+            # admincerts
+            admincerts_file = os.path.join(org_user_msp_dir, 'admincerts', 'cert.pem')
+            writeFile(admincerts_file, enrollment._cert)
+
+            return enrollment
 
 
 def enrollCABootstrapAdmin(org):
@@ -157,7 +210,7 @@ def registerUsers(conf):
         # will create admincerts for configtxgen to work
 
         # enroll admin and create admincerts
-        enrollmentAdmin = configLocalMSP(conf, 'admin')
+        enrollmentAdmin = configLocalMSP(conf, 'admin', True)
         # create tlscacerts directory and remove intermediatecerts if exists
         completeMSPSetup(org_admin_msp_dir)
 
