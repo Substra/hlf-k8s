@@ -74,9 +74,15 @@ The docker-compose use the `net_substra` private network for running its docker,
 ```
 
 Do not hesitate to reboot your machine for updating your new modified hosts values.
+When adding a new organization, for example `clb`, do not forget to add it too
 
 ### substrabac
 
 A backend is available named substrabac which can interact with this ledger.
 
 Follow the instructions in the substrabac project for being able to query/invoke the ledger with the setup created by the run container.
+
+
+### Fabric SDK PY Debug
+Mount a volume to your modified version of fabric-sdk-py in the run container for debugging:
+`"$HOME/{PATH_TO_FABRIC_SDK_PY}/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"`
