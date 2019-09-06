@@ -68,19 +68,6 @@ pipeline {
           sh "export SUBSTRA_PATH=/tmp/substra/"
           sh "python3 python-scripts/start.py --no-backup --fixtures --revoke --query"
         }
-
-        // Verify that the start.py go well.
-        // Todo: improve this part
-        sh """
-          if [ -f /tmp/substra/data/log/fixtures.fail ]; then cat /tmp/substra/data/log/fixtures.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/revoke.fail ];  then cat /tmp/substra/data/log/revoke.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then cat /tmp/substra/data/log/run-chu-nantes.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/run-owkin.fail ]; then cat /tmp/substra/data/log/run-owkin.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/setup-chu-nantes.fail ]; then cat /tmp/substra/data/log/setup-chu-nantes.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/setup-orderer.fail ]; then cat /tmp/substra/data/log/setup-orderer.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/setup-owkin.fail ]; then cat /tmp/substra/data/log/setup-owkin.log && exit 1; fi
-        """
-
       }
 
       post {
@@ -89,6 +76,19 @@ pipeline {
             sh "export SUBSTRA_PATH=/tmp/substra/"
             sh "python3 python-scripts/stop.py"
           }
+
+          // Verify that the start.py go well.
+          // Todo: improve this part
+          sh """
+            if [ -f /tmp/substra/data/log/fixtures.fail ]; then cat /tmp/substra/data/log/fixtures.log; fi
+            if [ -f /tmp/substra/data/log/revoke.fail ]; then cat /tmp/substra/data/log/revoke.log; fi
+            if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then cat /tmp/substra/data/log/run-chu-nantes.log; fi
+            if [ -f /tmp/substra/data/log/run-owkin.fail ]; then cat /tmp/substra/data/log/run-owkin.log; fi
+            if [ -f /tmp/substra/data/log/setup-chu-nantes.fail ]; then cat /tmp/substra/data/log/setup-chu-nantes.log; fi
+            if [ -f /tmp/substra/data/log/setup-orderer.fail ]; then cat /tmp/substra/data/log/setup-orderer.log; fi
+            if [ -f /tmp/substra/data/log/setup-owkin.fail ]; then cat /tmp/substra/data/log/setup-owkin.log; fi
+          """
+
           sh "rm -rf /tmp/substra/* "
         }
       }
@@ -155,18 +155,6 @@ pipeline {
           sh "python3 python-scripts/start.py --no-backup"
         }
 
-        // Verify that the start.py go well.
-        // Todo: improve this part
-        sh """
-          if [ -f /tmp/substra/data/log/fixtures.fail ]; then cat /tmp/substra/data/log/fixtures.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/revoke.fail ];  then cat /tmp/substra/data/log/revoke.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then cat /tmp/substra/data/log/run-chu-nantes.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/run-owkin.fail ]; then cat /tmp/substra/data/log/run-owkin.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/setup-chu-nantes.fail ]; then cat /tmp/substra/data/log/setup-chu-nantes.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/setup-orderer.fail ]; then cat /tmp/substra/data/log/setup-orderer.log && exit 1; fi
-          if [ -f /tmp/substra/data/log/setup-owkin.fail ]; then cat /tmp/substra/data/log/setup-owkin.log && exit 1; fi
-        """
-
         dir('substrabac') {
             checkout([
               $class: 'GitSCM',
@@ -217,6 +205,18 @@ pipeline {
             sh "export SUBSTRA_PATH=/tmp/substra/"
             sh "python3 python-scripts/stop.py"
           }
+
+          // Verify that the start.py go well.
+          // Todo: improve this part
+          sh """
+            if [ -f /tmp/substra/data/log/fixtures.fail ]; then cat /tmp/substra/data/log/fixtures.log; fi
+            if [ -f /tmp/substra/data/log/revoke.fail ]; then cat /tmp/substra/data/log/revoke.log; fi
+            if [ -f /tmp/substra/data/log/run-chu-nantes.fail ]; then cat /tmp/substra/data/log/run-chu-nantes.log; fi
+            if [ -f /tmp/substra/data/log/run-owkin.fail ]; then cat /tmp/substra/data/log/run-owkin.log; fi
+            if [ -f /tmp/substra/data/log/setup-chu-nantes.fail ]; then cat /tmp/substra/data/log/setup-chu-nantes.log; fi
+            if [ -f /tmp/substra/data/log/setup-orderer.fail ]; then cat /tmp/substra/data/log/setup-orderer.log; fi
+            if [ -f /tmp/substra/data/log/setup-owkin.fail ]; then cat /tmp/substra/data/log/setup-owkin.log; fi
+          """
 
           sh "rm -rf /tmp/substra/* "
         }
