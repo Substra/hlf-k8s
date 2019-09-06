@@ -104,8 +104,8 @@ def setup():
     # register train data on dataset chu nantes (will take dataset creator as worker)
     fcn = 'registerDataSample'
     args = {
-        'hashes': '62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a, 42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9',
-        'dataManagerKeys': datamanager_chunantes_key,
+        'hashes': ['62fb3263208d62c7235a046ee1d80e25512fe782254b730a9e566276b8c0ef3a', '42303efa663015e729159833a12ffb510ff92a6e386b8152f90f6fb14ddc94c9'],
+        'dataManagerKeys': [datamanager_chunantes_key],
         'testOnly': json.dumps(False)
     }
     data_samples = invokeChainCode(fcn, [json.dumps(args)], 'chu-nantes', [cli.get_peer('peer1-chu-nantes')])
@@ -119,8 +119,8 @@ def setup():
 
     # register test data on datamanager_chunantes
     args = {
-        'hashes': '61b113ac7142bdd1cc8a824cd29940ce0e22e2381b25e0efe34f64cad5a5ff9b, 0e597cec32d7f5b147c78002b134062923782ccac0e9cbfdd06a0298e7949172',
-        'dataManagerKeys': datamanager_chunantes_key,
+        'hashes': ['61b113ac7142bdd1cc8a824cd29940ce0e22e2381b25e0efe34f64cad5a5ff9b', '0e597cec32d7f5b147c78002b134062923782ccac0e9cbfdd06a0298e7949172'],
+        'dataManagerKeys': [datamanager_chunantes_key],
         'testOnly': json.dumps(True)
     }
     data_keys = invokeChainCode(fcn, [json.dumps(args)], 'chu-nantes', [cli.get_peer('peer1-chu-nantes')])
@@ -164,24 +164,24 @@ def setup():
     # register test data on dataset on owkin center (will take dataset creator as worker)
     fcn = 'registerDataSample'
     args = {
-        'hashes': 'e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1, 4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010',
-        'dataManagerKeys': datamanager_owkin_key,
+        'hashes': ['e11aeec290749e4c50c91305e10463eced8dbf3808971ec0c6ea0e36cb7ab3e1', '4b5152871b181d10ee774c10458c064c70710f4ba35938f10c0b7aa51f7dc010'],
+        'dataManagerKeys': [datamanager_owkin_key],
         'testOnly': json.dumps(True)
     }
     data_keys = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
     # register train data on datamanager_owkin
     args = {
-        'hashes': '93e4b1e040b08cfa8a68b13f9dddb95a6672e8a377378545b2b1254691cfc060, eed4c6ea09babe7ca6428377fff6e54102ef5cdb0cae593732ddbe3f224217cb',
-        'dataManagerKeys': datamanager_owkin_key,
+        'hashes': ['93e4b1e040b08cfa8a68b13f9dddb95a6672e8a377378545b2b1254691cfc060', 'eed4c6ea09babe7ca6428377fff6e54102ef5cdb0cae593732ddbe3f224217cb'],
+        'dataManagerKeys': [datamanager_owkin_key],
         'testOnly': json.dumps(False)
     }
     data_keys = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
     # register test data on datamanager_owkin
     args = {
-        'hashes': '2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1',
-        'dataManagerKeys': datamanager_owkin_key,
+        'hashes': ['2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e', '533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1'],
+        'dataManagerKeys': [datamanager_owkin_key],
         'testOnly': json.dumps(True)
     }
     data_keys = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
@@ -198,7 +198,10 @@ def setup():
         'metricsName': 'macro-average recall',
         'metricsHash': '0bc732c26bafdc41321c2bffd35b6835aa35f7371a4eb02994642c2c3a688f60',
         'metricsStorageAddress': 'http://owkin.substrabac:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/metrics/',
-        'testDataset': f'{datamanager_owkin_key}:2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1',
+        'testDataset': {
+                'dataManagerKey': datamanager_owkin_key,
+                'dataSampleKeys': ['2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e', '533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1'],
+        },
         'permissions': 'all'
     }
     objective_owkin = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
@@ -221,7 +224,10 @@ def setup():
         'metricsName': 'macro-average recall',
         'metricsHash': '750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756',
         'metricsStorageAddress': 'http://chunantes.substrabac:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/metrics/',
-        'testDataset': f'{datamanager_chunantes_key}:61b113ac7142bdd1cc8a824cd29940ce0e22e2381b25e0efe34f64cad5a5ff9b',
+        'testDataset': {
+                'dataManagerKey': datamanager_chunantes_key,
+                'dataSampleKeys': ['61b113ac7142bdd1cc8a824cd29940ce0e22e2381b25e0efe34f64cad5a5ff9b'],
+        },
         'permissions': 'all'
     }
     objective_chunantes = invokeChainCode(fcn, [json.dumps(args)], 'chu-nantes', [cli.get_peer('peer1-chu-nantes')])
@@ -292,9 +298,9 @@ def setup():
     args = {
         'algoKey': algo_chunantes_1_key,
         'objectiveKey': objective_chunantes_key,
-        'inModels': '',
+        'inModels': [],
         'dataManagerKey': datamanager_chunantes_key,
-        'dataSampleKeys': ','.join([x for x in data_chunantes_train_keys_1]),
+        'dataSampleKeys': data_chunantes_train_keys_1,
         'flTask': '',
         'rank': '',
         'tag': 'foo'
@@ -338,7 +344,7 @@ def setup():
     args = {
         'traintupleKey': traintuple_key,
         'dataManagerKey': datamanager_chunantes_key,
-        'dataSampleKeys': ','.join(data_chunantes_test_keys_1),
+        'dataSampleKeys': data_chunantes_test_keys_1,
         'tag': 'foo'
     }
     testtuple = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])

@@ -252,6 +252,7 @@ if __name__ == '__main__':
 
         if not success:
             os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
+            call(['touch', f'{SUBSTRA_PATH}/data/log/fixtures.fail'])
             exit(1)
 
     if args['query']:
@@ -266,6 +267,7 @@ if __name__ == '__main__':
 
         if not success:
             os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
+            call(['touch', f'{SUBSTRA_PATH}/data/log/query.fail'])
             exit(1)
 
     if args['revoke']:
@@ -280,6 +282,7 @@ if __name__ == '__main__':
 
         if not success:
             os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
+            call(['touch', f'{SUBSTRA_PATH}/data/log/revoke.fail'])
             exit(1)
 
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
