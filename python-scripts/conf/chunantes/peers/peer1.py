@@ -11,6 +11,20 @@ peer1 = {
         'internal': 7051,
         'external': 9051
     },
+    'operations': {
+        'prometheus': {
+            'port': {
+                'internal': 9443,
+                'external': 11443
+            }
+        },
+        'statsd': {
+            'port': {
+                'internal': 8125,
+                'external': 10125
+            }
+        },
+    },
     'anchor': True,
     'tls': {
         'dir': {

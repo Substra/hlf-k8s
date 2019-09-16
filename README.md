@@ -76,6 +76,31 @@ The docker-compose use the `net_substra` private network for running its docker,
 Do not hesitate to reboot your machine for updating your new modified hosts values.
 When adding a new organization, for example `clb`, do not forget to add it too
 
+### Operations
+
+You can see metrics with prometheus or statsd.
+Borrowed from this tutorial: https://medium.com/@jushuspace/hyperledger-fabric-monitoring-with-prometheus-and-statsd-f43ef0ab110e
+
+
+##### prometheus
+You can run a prometheus server with:
+```bash
+cd /tmp
+curl -O https://raw.githubusercontent.com/prometheus/prometheus/master/documentation/examples/prometheus.yml
+docker run -d --name prometheus-server -p 9090:9090  --restart always  -v /tmp/prometheus-2.7.1.linux-amd64/prometheus.yml:/prometheus.yml  prom/prometheus --config.file=/prometheus.yml
+docker network connect net_substra prometheus-server
+```
+then head to `http://localhost:9090/` 
+
+##### statsd
+Modify calls to `create_core_config` and `create_orderer_config` in `config_utils.py` with `metrics='statsd'`  
+You can run a stats server with:
+```bash
+docker run -d --name graphite --restart=always -p 80:80 -p 2003-2004:2003-2004 -p 2023-2024:2023-2024 -p 8125:8125/udp -p 8126:8126 graphiteapp/graphite-statsd
+docker network connect net_substra graphite
+```
+then head to `http://localhost/` 
+
 ### substrabac
 
 A backend is available named substrabac which can interact with this ledger.
