@@ -192,7 +192,6 @@ pipeline {
               python3 -m pip install -r scripts/requirements.txt
               python3 scripts/generate_data_samples.py
               python3 scripts/add_dataset_objective.py
-              python3 scripts/add_train_algo_random_forest.py
               cd ../compute_plan
               python3 scripts/add_compute_plan.py
             """
