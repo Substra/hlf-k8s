@@ -71,7 +71,12 @@ def setup():
         'descriptionHash': '7a90514f88c70002608a9868681dd1589ea598e78d00a8cd7783c3ea0f9ceb09',
         'descriptionStorageAddress': 'http://owkin.substrabac:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description/',
         'objectiveKey': '',
-        'permissions': 'all'
+        'permissions': {
+            'process': {
+                'public': True,
+                'authorizedIDs': []
+            }
+        }
     }
     datamanager_owkin = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
@@ -127,7 +132,12 @@ def setup():
         'descriptionHash': '258bef187a166b3fef5cb86e68c8f7e154c283a148cd5bc344fec7e698821ad3',
         'descriptionStorageAddress': 'http://owkin.substrabac:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/description/',
         'objectiveKey': '',
-        'permissions': 'all'
+        'permissions': {
+            'process': {
+                'public': True,
+                'authorizedIDs': []
+            }
+        }
     }
     datamanager_owkin = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
@@ -178,7 +188,12 @@ def setup():
                 'dataManagerKey': datamanager_owkin_key,
                 'dataSampleKeys': ['2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e', '533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1'],
         },
-        'permissions': 'all'
+        'permissions': {
+            'process': {
+                'public': True,
+                'authorizedIDs': []
+            }
+        }
     }
     objective_owkin = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
@@ -195,7 +210,12 @@ def setup():
                 'dataManagerKey': datamanager_owkin_key,
                 'dataSampleKeys': ['61b113ac7142bdd1cc8a824cd29940ce0e22e2381b25e0efe34f64cad5a5ff9b'],
         },
-        'permissions': 'all'
+        'permissions': {
+            'process': {
+                'public': True,
+                'authorizedIDs': []
+            }
+        }
     }
     objective_owkin_2 = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
@@ -213,7 +233,12 @@ def setup():
         'storageAddress': 'http://owkin.substrabac:8001/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/file/',
         'descriptionHash': '124a0425b746d7072282d167b53cb6aab3a31bf1946dae89135c15b0126ebec3',
         'descriptionStorageAddress': 'http://owkin.substrabac:8001/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/description/',
-        'permissions': 'all'
+        'permissions': {
+            'process': {
+                'public': True,
+                'authorizedIDs': []
+            }
+        }
     }
     algo_owkin_1 = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
     if 'key' in algo_owkin_1:
@@ -229,7 +254,12 @@ def setup():
         'storageAddress': 'http://owkin.substrabac:8001/algo/7742aea2001ceb40e9ce8a37fa27237d5b2d1f574e06d48677af945cfdf42ec0/file/',
         'descriptionHash': '3b1281cbdd6ebfec650d0a9f932a64e45a27262848065d7cecf11fd7191b4b1f',
         'descriptionStorageAddress': 'http://owkin.substrabac:8001/algo/7742aea2001ceb40e9ce8a37fa27237d5b2d1f574e06d48677af945cfdf42ec0/description/',
-        'permissions': 'all'
+        'permissions': {
+            'process': {
+                'public': True,
+                'authorizedIDs': []
+            }
+        }
     }
     algo_owkin_2 = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
@@ -240,7 +270,12 @@ def setup():
         'storageAddress': 'http://owkin.substrabac:8001/algo/0acc5180e09b6a6ac250f4e3c172e2893f617aa1c22ef1f379019d20fe44142f/file/',
         'descriptionHash': 'b9463411a01ea00869bdffce6e59a5c100a4e635c0a9386266cad3c77eb28e9e',
         'descriptionStorageAddress': 'http://owkin.substrabac:8001/algo/0acc5180e09b6a6ac250f4e3c172e2893f617aa1c22ef1f379019d20fe44142f/description/',
-        'permissions': 'all'
+        'permissions': {
+            'process': {
+                'public': True,
+                'authorizedIDs': []
+            }
+        }
     }
     algo_owkin_3 = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
@@ -251,7 +286,12 @@ def setup():
         'storageAddress': 'http://owkin.substrabac:8001/algo/f2d9fd38e25cd975c49f3ce7e6739846585e89635a86689b5db42ab2c0c57284/file/',
         'descriptionHash': '4acea40c4b51996c88ef279c5c9aa41ab77b97d38c5ca167e978a98b2e402675',
         'descriptionStorageAddress': 'http://owkin.substrabac:8001/algo/f2d9fd38e25cd975c49f3ce7e6739846585e89635a86689b5db42ab2c0c57284/description/',
-        'permissions': 'all'
+        'permissions': {
+            'process': {
+                'public': True,
+                'authorizedIDs': []
+            }
+        }
     }
     algo_owkin_4 = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
 
