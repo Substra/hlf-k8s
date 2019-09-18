@@ -1,9 +1,6 @@
 import time
-import logging
 
 import substra
-
-logger = logging.getLogger(__name__)
 
 
 USER, PASSWORD = ('admin', 'admin')
@@ -30,8 +27,8 @@ testtuple_keys = [
 
 # watch all tuples until they are in done/failed state
 
-logger.info(f'Watching traintuple keys: {traintuple_keys}')
-logger.info(f'Watching testtuple keys: {testtuple_keys}')
+print(f'Watching traintuple keys: {traintuple_keys}')
+print(f'Watching testtuple keys: {testtuple_keys}')
 
 failed = False
 
@@ -47,13 +44,15 @@ while traintuple_keys and testtuple_keys:
 
         for tuple_ in tuples:
             if tuple_['status'] == 'failed':
-                logger.info(f'{tuple_type} failed: {tuple_["key"]}')
+                print(f'{tuple_type} failed: {tuple_["key"]}')
                 failed = True
             if tuple_['status'] in ('done', 'failed'):
-                logger.info(f'{tuple_type} done: {tuple_["key"]}')
+                print(f'{tuple_type} done: {tuple_["key"]}')
                 tuple_keys.pop(tuple_['key'])
 
     time.sleep(2)
 
 if failed:
     raise ValueError("At least one of the tuples failed")
+
+print(f'All traintuples and testtuples reached the "done" status')
