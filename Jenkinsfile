@@ -194,7 +194,7 @@ pipeline {
               python3 scripts/add_dataset_objective.py
               cd ../compute_plan
               python3 scripts/add_compute_plan.py
-              python3 ../../../substra-network/python-scripts/watch_compute_plan.py
+              python3 ../../../substra-network/python-scripts/watch_compute_plan.py compute_plan_keys.json
             """
         }
 
