@@ -188,7 +188,13 @@ pipeline {
             ])
 
             sh """
-              cd examples/compute_plan && python3 compute_plan.py
+              cd examples/titanic
+              python3 -m pip install -r scripts/requirements.txt
+              python3 scripts/generate_data_samples.py
+              python3 scripts/add_dataset_objective.py
+              cd ../compute_plan
+              python3 scripts/add_compute_plan.py
+              python3 ../../../substra-network/python-scripts/watch_compute_plan.py compute_plan_keys.json
             """
         }
 
