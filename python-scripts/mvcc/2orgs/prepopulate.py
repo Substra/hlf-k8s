@@ -95,10 +95,10 @@ def setup():
     args = {
         'name': 'ISIC 2018',
         'openerHash': 'ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994',
-        'openerStorageAddress': 'http://chunantes.substra-backend:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener/',
+        'openerStorageAddress': 'http://substra-backend.chunantes.xyz:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener/',
         'type': 'Images',
         'descriptionHash': '7a90514f88c70002608a9868681dd1589ea598e78d00a8cd7783c3ea0f9ceb09',
-        'descriptionStorageAddress': 'http://chunantes.substra-backend:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description/',
+        'descriptionStorageAddress': 'http://substra-backend.chunantes.xyz:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description/',
         'objectiveKey': '',
         'permissions': 'all'
     }
@@ -158,10 +158,10 @@ def setup():
     args = {
         'name': 'Simplified ISIC 2018',
         'openerHash': 'b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0',
-        'openerStorageAddress': 'http://owkin.substra-backend:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/opener/',
+        'openerStorageAddress': 'http://substra-backend.owkin.xyz:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/opener/',
         'type': 'Images',
         'descriptionHash': '258bef187a166b3fef5cb86e68c8f7e154c283a148cd5bc344fec7e698821ad3',
-        'descriptionStorageAddress': 'http://owkin.substra-backend:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/description/',
+        'descriptionStorageAddress': 'http://substra-backend.owkin.xyz:8000/dataset/b4d2deeb9a59944d608e612abc8595c49186fa24075c4eb6f5e6050e4f9affa0/description/',
         'objectiveKey': '',
         'permissions': 'all'
     }
@@ -206,10 +206,10 @@ def setup():
     args = {
         'name': 'Simplified skin lesion classification',
         'descriptionHash': '6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c',
-        'descriptionStorageAddress': 'http://owkin.substra-backend:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/description/',
+        'descriptionStorageAddress': 'http://substra-backend.owkin.xyz:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/description/',
         'metricsName': 'macro-average recall',
         'metricsHash': '0bc732c26bafdc41321c2bffd35b6835aa35f7371a4eb02994642c2c3a688f60',
-        'metricsStorageAddress': 'http://owkin.substra-backend:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/metrics/',
+        'metricsStorageAddress': 'http://substra-backend.owkin.xyz:8000/challenge/6b8d16ac3eae240743428591943fa8e66b34d4a7e0f4eb8e560485c7617c222c/metrics/',
         'testDataset': f'{datamanager_owkin_key}:2d0f943aa81a9cb3fe84b162559ce6aff068ccb04e0cb284733b8f9d7e06517e, 533ee6e7b9d8b247e7e853b24547f57e6ef351852bac0418f13a0666173448f1',
         'permissions': 'all'
     }
@@ -229,10 +229,10 @@ def setup():
     args = {
         'name': 'Skin Lesion Classification Challenge',
         'descriptionHash': 'd5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f',
-        'descriptionStorageAddress': 'http://chunantes.substra-backend:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/description/',
+        'descriptionStorageAddress': 'http://substra-backend.chunantes.xyz:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/description/',
         'metricsName': 'macro-average recall',
         'metricsHash': '750f622262854341bd44f55c1018949e9c119606ef5068bd7d137040a482a756',
-        'metricsStorageAddress': 'http://chunantes.substra-backend:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/metrics/',
+        'metricsStorageAddress': 'http://substra-backend.chunantes.xyz:8001/challenge/d5002e1cd50bd5de5341df8a7b7d11b6437154b3b08f531c9b8f93889855c66f/metrics/',
         'testDataset': f'{datamanager_chunantes_key}:61b113ac7142bdd1cc8a824cd29940ce0e22e2381b25e0efe34f64cad5a5ff9b',
         'permissions': 'all'
     }
@@ -248,9 +248,9 @@ def setup():
     args = {
         'name': 'Logistic regression',
         'hash': '9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a',
-        'storageAddress': 'http://chunantes.substra-backend:8001/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/file/',
+        'storageAddress': 'http://substra-backend.chunantes.xyz:8001/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/file/',
         'descriptionHash': '124a0425b746d7072282d167b53cb6aab3a31bf1946dae89135c15b0126ebec3',
-        'descriptionStorageAddress': 'http://chunantes.substra-backend:8001/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/description/',
+        'descriptionStorageAddress': 'http://substra-backend.chunantes.xyz:8001/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/description/',
         'permissions': 'all'
     }
     algo_chunantes_1 = invokeChainCode(fcn, [json.dumps(args)], 'chu-nantes', [cli.get_peer('peer1-chu-nantes')])
