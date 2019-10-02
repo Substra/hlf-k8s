@@ -177,16 +177,7 @@ pipeline {
             """
         }
 
-        dir('substra-doc') {
-            checkout([
-              $class: 'GitSCM',
-              branches: [[name: "*/${params.DOC}"]],
-              doGenerateSubmoduleConfigurations: false,
-              extensions: [],
-              submoduleCfg: [],
-              userRemoteConfigs: [[credentialsId: 'substra-deploy', url: 'https://github.com/SubstraFoundation/substra-doc']]
-            ])
-
+        dir('substra-cli') {
             sh """
               cd examples/titanic
               python3 -m pip install -r scripts/requirements.txt
