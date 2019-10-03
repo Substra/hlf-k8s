@@ -11,9 +11,7 @@ pipeline {
     string(name: 'CHAINCODE', defaultValue: 'dev', description: 'chaincode branch')
     string(name: 'BACKEND', defaultValue: 'dev', description: 'substrabac branch')
     string(name: 'CLI', defaultValue: 'dev', description: 'substra-cli branch')
-    string(name: 'DOC', defaultValue: 'master', description: 'substra-doc branch')
-
-    }
+  }
 
   agent none
 
