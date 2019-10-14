@@ -69,7 +69,7 @@ The docker-compose use the `net_substra` private network for running its docker,
 127.0.0.1       peer1-chu-nantes     # two orgs setup
 127.0.0.1       peer2-chu-nantes     # two orgs setup
 127.0.0.1       orderer1-orderer
-127.0.0.1       substra-backend.owkin.xyz substra-frontend.owkin.xyz    # one or two org(s) setup
+127.0.0.1       substra-backend.owkin.xyz substra-frontend.owkin.xyz         # one or two org(s) setup
 127.0.0.1       substra-backend.chunantes.xyz substra-frontend.chunantes.xyz # two orgs setup
 ```
 
