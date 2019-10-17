@@ -141,7 +141,7 @@ pipeline {
 
         sh """
           pip install substra-cli/
-          pip uninstall keyrings
+          pip uninstall keyring
           pip install keyrings.alt
           pip install termcolor pandas sklearn
 
