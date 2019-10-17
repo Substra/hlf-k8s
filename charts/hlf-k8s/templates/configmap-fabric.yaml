@@ -1,0 +1,188 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "substra.fullname" . }}-fabric
+data:
+  discoverConfig.yaml: |
+    version: 0
+    tlsconfig:
+      certpath: /var/hyperledger/tls/client/pair/tls.crt
+      keypath: /var/hyperledger/tls/client/pair/tls.key
+      peercacertpath: /var/hyperledger/tls/server/cert/cacert.pem
+      timeout: 0s
+    signerconfig:
+      mspid: {{ .Values.organization.id }}
+      identitypath: /var/hyperledger/msp/signcerts/cert.pem
+      keypath: /var/hyperledger/msp/keystore/key.pem
+  configtx.yaml: |
+    Application:
+      Organizations: null
+    Organizations:
+    - &id001
+      {{- if .Values.peer.enabled }}
+      AnchorPeers:
+      - Host: {{ .Values.peer.host }}
+        Port: {{ .Values.peer.port }}
+      {{- end }}
+      ID: {{ .Values.organization.id }}
+      MSPDir: /var/hyperledger/admin_msp
+      Name: {{ .Values.organization.name }}
+    Profiles:
+      {{- if .Values.peer.enabled }}
+      OrgsChannel:
+        Application:
+          Organizations:
+          - *id001
+        Consortium: SampleConsortium
+      {{- end }}
+      {{- if .Values.orderer.enabled }}
+      OrgsOrdererGenesis:
+        Consortiums:
+          SampleConsortium:
+            Organizations: *id001
+        Orderer:
+          Addresses:
+          - {{ .Values.orderer.host }}:{{ .Values.orderer.port }}
+          BatchSize:
+            AbsoluteMaxBytes: 99 MB
+            MaxMessageCount: 1
+            PreferredMaxBytes: 512 KB
+          BatchTimeout: 2s
+          OrdererType: solo
+          Organizations:
+          - *id001
+      {{- end }}
+  core.yaml: |
+    peer:
+      BCCSP:
+        Default: SW
+        PKCS11:
+          FileKeyStore:
+            KeyStore: null
+          Hash: null
+          Label: null
+          Library: null
+          Pin: null
+          Security: null
+        SW:
+          FileKeyStore:
+            KeyStore: null
+          Hash: SHA2
+          Security: 256
+      {{- if .Values.orderer.enabled }}
+      address: {{ .Values.orderer.host }}:{{ .Values.orderer.port }}
+      {{- else }}
+      address: {{ .Values.peer.host }}:{{ .Values.peer.port }}
+      {{- end }}
+      addressAutoDetect: false
+      adminService: null
+      authentication:
+        timewindow: 15m
+      client:
+        connTimeout: 3s
+      deliveryclient:
+        connTimeout: 3s
+        reConnectBackoffThreshold: 3600s
+        reconnectTotalTimeThreshold: 3600s
+      discovery:
+        authCacheEnabled: true
+        authCacheMaxSize: 1000
+        authCachePurgeRetentionRatio: 0.75
+        enabled: true
+        orgMembersAllowedAccess: false
+      fileSystemPath: /var/hyperledger/production
+      gomaxprocs: -1
+      gossip:
+        aliveExpirationTimeout: 25s
+        aliveTimeInterval: 5s
+        bootstrap: 127.0.0.1:7051
+        connTimeout: 2s
+        dialTimeout: 3s
+        digestWaitTime: 1s
+        election:
+          leaderAliveThreshold: 10s
+          leaderElectionDuration: 5s
+          membershipSampleInterval: 1s
+          startupGracePeriod: 15s
+        endpoint: null
+        {{- if .Values.orderer.enabled }}
+        externalEndpoint: {{ .Values.orderer.host }}:{{ .Values.orderer.port }}
+        {{- else }}
+        externalEndpoint: {{ .Values.peer.host }}:{{ .Values.peer.port }}
+        {{- end }}
+        maxBlockCountToStore: 100
+        maxPropagationBurstLatency: 10ms
+        maxPropagationBurstSize: 10
+        membershipTrackerInterval: 5s
+        orgLeader: 'false'
+        propagateIterations: 1
+        propagatePeerNum: 3
+        publishCertPeriod: 10s
+        publishStateInfoInterval: 4s
+        pullInterval: 4s
+        pullPeerNum: 3
+        pvtData:
+          btlPullMargin: 10
+          pullRetryThreshold: 60s
+          pushAckTimeout: 3s
+          reconcileBatchSize: 10
+          reconcileSleepInterval: 1m
+          reconciliationEnabled: true
+          transientstoreMaxBlockRetention: 1000
+        reconnectInterval: 25s
+        recvBuffSize: 20
+        requestStateInfoInterval: 4s
+        requestWaitTime: 1500ms
+        responseWaitTime: 2s
+        sendBuffSize: 200
+        skipBlockVerification: false
+        skipHandshake: 'true'
+        stateInfoRetentionInterval: null
+        useLeaderElection: 'true'
+      handlers:
+        authFilters:
+        - name: DefaultAuth
+        - name: ExpirationCheck
+        decorators:
+        - name: DefaultDecorator
+        endorsers:
+          escc:
+            library: null
+            name: DefaultEndorsement
+        validators:
+          vscc:
+            library: null
+            name: DefaultValidation
+      id: {{ .Values.organization.name }}
+      keepalive:
+        client:
+          interval: 60s
+          timeout: 20s
+        deliveryClient:
+          interval: 60s
+          timeout: 20s
+        minInterval: 60s
+      listenAddress: 0.0.0.0:7051
+      localMspId: {{ .Values.organization.id }}
+      localMspType: bccsp
+      mspConfigPath: /var/hyperledger/admin_msp
+      networkId: dev
+      profile:
+        enabled: false
+        listenAddress: 0.0.0.0:6060
+      tls:
+        cert:
+          file: /var/hyperledger/tls/server/pair/tls.crt
+        key:
+          file: /var/hyperledger/tls/server/pair/tls.key
+        clientAuthRequired: 'true'
+        clientCert:
+          file: /var/hyperledger/tls/client/pair/tls.crt
+        clientKey:
+          file: /var/hyperledger/tls/client/pair/tls.key
+        clientRootCAs:
+        - /var/hyperledger/admin_msp/cacerts/cacert.pem
+        enabled: 'true'
+        rootcert:
+          file: /var/hyperledger/admin_msp/cacerts/cacert.pem
+      validatorPoolSize: null

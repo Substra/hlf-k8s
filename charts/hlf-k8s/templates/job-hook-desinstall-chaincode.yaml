@@ -1,0 +1,60 @@
+{{- if .Values.peer.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "substra.fullname" . }}-hook-desinstall-chaincode
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ template "substra.name" . }}-hook-desinstall-chaincode
+    app.kubernetes.io/part-of: {{ template "substra.name" . }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    spec:
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      {{- if or .Values.image.pullSecretsInline .Values.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range $index, $value := .Values.image.pullSecretsInline }}
+        - name: {{ template "substra.fullname" $ }}-pull-secret-{{ $index }}
+      {{- end }}
+      {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      restartPolicy: OnFailure
+      serviceAccountName: {{ template "substra.fullname" . }}
+      containers:
+        - name: main
+          image: docker
+          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          command: ['sh', '-c']
+          args:
+            - |
+            {{- range .Values.chaincodes }}
+              docker rm -f nid1-{{ $.Release.Name }}-{{ .name }}-{{ .version }} || true
+              docker rmi -f $(docker images -q 'nid1-{{ $.Release.Name }}-{{ .name }}-{{ .version }}*') || true
+            {{- end }}
+          volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: dockersocket
+      volumes:
+      - name: dockersocket
+        hostPath:
+          path: /var/run/docker.sock
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+{{- end }}
