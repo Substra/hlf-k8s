@@ -1,0 +1,105 @@
+apiVersion: skaffold/v1beta13
+kind: Config
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{ .IMAGE_NAME}}:latest"
+
+  artifacts:
+    - image: eu.gcr.io/substra-208412/hlf-k8s
+      context: hlf-k8s
+      sync:
+        manual:
+          - src: ./bin/*
+            dest: /usr/local/bin/
+
+
+deploy:
+  helm:
+    releases:
+      - name: network-orderer
+        chartPath: charts/hlf-k8s
+        namespace: orderer
+        imageStrategy:
+          helm: {}
+        values:
+          image: eu.gcr.io/substra-208412/hlf-k8s
+        setValues:
+          nginx-ingress.enabled: true
+          image.tag: latest
+          peer.enabled: false
+          ca.caName: rcaOrderer
+          organization.id: MyOrdererMSP
+          organization.name: MyOrderer
+          orderer.enabled: true
+          systemOrganizations[0].name: MyPeer1
+          systemOrganizations[0].secret: peer-1-org-config
+          orderer.host: network-orderer.orderer
+          orderer.ord.mspID: MyOrdererMSP
+          fetchSecrets[0].from: org-config
+          fetchSecrets[0].to: peer-1-org-config
+          fetchSecrets[0].filename: configOrg.json
+          fetchSecrets[0].namespace: peer-1
+
+      - name: network-peer-1
+        chartPath: charts/hlf-k8s
+        namespace: peer-1
+        imageStrategy:
+          helm: {}
+        values:
+          image: eu.gcr.io/substra-208412/hlf-k8s
+        setValues:
+          nginx-ingress.enabled: true
+          image.tag: latest
+          ca.caName: rcaPeer1
+          peer.host: network-peer-1.peer-1
+          organization.id: MyPeer1MSP
+          organization.name: MyPeer1
+          peer.peer.mspID: MyPeer1MSP
+          chaincodes[0].instantiate: true
+          chaincodes[0].name: mycc
+          chaincodes[0].version: "1.0"
+          chaincodes[0].policy: OR("MyPeer1MSP.member"\,"MyPeer2MSP.member")
+          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/dev.tar.gz
+          channels[0].name: mychannel
+          channels[0].create: true
+          channels[0].join: true
+          channels[0].extraOrgs[0].name: MyPeer2
+          channels[0].extraOrgs[0].secret: peer-2-org-config-anchor
+          orderer.host: network-orderer.orderer
+          peer.peer.gossip.externalEndpoint: network-peer-1.peer-1:7051
+          fetchSecrets[0].from: hlf-client-tlsrootcert
+          fetchSecrets[0].to: ord-tls-rootcert
+          fetchSecrets[0].filename: cacert.pem
+          fetchSecrets[0].namespace: orderer
+          fetchSecrets[1].from: org-config-anchor
+          fetchSecrets[1].to: peer-2-org-config-anchor
+          fetchSecrets[1].filename: configOrgWithAnchors.json
+          fetchSecrets[1].namespace: peer-2
+
+      - name: network-peer-2
+        chartPath: charts/hlf-k8s
+        namespace: peer-2
+        imageStrategy:
+          helm: {}
+        values:
+          image: eu.gcr.io/substra-208412/hlf-k8s
+        setValues:
+          nginx-ingress.enabled: true
+          image.tag: latest
+          ca.caName: rcaPeer2
+          peer.host: network-peer-2.peer-2
+          organization.id: MyPeer2MSP
+          organization.name: MyPeer2
+          peer.peer.mspID: MyPeer2MSP
+          chaincodes[0].name: mycc
+          chaincodes[0].version: "1.0"
+          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/dev.tar.gz
+          channels[0].name: mychannel
+          channels[0].join: true
+          orderer.host: network-orderer.orderer
+          peer.peer.gossip.externalEndpoint: network-peer-2.peer-2:7051
+          fetchSecrets[0].from: hlf-client-tlsrootcert
+          fetchSecrets[0].to: ord-tls-rootcert
+          fetchSecrets[0].filename: cacert.pem
+          fetchSecrets[0].namespace: orderer
