@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "substra.fullname" . }}-hook-cleanup
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ template "substra.name" . }}-hook-cleanup
+    app.kubernetes.io/part-of: {{ template "substra.name" . }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    spec:
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      {{- if or .Values.image.pullSecretsInline .Values.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range $index, $value := .Values.image.pullSecretsInline }}
+        - name: {{ template "substra.fullname" $ }}-pull-secret-{{ $index }}
+      {{- end }}
+      {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      restartPolicy: OnFailure
+      serviceAccountName: {{ template "substra.fullname" . }}
+      containers:
+      - name: fabric-tools
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        command: ['kubectl']
+        args:
+          - delete
+          - secrets
+          - {{ .Values.secrets.cert }}
+          - {{ .Values.secrets.key }}
+          - {{ .Values.secrets.caCert }}
+          - {{ .Values.secrets.tls }}
+          - {{ .Values.secrets.tlsClient }}
+          - {{ .Values.secrets.tlsRootCert }}
+          - {{ .Values.secrets.tlsClientRootCerts }}
+          - {{ .Values.secrets.adminCert }}
+          - {{ .Values.secrets.adminKey }}
+          - {{ .Values.secrets.ordTlsRootCert }}
+          - {{ .Values.secrets.orgConfig }}
+          - {{ .Values.secrets.orgConfig }}-anchor
+          - {{ .Values.secrets.genesis }}
+          - {{ .Values.secrets.adminKey }}
+          {{- range .Values.fetchSecrets }}
+          - {{ .to }}
+          {{- end }}
+          - --ignore-not-found=true
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
