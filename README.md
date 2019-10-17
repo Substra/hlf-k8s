@@ -111,3 +111,30 @@ Follow the instructions in the substra-backend project for being able to query/i
 ### Fabric SDK PY Debug
 Mount a volume to your modified version of fabric-sdk-py in the run container for debugging:
 `"$HOME/{PATH_TO_FABRIC_SDK_PY}/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"`
+
+
+### Hyperledger fabric binaries
+
+You can debug peer and orderer binaries with breakpoints thanks to GoLand from jetbrains.
+For being sure to have the correct vendoring on the fabric project.
+Make sure you have clone the fabric project in the `src` folder inside your `GOPATH`.
+Delete vendoring and regenerate them with:
+```shell
+$> govendor init && govendor add +external
+```
+You will then be able to debug the go binaries. If you already launch a network, you can stop a peer:
+```shell
+$> docker stop peer1-owkin
+```
+Then create a directory named `/tmp/hyperledger/production` which will contains the backup of the `/var/hyperldger/production`.  
+Modify the `core.yaml` for pointing to `/tmp/hyperledger/production` instead of `/var/hyperldger/production`.  
+Create also a `/etc/hyperledger/fabric` folder and copy all needed files.  
+Usually:
+
+`/etc/hyperledger/fabric/tls/server`  
+`/etc/hyperledger/fabric/tls/client`  
+`/etc/hyperledger/fabric/msp`  
+`/etc/hyperledger/fabric/core.yaml`  
+`/etc/hyperledger/fabric/ca/ca-cert.pem`  
+
+You can check the produced dockerfiles for more information.
