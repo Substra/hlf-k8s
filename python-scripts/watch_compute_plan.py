@@ -19,10 +19,10 @@ import sys
 import substra
 
 
-USER, PASSWORD = ('admin', 'admin')
+USER, PASSWORD = ('foo', 'barbar10')
 client = substra.Client()
-client.add_profile('owkin', 'http://owkin.substra-backend:8000', '0.0',
-                   user=USER, password=PASSWORD)
+client.add_profile('owkin', USER, PASSWORD, 'http://substra-backend.owkin.xyz:8000')
+client.login()
 
 
 def load_tuple_keys(path):
