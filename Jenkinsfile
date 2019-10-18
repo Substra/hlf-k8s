@@ -8,6 +8,7 @@ pipeline {
   }
 
   parameters {
+    booleanParam(name: 'WITH_NET', defaultValue: true, description: 'Launch network E2E with fixtures')
     string(name: 'CHAINCODE', defaultValue: 'dev', description: 'chaincode branch')
     string(name: 'BACKEND', defaultValue: 'dev', description: 'substra-backend branch')
     string(name: 'CLI', defaultValue: 'dev', description: 'substra-cli branch')
@@ -24,6 +25,11 @@ pipeline {
     }
 
     stage('Test substra network and chaincode') {
+
+      when {
+        expression { return params.WITH_NET }
+      }
+
       agent {
         kubernetes {
           label 'python'
@@ -165,6 +171,7 @@ pipeline {
             ])
 
             sh """
+              python3 ./substrabac/node/generate_nodes.py
               sh ./build-docker-images.sh
               export SUBSTRA_PATH=/tmp/substra/
               cd ./docker && python3 start.py -d --no-backup
