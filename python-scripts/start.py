@@ -10,7 +10,7 @@ from subprocess import call, check_call
 from utils.common_utils import (dowait, create_directory, remove_chaincode_docker_images,
                                 remove_chaincode_docker_containers)
 from utils.config_utils import (create_configtx, create_ca_server_config, create_ca_client_config, create_peer_config,
-                                create_orderer_config, create_substrabac_config)
+                                create_orderer_config, create_substrabackend_config)
 from utils.docker_utils import (generate_docker_compose_org, generate_docker_compose_orderer, generate_fixtures_docker,
                                 generate_revoke_docker, generate_query_docker)
 
@@ -181,9 +181,9 @@ def substra_network(org):
         # Prepare each org
         for org in [x for x in orgs if x['type'] == 'client']:
             substra_org(org, orderer)
-            # substrabac
+            # substrabackend
             create_directory(f"{SUBSTRA_PATH}/dryrun/{org['name']}")
-            create_substrabac_config(org, orderer)
+            create_substrabackend_config(org, orderer)
 
 
 if __name__ == '__main__':

@@ -63,9 +63,9 @@ def register_random_algo():
     args = {
         'name': str(u),
         'hash': hash,
-        'storageAddress': f'http://chunantes.substrabac:8001/algo/{hash}/file/',
+        'storageAddress': f'http://chunantes.substra-backend:8001/algo/{hash}/file/',
         'descriptionHash': descriptionHash,
-        'descriptionStorageAddress': f'http://chunantes.substrabac:8001/algo/{hash}/description/',
+        'descriptionStorageAddress': f'http://chunantes.substra-backend:8001/algo/{hash}/description/',
         'permissions': 'all'
     }
     invokeChainCode(fcn, [json.dumps(args)], 'chu-nantes', [cli.get_peer('peer1-chu-nantes')])

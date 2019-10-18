@@ -7,7 +7,7 @@ import substra
 
 USER, PASSWORD = ('admin', 'admin')
 client = substra.Client()
-client.add_profile('owkin', 'http://owkin.substrabac:8000', '0.0',
+client.add_profile('owkin', 'http://owkin.substra-backend:8000', '0.0',
                    user=USER, password=PASSWORD)
 
 

@@ -63,9 +63,9 @@ def register_random_algo():
     args = {
         'name': str(u),
         'hash': hash,
-        'storageAddress': f'http://owkin.substrabac:8001/algo/{hash}/file/',
+        'storageAddress': f'http://owkin.substra-backend:8001/algo/{hash}/file/',
         'descriptionHash': descriptionHash,
-        'descriptionStorageAddress': f'http://owkin.substrabac:8001/algo/{hash}/description/',
+        'descriptionStorageAddress': f'http://owkin.substra-backend:8001/algo/{hash}/description/',
         'permissions': 'all'
     }
     invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
