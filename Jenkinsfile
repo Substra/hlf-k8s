@@ -228,6 +228,7 @@ pipeline {
       }
 
       steps {
+        checkout scm
         sh "helm lint charts/hlf-k8s"
       }
     }
@@ -244,6 +245,7 @@ pipeline {
           }
           when { buildingTag() }
           steps {
+            checkout scm
             sh "gcloud auth activate-service-account --key-file=/secret/kaniko-secret.json"
             sh "gcloud builds submit images/hlf-k8s -t eu.gcr.io/substra-208412/hlf-k8s:$TAG_NAME"
           }
@@ -259,6 +261,7 @@ pipeline {
           }
           when { not { buildingTag() } }
           steps {
+            checkout scm
             sh "gcloud auth activate-service-account --key-file=/secret/kaniko-secret.json"
             sh "gcloud builds submit images/hlf-k8s -t eu.gcr.io/substra-208412/hlf-k8s:$BRANCH_NAME"
           }
@@ -278,6 +281,7 @@ pipeline {
       when { buildingTag() }
 
       steps {
+        checkout scm
         sh "helm init --client-only"
         sh "helm plugin install https://github.com/chartmuseum/helm-push"
         sh "helm repo add substra https://substra-charts.owkin.com --username owlways --password Cokear4nnRK9ooC"
