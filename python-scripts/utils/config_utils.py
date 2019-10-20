@@ -216,7 +216,7 @@ def create_orderer_config(orderer_conf, metrics='prometheus'):
 
 def create_substrabackend_config(org, orderer_conf):
 
-    dir_path = f"{SUBSTRA_PATH}/conf/{org['name']}/substra-backend"
+    dir_path = f"{SUBSTRA_PATH}/conf/{org['name']}/substrabackend"
     create_directory(dir_path)
 
     peer = org['peers'][0]
@@ -227,7 +227,7 @@ def create_substrabackend_config(org, orderer_conf):
     tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
     tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
 
-    filename = f"{SUBSTRA_PATH}/conf/{org['name']}/substra-backend/conf.json"
+    filename = f"{SUBSTRA_PATH}/conf/{org['name']}/substrabackend/conf.json"
 
     res = {
         'name': org['name'],
