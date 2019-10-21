@@ -1,10 +1,6 @@
 apiVersion: skaffold/v1beta13
 kind: Config
 build:
-  tagPolicy:
-    envTemplate:
-      template: "{{ .IMAGE_NAME}}:latest"
-
   artifacts:
     - image: eu.gcr.io/substra-208412/hlf-k8s
       context: images/hlf-k8s
@@ -25,7 +21,6 @@ deploy:
           image: eu.gcr.io/substra-208412/hlf-k8s
         setValues:
           nginx-ingress.enabled: true
-          image.tag: latest
           peer.enabled: false
           ca.caName: rcaOrderer
           organization.id: MyOrdererMSP
@@ -49,7 +44,6 @@ deploy:
           image: eu.gcr.io/substra-208412/hlf-k8s
         setValues:
           nginx-ingress.enabled: true
-          image.tag: latest
           ca.caName: rcaPeer1
           peer.host: network-peer-1.peer-1
           organization.id: MyPeer1MSP
@@ -85,7 +79,6 @@ deploy:
           image: eu.gcr.io/substra-208412/hlf-k8s
         setValues:
           nginx-ingress.enabled: true
-          image.tag: latest
           ca.caName: rcaPeer2
           peer.host: network-peer-2.peer-2
           organization.id: MyPeer2MSP
