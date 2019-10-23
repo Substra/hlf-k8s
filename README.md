@@ -19,7 +19,7 @@ This project is developed under the Apache License, Version 2.0 (Apache-2.0), lo
 ### Bootstrap
 
 Run the `bootstrap.sh` script.
-:warning: If you are on linux and want to play with the substrabac projects, please read its documentation first.
+:warning: If you are on linux and want to play with the substra-backend project, please read its documentation first.
 
 It will pull from the hyperledger registry the right docker images and then will build our own docker images from it.
 
@@ -69,8 +69,8 @@ The docker-compose use the `net_substra` private network for running its docker,
 127.0.0.1       peer1-chu-nantes     # two orgs setup
 127.0.0.1       peer2-chu-nantes     # two orgs setup
 127.0.0.1       orderer1-orderer
-127.0.0.1       owkin.substrabac     # one or two org(s) setup
-127.0.0.1       chunantes.substrabac # two orgs setup
+127.0.0.1       owkin.substra-backend     # one or two org(s) setup
+127.0.0.1       chunantes.substra-backend # two orgs setup
 ```
 
 Do not hesitate to reboot your machine for updating your new modified hosts values.
@@ -101,11 +101,11 @@ docker network connect net_substra graphite
 ```
 then head to `http://localhost/` 
 
-### substrabac
+### substra-backend
 
-A backend is available named substrabac which can interact with this ledger.
+A backend is available named substra-backend which can interact with this ledger.
 
-Follow the instructions in the substrabac project for being able to query/invoke the ledger with the setup created by the run container.
+Follow the instructions in the substra-backend project for being able to query/invoke the ledger with the setup created by the run container.
 
 
 ### Fabric SDK PY Debug

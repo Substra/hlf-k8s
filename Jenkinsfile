@@ -9,7 +9,7 @@ pipeline {
 
   parameters {
     string(name: 'CHAINCODE', defaultValue: 'dev', description: 'chaincode branch')
-    string(name: 'BACKEND', defaultValue: 'dev', description: 'substrabac branch')
+    string(name: 'BACKEND', defaultValue: 'dev', description: 'substra-backend branch')
     string(name: 'CLI', defaultValue: 'dev', description: 'substra-cli branch')
   }
 
@@ -153,14 +153,14 @@ pipeline {
           sh "python3 python-scripts/start.py --no-backup"
         }
 
-        dir('substrabac') {
+        dir('substra-backend') {
             checkout([
               $class: 'GitSCM',
               branches: [[name: "*/${params.BACKEND}"]],
               doGenerateSubmoduleConfigurations: false,
               extensions: [],
               submoduleCfg: [],
-              userRemoteConfigs: [[credentialsId: 'substra-deploy', url: 'https://github.com/SubstraFoundation/substrabac']]
+              userRemoteConfigs: [[credentialsId: 'substra-deploy', url: 'https://github.com/SubstraFoundation/substra-backend']]
             ])
 
             sh """
@@ -168,8 +168,8 @@ pipeline {
               export SUBSTRA_PATH=/tmp/substra/
               cd ./docker && python3 start.py -d --no-backup
               sleep 120
-              echo \$MY_HOST_IP owkin.substrabac >> /etc/hosts
-              echo \$MY_HOST_IP chunantes.substrabac >> /etc/hosts
+              echo \$MY_HOST_IP owkin.substra-backend >> /etc/hosts
+              echo \$MY_HOST_IP chunantes.substra-backend >> /etc/hosts
               cd ../ && python3 populate.py
 
             """
@@ -192,7 +192,7 @@ pipeline {
       post {
         always {
 
-          dir('substrabac') {
+          dir('substra-backend') {
             sh "cd ./docker; python3 stop.py"
           }
 
