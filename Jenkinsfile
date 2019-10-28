@@ -171,7 +171,7 @@ pipeline {
             ])
 
             sh """
-              python3 ./substrabac/node/generate_nodes.py
+              python3 ./backend/node/generate_nodes.py
               sh ./build-docker-images.sh
               export SUBSTRA_PATH=/tmp/substra/
               cd ./docker && python3 start.py -d --no-backup
