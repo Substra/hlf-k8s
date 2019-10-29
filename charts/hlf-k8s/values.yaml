@@ -13,7 +13,7 @@
 # limitations under the License.
 
 image:
-  repository: eu.gcr.io/substra-208412/hlf-k8s
+  repository: substrafoundation/hlf-k8s
   tag: latest
   pullPolicy: IfNotPresent
   pullSecrets: []

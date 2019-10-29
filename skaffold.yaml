@@ -16,7 +16,7 @@ apiVersion: skaffold/v1beta13
 kind: Config
 build:
   artifacts:
-    - image: eu.gcr.io/substra-208412/hlf-k8s
+    - image: substrafoundation/hlf-k8s
       context: images/hlf-k8s
       sync:
         manual:
@@ -32,7 +32,7 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: eu.gcr.io/substra-208412/hlf-k8s
+          image: substrafoundation/hlf-k8s
         setValues:
           nginx-ingress.enabled: true
           peer.enabled: false
@@ -55,7 +55,7 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: eu.gcr.io/substra-208412/hlf-k8s
+          image: substrafoundation/hlf-k8s
         setValues:
           nginx-ingress.enabled: true
           ca.caName: rcaPeer1
@@ -90,7 +90,7 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: eu.gcr.io/substra-208412/hlf-k8s
+          image: substrafoundation/hlf-k8s
         setValues:
           nginx-ingress.enabled: true
           ca.caName: rcaPeer2
