@@ -78,10 +78,10 @@ def setup():
     args = {
         'name': 'ISIC 2018',
         'openerHash': 'ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994',
-        'openerStorageAddress': 'http://substra-backend.owkin.xyz:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener/',
+        'openerStorageAddress': 'http://substra-backend.owkin.xyz:8000/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener/',
         'type': 'Images',
         'descriptionHash': '7a90514f88c70002608a9868681dd1589ea598e78d00a8cd7783c3ea0f9ceb09',
-        'descriptionStorageAddress': 'http://substra-backend.owkin.xyz:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description/',
+        'descriptionStorageAddress': 'http://substra-backend.owkin.xyz:8000/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description/',
         'objectiveKey': '',
         'permissions': 'all'
     }
@@ -154,9 +154,9 @@ def setup():
     args = {
         'name': 'Logistic regression',
         'hash': '9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a',
-        'storageAddress': 'http://substra-backend.owkin.xyz:8001/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/file/',
+        'storageAddress': 'http://substra-backend.owkin.xyz:8000/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/file/',
         'descriptionHash': '124a0425b746d7072282d167b53cb6aab3a31bf1946dae89135c15b0126ebec3',
-        'descriptionStorageAddress': 'http://substra-backend.owkin.xyz:8001/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/description/',
+        'descriptionStorageAddress': 'http://substra-backend.owkin.xyz:8000/algo/9ca7ffbdbb55156b0fb44a227c3c305b7f7300113b6008c662460cf0f8f7cc3a/description/',
         'permissions': 'all'
     }
     algo_owkin_1 = invokeChainCode(fcn, [json.dumps(args)], 'owkin', [cli.get_peer('peer1-owkin')])
