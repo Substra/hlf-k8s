@@ -16,14 +16,16 @@ This project is developed under the Apache License, Version 2.0 (Apache-2.0), lo
 
 ## Launch
 
-### Bootstrap
+### Run using doker-compose
+
+#### Bootstrap
 
 Run the `bootstrap.sh` script.
 :warning: If you are on linux and want to play with the substra-backend project, please read its documentation first.
 
 It will pull from the hyperledger registry the right docker images and then will build our own docker images from it.
 
-### Test
+#### Test
 
 Create at the root of your system a `substra` folder with your user rights:
 ```bash
@@ -55,7 +57,7 @@ You now will be able to play with the network ! :tada:
 :warning: Debugging: Make sure you have set a file named `substra-network.pth` in your virtualenv `lib/python3.6/site-packages` folder containing the absolute path to `substra-network/python-scripts` for being able to run fixtures scripts manually.
 
 
-### Network
+#### Network
 
 The docker-compose use the `net_substra` private network for running its docker, if you want to be able to enroll, invoke or query the ledger from the outside, you will have to modify your `/etc/hosts` file on your machine for mapping your localhost:
 
@@ -76,13 +78,13 @@ The docker-compose use the `net_substra` private network for running its docker,
 Do not hesitate to reboot your machine for updating your new modified hosts values.
 When adding a new organization, for example `clb`, do not forget to add it too
 
-### Operations
+#### Operations
 
 You can see metrics with prometheus or statsd.
 Borrowed from this tutorial: https://medium.com/@jushuspace/hyperledger-fabric-monitoring-with-prometheus-and-statsd-f43ef0ab110e
 
 
-##### prometheus
+###### prometheus
 You can run a prometheus server with:
 ```bash
 cd /tmp
@@ -92,7 +94,7 @@ docker network connect net_substra prometheus-server
 ```
 then head to `http://localhost:9090/` 
 
-##### statsd
+###### statsd
 Modify calls to `create_core_config` and `create_orderer_config` in `config_utils.py` with `metrics='statsd'`  
 You can run a stats server with:
 ```bash
@@ -101,13 +103,31 @@ docker network connect net_substra graphite
 ```
 then head to `http://localhost/` 
 
-### substra-backend
+### Run using skaffold
+
+#### Running a custom version of the chaincode
+
+By default, the `skaffold dev` command will start a substra network that uses the default [susbtra-chaincode](https://github.com/SubstraFoundation/substra-chaincode).
+
+If you want to use a custom chaincode locally, follow these steps:
+
+1. Make a `tar.gz` archive of your chaincode accessible from the substra network. The easiest way is to use Github:
+   - Push your local, custom branch of [susbtra-chaincode](https://github.com/SubstraFoundation/substra-chaincode) to a fork on your github account, e.g. https://github.com/my-github-account/substra-chaincode/my-branch
+     - /!\ The branch name cannot contain the `/` character (that's a Hyperledger Fabric limitation)
+   - The archive will now be available on https://github.com/my-github-account/substra-chaincode/archive/my-branch.tar.gz
+2. In [`skaffold.yaml`](./skaffold.yaml), update the chaincode `src`:
+   - `deploy.helm.realease.name[network-peer-1].setValues.chaincodes[0].src`: should point to https://github.com/my-github-account/substra-chaincode/archive/my-branch.tar.gz
+   - `deploy.helm.realease.name[network-peer-2].setValues.chaincodes[0].src`: same thing
+3. Start the network: `skaffold dev`. 
+   
+This substra network will use your custom chaincode.
+
+## substra-backend
 
 A backend is available named substra-backend which can interact with this ledger.
 
 Follow the instructions in the substra-backend project for being able to query/invoke the ledger with the setup created by the run container.
 
-
-### Fabric SDK PY Debug
+## Fabric SDK PY Debug
 Mount a volume to your modified version of fabric-sdk-py in the run container for debugging:
 `"$HOME/{PATH_TO_FABRIC_SDK_PY}/fabric-sdk-py/hfc:/usr/local/lib/python3.6/dist-packages/hfc"`
