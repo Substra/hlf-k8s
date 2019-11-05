@@ -90,10 +90,10 @@ def setup():
              [json.dumps({
                  'name': 'ISIC 2018',
                  'openerHash': 'ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994',
-                 'openerStorageAddress': 'http://owkin.substra-backend:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener/',
+                 'openerStorageAddress': 'http://substra-backend.owkin.xyz:8000/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/opener/',
                  'type': 'Images',
                  'descriptionHash': '7a90514f88c70002608a9868681dd1589ea598e78d00a8cd7783c3ea0f9ceb09',
-                 'descriptionStorageAddress': 'http://owkin.substra-backend:8001/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description/',
+                 'descriptionStorageAddress': 'http://substra-backend.owkin.xyz:8000/dataset/ccbaa3372bc74bce39ce3b138f558b3a7558958ef2f244576e18ed75b0cea994/description/',
                  'objectiveKey': '',
                  'permissions': 'all'
              })],

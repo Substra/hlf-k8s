@@ -8,6 +8,7 @@ pipeline {
   }
 
   parameters {
+    booleanParam(name: 'WITH_NET', defaultValue: true, description: 'Launch network E2E with fixtures')
     string(name: 'CHAINCODE', defaultValue: 'dev', description: 'chaincode branch')
     string(name: 'BACKEND', defaultValue: 'dev', description: 'substra-backend branch')
     string(name: 'CLI', defaultValue: 'dev', description: 'substra-cli branch')
@@ -24,6 +25,11 @@ pipeline {
     }
 
     stage('Test substra network and chaincode') {
+
+      when {
+        expression { return params.WITH_NET }
+      }
+
       agent {
         kubernetes {
           label 'python'
@@ -141,6 +147,7 @@ pipeline {
 
         sh """
           pip install substra-cli/
+          pip install keyrings.alt
           pip install termcolor pandas sklearn
 
         """
@@ -164,14 +171,16 @@ pipeline {
             ])
 
             sh """
+              python3 ./backend/node/generate_nodes.py
               sh ./build-docker-images.sh
               export SUBSTRA_PATH=/tmp/substra/
               cd ./docker && python3 start.py -d --no-backup
               sleep 120
-              echo \$MY_HOST_IP owkin.substra-backend >> /etc/hosts
-              echo \$MY_HOST_IP chunantes.substra-backend >> /etc/hosts
+              echo \$MY_HOST_IP substra-backend.owkin.xyz >> /etc/hosts
+              echo \$MY_HOST_IP substra-frontend.owkin.xyz >> /etc/hosts
+              echo \$MY_HOST_IP substra-backend.chunantes.xyz >> /etc/hosts
+              echo \$MY_HOST_IP substra-frontend.chunantes.xyz >> /etc/hosts
               cd ../ && python3 populate.py
-
             """
         }
 
