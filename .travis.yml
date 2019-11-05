@@ -1,10 +1,5 @@
 language: minimal
 
-branches:
-  only:
-    - master
-    - dev
-
 addons:
   snaps:
     - name: helm
