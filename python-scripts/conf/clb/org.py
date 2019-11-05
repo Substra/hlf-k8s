@@ -1,38 +1,68 @@
+# Copyright 2018 Owkin, inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import os
 from .peers.peer1 import peer1
 from .peers.peer2 import peer2
 from .users.admin import admin
 from .users.bootstrap_admin import bootstrap_admin
 from .users.user import user
 
+
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
+
 clb = {
+    'type': 'client',
     'name': 'clb',
-    'msp_id': 'clbMSP',
-    'anchor_tx_file': '/substra/data/orgs/clb/anchors.tx',
+    'mspid': 'clbMSP',
+    'anchor_tx_file': f'{SUBSTRA_PATH}/data/orgs/clb/anchors.tx',
     'tls': {
         # careful, `ca-cert.pem` is the default cert name file and a example file with this name is already present in
         # the docker image, do not forget to remove these examples files in your docker CMD overriding if naming the same way
-        'certfile': '/substra/data/orgs/clb/tls-ca-cert.pem',
+        'certfile': {
+            'external': f'{SUBSTRA_PATH}/data/orgs/clb/tls-ca-cert.pem',
+            'internal': '/etc/hyperledger/fabric/ca/tls-ca-cert.pem'
+        },
         'clientkey': ''
     },
     'ca': {
         'name': 'rca-clb',
         'host': 'rca-clb',
-        'certfile': '/substra/data/orgs/clb/ca-cert.pem',
-        'keyfile': '/substra/data/orgs/clb/ca-key.pem',
+        'certfile': {
+            'external': f'{SUBSTRA_PATH}/data/orgs/clb/ca-cert.pem',
+            'internal': '/etc/hyperledger/fabric/ca/ca-cert.pem'
+        },
+        'keyfile': {
+            'external': f'{SUBSTRA_PATH}/data/orgs/clb/ca-key.pem',
+            'internal': '/etc/hyperledger/fabric/ca/ca-key.pem'
+        },
         'port': {
             'internal': 7054,
             'external': 10054
         },
         'url': 'https://rca-clb:7054',
-        'logfile': '/substra/data/log/rca-clb.log',
-        'server-config-path': '/substra/conf/clb/fabric-ca-server-config.yaml',
-        'client-config-path': '/substra/conf/clb/fabric-ca-client-config.yaml',
+        'logfile': f'{SUBSTRA_PATH}/data/log/rca-clb.log',
+        'server-config-path': f'{SUBSTRA_PATH}/conf/clb/fabric-ca-server-config.yaml',
+        'client-config-path': f'{SUBSTRA_PATH}/conf/clb/fabric-ca-client-config.yaml',
         'affiliations': {
             'clb': ['lyon']
-        }
+        },
+        'users': {
+            'bootstrap_admin': bootstrap_admin,
+        },
     },
     'users': {
-        'bootstrap_admin': bootstrap_admin,
         'admin': admin,
         'user': user,
     },

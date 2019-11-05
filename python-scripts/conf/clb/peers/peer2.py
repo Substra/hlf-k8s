@@ -1,15 +1,48 @@
+# Copyright 2018 Owkin, inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import os
+
+
+SUBSTRA_PATH = os.getenv('SUBSTRA_PATH', '/substra')
+
 peer2 = {
-    'name': 'peer2',
+    'name': 'peer2-clb',
     'pass': 'peer2pw',
     'host': 'peer2-clb',
     'port': {
         'internal': 7051,
         'external': 12051
     },
+    'operations': {
+        'prometheus': {
+            'port': {
+                'internal': 9443,
+                'external': 14443
+            }
+        },
+        'statsd': {
+            'port': {
+                'internal': 8125,
+                'external': 13125
+            }
+        },
+    },
     'anchor': False,
     'tls': {
         'dir': {
-            'external': '/substra/data/orgs/clb/tls/peer2',
+            'external': f'{SUBSTRA_PATH}/data/orgs/clb/tls/peer2',
             'internal': '/etc/hyperledger/fabric/tls'
         },
         'client': {

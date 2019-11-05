@@ -1,747 +1,362 @@
-import docker
+# Copyright 2018 Owkin, inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import asyncio
+
 import json
 import os
-import time
-import subprocess
+import random
 
-from subprocess import call, check_output, CalledProcessError
+from subprocess import call, check_output
+
+from hfc.util.policies import s2d
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-client = docker.from_env()
 
+class ChannelAlreadyExist(Exception):
+    pass
 
-def set_env_variables(fabric_cfg_path, msp_dir):
-    os.environ['FABRIC_CFG_PATH'] = fabric_cfg_path
-    os.environ['CORE_PEER_MSPCONFIGPATH'] = msp_dir
-    os.environ['FABRIC_LOGGING_SPEC'] = 'info'
 
+class Client(object):
 
-def clean_env_variables():
-    del os.environ['FABRIC_CFG_PATH']
-    del os.environ['CORE_PEER_MSPCONFIGPATH']
-    del os.environ['FABRIC_LOGGING_SPEC']
+    def __init__(self, cli, conf, conf_orderer):
+        self.cli = cli
+        self.orderer = random.choice(list(self.cli._orderers.values()))
+        self.orderer_admin = self.cli.get_user(conf_orderer['name'], conf_orderer['users']['admin']['name'])
 
+        self.org = self.cli._organizations[conf['name']]
+        self.org_peers = [p for p in self.cli._peers.values() if p.name in [x['name'] for x in conf['peers']]]
 
-def generateChannelArtifacts(conf):
+        self.org_admin = self.cli.get_user(conf['name'], conf['users']['admin']['name'])
+        self.org_user = self.cli.get_user(conf['name'], conf['users']['user']['name'])
+        self.config_tx = conf['anchor_tx_file']
+        self.mspid = conf['mspid']
 
-    print('Generating channel configuration transaction at %(channel_tx_file)s' % {
-        'channel_tx_file': conf['misc']['channel_tx_file']}, flush=True)
+        self.system_channel_name = conf['misc']['system_channel_name']
+        self.channel_name = conf['misc']['channel_name']
+        self.channel_tx_file = conf['misc']['channel_tx_file']
+        self.config_tx_path = conf['misc']['configtx-config-path']
+        self.chaincode_name = conf['misc']['chaincode_name']
+        self.chaincode_path = conf['misc']['chaincode_path']
+        self.chaincode_version = conf['misc']['chaincode_version']
 
-    call(['configtxgen',
-          '-profile', 'OrgsChannel',
-          '-outputCreateChannelTx', conf['misc']['channel_tx_file'],
-          '-channelID', conf['misc']['channel_name']])
+        self.loop = asyncio.get_event_loop()
 
-    org = conf
-    print('Generating anchor peer update transaction for %(org_name)s at %(anchor_tx_file)s' % {
-        'org_name': org['name'],
-        'anchor_tx_file': org['anchor_tx_file']
-    }, flush=True)
+    def generateChannelArtifacts(self):
+        print(f"Generating channel configuration transaction at {self.channel_tx_file}", flush=True)
 
-    call(['configtxgen',
-          '-profile', 'OrgsChannel',
-          '-outputAnchorPeersUpdate', org['anchor_tx_file'],
-          '-channelID', conf['misc']['channel_name'],
-          '-asOrg', org['name']])
+        call(['configtxgen',
+              '-configPath', self.config_tx_path,
+              '-profile', 'OrgsChannel',
+              '-outputCreateChannelTx', self.channel_tx_file,
+              '-channelID', self.channel_name])
 
-
-# the signer of the channel creation transaction must have admin rights for one of the consortium orgs
-# https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
-def createChannel(conf, conf_orderer):
-
-    org = conf
-
-    orderer = conf_orderer['orderers'][0]
-
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    call([
-        'peer',
-        'channel',
-        'create',
-        '-c', conf['misc']['channel_name'],
-        '--outputBlock', conf['misc']['channel_block'],
-        '-f', conf['misc']['channel_tx_file'],
-        '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-        '--tls',
-        '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-        '--clientauth',
-        '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-        '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-    ])
-
-    # clean env variables
-    clean_env_variables()
-
-
-def joinChannel(conf, peer):
-    org_admin_home = conf['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    channel_name = conf['misc']['channel_name']
-    print('Peer %(peer_host)s is attempting to join channel \'%(channel_name)s\' ...' % {
-        'peer_host': peer['host'],
-        'channel_name': channel_name
-    }, flush=True)
-
-    # peer channel join use signcerts not admincerts, we need to pass CORE_PEER_MSPCONFIGPATH to org admin.
-    # peer msp signcert is not an admin, a peer cannot join a channel with its own msp
-    container = client.containers.get(peer['host'])
-    container.exec_run('bash -c "export CORE_PEER_MSPCONFIGPATH=%s && peer channel join -b %s"' % (org_admin_msp_dir, conf['misc']['channel_block']))
-
-
-def peersJoinChannel(conf):
-    for peer in conf['peers']:
-        joinChannel(conf, peer)
-
-
-def getChannelConfigBlockWithPeer(org, conf_orderer):
-    # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
-
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-    orderer = conf_orderer['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    call([
-        'peer',
-        'channel',
-        'fetch',
-        'config',
-        org['misc']['channel_block'],
-        '-c', org['misc']['channel_name'],
-        '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-        '--tls',
-        '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-        '--clientauth',
-        '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-        '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-    ])
-
-    # clean env variables
-    clean_env_variables()
-
-
-def createChannelConfig(org, with_anchor=True):
-
-    org_config = check_output(['configtxgen',
-                               '-printOrg', org['name']])
-
-    org_config = json.loads(org_config.decode('utf-8'))
-
-    if with_anchor:
-        # Add Anchor peer
-        peer = org['peers'][0]
-        org_config['values']['AnchorPeers'] = {'mod_policy': 'Admins',
-                                               'value': {'anchor_peers': [{'host': peer['host'],
-                                                                           'port': peer['port']['internal']}]},
-                                               'version': '0'}
-
-    return org_config
-
-
-def createUpdateProposal(conf, org__channel_config, input_block, channel_name):
-    call(['configtxlator',
-          'proto_decode',
-          '--input', input_block,
-          '--type', 'common.Block',
-          '--output', 'mychannelconfig.json'])
-
-    my_channel_config = json.load(open('mychannelconfig.json', 'r'))
-
-    # Keep useful part
-    my_channel_config = my_channel_config['data']['data'][0]['payload']['data']['config']
-    json.dump(my_channel_config, open('mychannelconfig.json', 'w'))
-
-    # Add org
-    my_channel_config['channel_group']['groups']['Application']['groups'][conf['name']] = org__channel_config
-    json.dump(my_channel_config, open('mychannelconfigupdate.json', 'w'))
-
-    # Compute diff
-    call(['configtxlator',
-          'proto_encode',
-          '--input', 'mychannelconfig.json',
-          '--type', 'common.Config',
-          '--output', 'mychannelconfig.pb'])
-
-    call(['configtxlator',
-          'proto_encode',
-          '--input', 'mychannelconfigupdate.json',
-          '--type', 'common.Config',
-          '--output', 'mychannelconfigupdate.pb'])
-
-    call(['configtxlator',
-          'compute_update',
-          '--channel_id', channel_name,
-          '--original', 'mychannelconfig.pb',
-          '--updated', 'mychannelconfigupdate.pb',
-          '--output', 'compute_update.pb'])
-
-    call(['configtxlator',
-          'proto_decode',
-          '--input', 'compute_update.pb',
-          '--type', 'common.ConfigUpdate',
-          '--output', 'compute_update.json'])
-
-    # Prepare proposal
-    update = json.load(open('compute_update.json', 'r'))
-    proposal = {'payload': {'header': {'channel_header': {'channel_id': channel_name,
-                                                          'type': 2}},
-                            'data': {'config_update': update}}}
-
-    json.dump(proposal, open('proposal.json', 'w'))
-    call(['configtxlator',
-          'proto_encode',
-          '--input', 'proposal.json',
-          '--type', 'common.Envelope',
-          '--output', 'proposal.pb'])
-
-
-def signAndPushUpdateProposal(orgs, conf_orderer, channel_name):
-    orderer = conf_orderer['orderers'][0]
-
-    for org in orgs:
-        # Sign
-        org_admin_home = org['users']['admin']['home']
-        org_admin_msp_dir = org_admin_home + '/msp'
-
-        peer = org['peers'][0]
-        peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-        set_env_variables(peer_core, org_admin_msp_dir)
-
-        tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-        tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-        print('Sign update proposal on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
-
-        call(['peer',
-              'channel', 'signconfigtx',
-              '-f', 'proposal.pb',
-              '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-              '--tls',
-              '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-              # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-              '--clientauth',
-              '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-              '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-              ])
-
-        # clean env variables
-        clean_env_variables()
-    else:
-        # Push
-        org_admin_home = org['users']['admin']['home']
-        org_admin_msp_dir = org_admin_home + '/msp'
-
-        peer = org['peers'][0]
-        peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-        set_env_variables(peer_core, org_admin_msp_dir)
-
-        tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-        tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-        print('Send update proposal on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
-
-        call(['peer',
-              'channel', 'update',
-              '-f', 'proposal.pb',
-              '-c', channel_name,
-              '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-              '--tls',
-              '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-              # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-              '--clientauth',
-              '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-              '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-              ])
-
-        # clean env variables
-        clean_env_variables()
-
-
-def generateChannelUpdate(conf, conf_externals, orderer):
-
-    org_channel_config = createChannelConfig(conf)
-    getChannelConfigBlockWithOrderer(orderer, conf['misc']['channel_name'], 'mychannelconfig.block')
-
-    createUpdateProposal(conf, org_channel_config, 'mychannelconfig.block', conf['misc']['channel_name'])
-    external_orgs = [conf_org for conf_org in conf_externals]
-    signAndPushUpdateProposal(external_orgs, orderer, conf['misc']['channel_name'])
-
-
-# # the updater of the channel anchor transaction must have admin rights for one of the consortium orgs
-# Update the anchor peers
-def updateAnchorPeers(conf, conf_orderer):
-    # :warning: for updating anchor peers make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
-
-    org = conf
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-    orderer = conf_orderer['orderers'][0]
-
-    print('Updating anchor peers for %(peer_host)s ...' % {'peer_host': org['peers'][0]['host']}, flush=True)
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    call(['peer',
-          'channel', 'update',
-          '-c', conf['misc']['channel_name'],
-          '-f', org['anchor_tx_file'],
-          '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-          '--tls',
-          '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-          # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--clientauth',
-          '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-          '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-          ])
-
-    # clean env variables
-    clean_env_variables()
-
-
-def installChainCode(conf, peer, chaincode_version):
-    org_admin_home = conf['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    chaincode_name = conf['misc']['chaincode_name']
-
-    print('Installing chaincode on %(peer_host)s ...' % {'peer_host': peer['host']}, flush=True)
-
-    peer_core = '/substra/conf/%s/%s' % (conf['name'], peer['name'])
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-
-    call(['peer',
-          'chaincode', 'install',
-          '-n', chaincode_name,
-          '-v', chaincode_version,
-          '-p', 'github.com/hyperledger/chaincode/'])
-
-    # clean env variables
-    clean_env_variables()
-
-
-def installChainCodeOnPeers(conf, chaincode_version):
-    for peer in conf['peers']:
-        installChainCode(conf, peer, chaincode_version)
-
-
-def waitForInstantiation(conf, conf_orderer):
-    org = conf
-
-    channel_name = conf['misc']['channel_name']
-
-    peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    orderer = conf_orderer['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    print('Test if chaincode is instantiated on %(PEER_HOST)s ... (timeout 30 seconds)' % {'PEER_HOST': peer['host']},
-          flush=True)
-
-    starttime = int(time.time())
-    while int(time.time()) - starttime < 30:
-        call(['sleep', '1'])
-        output = subprocess.run(['peer',
-                                 'chaincode', 'list',
-                                 '-C', conf['misc']['channel_name'],
-                                 '--instantiated',
-                                 '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-                                 '--tls',
-                                 '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-                                 # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-                                 '--clientauth',
-                                  '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-                                  '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-                                 ],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        data = output.stdout.decode('utf-8')
-        print(data, flush=True)
-        split_msg = 'Get instantiated chaincodes on channel %s:' % channel_name
-        if split_msg in data and len(data.split(split_msg)[1].replace('\n', '')):
-            print(data, flush=True)
-            clean_env_variables()
-            return True
-        print('.', end='', flush=True)
-
-    clean_env_variables()
-    return False
-
-
-def getChaincodeVersion(conf, conf_orderer):
-    org = conf
-
-    peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    orderer = conf_orderer['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    output = subprocess.run(['peer',
-                             'chaincode', 'list',
-                             '-C', conf['misc']['channel_name'],
-                             '--instantiated',
-                             '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-                             '--tls',
-                             '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-                             # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-                             '--clientauth',
-                             '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-                             '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-                             ],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-    data = output.stdout.decode('utf-8')
-    return float(data.split('Version: ')[-1].split(',')[0])
-
-
-def makePolicy(orgs_mspid):
-    policy = 'OR('
-
-    for index, org_mspid in enumerate(orgs_mspid):
-        if index != 0:
-            policy += ','
-        policy += '\'' + org_mspid + '.member\''
-
-    policy += ')'
-    print('policy: %s' % policy, flush=True)
-
-    return policy
-
-
-def instanciateChainCode(conf, conf_orderer, args):
-    policy = makePolicy([conf['msp_id']])
-
-    org_admin_home = conf['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    peer = conf['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (conf['name'], peer['name'])
-
-    orderer = conf_orderer['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-
-    print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
-
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    call(['peer',
-          'chaincode', 'instantiate',
-          '-C', conf['misc']['channel_name'],
-          '-n', conf['misc']['chaincode_name'],
-          '-v', conf['misc']['chaincode_version'],
-          '-c', args,
-          '-P', policy,
-          '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-          '--tls',
-          '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-          # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--clientauth',
-          '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-          '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-          ])
-
-    # clean env variables
-    clean_env_variables()
-
-
-def instanciateChaincode(conf, orderer):
-    instanciateChainCode(conf, orderer, '{"Args":["init"]}')
-
-
-def upgradeChainCode(conf, args, conf_orderer, orgs_mspid, chaincode_version):
-    policy = makePolicy(orgs_mspid)
-
-    org = conf
-
-    peer = org['peers'][0]
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-    org_admin_home = org['users']['admin']['home']
-    org_admin_msp_dir = org_admin_home + '/msp'
-
-    orderer = conf_orderer['orderers'][0]
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_admin_msp_dir)
-
-    print('Instantiating chaincode on %(PEER_HOST)s ...' % {'PEER_HOST': peer['host']}, flush=True)
-
-    tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-
-    call(['peer',
-          'chaincode', 'upgrade',
-          '-C', conf['misc']['channel_name'],
-          '-n', conf['misc']['chaincode_name'],
-          '-v', chaincode_version,
-          '-c', args,
-          '-P', policy,
-          '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-          '--tls',
-          '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-          # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--clientauth',
-          '--certfile', tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
-          '--keyfile', tls_peer_client_dir + '/' + peer['tls']['client']['key']
-          ])
-
-    # clean env variables
-    clean_env_variables()
-
-
-def chainCodeQueryWith(conf, arg, org, peer):
-    org_user_home = org['users']['user']['home']
-    org_user_msp_dir = org_user_home + '/msp'
-
-    peer_core = '/substra/conf/%s/%s' % (org['name'], peer['name'])
-
-    # update config path for using right core.yaml and right msp dir
-    set_env_variables(peer_core, org_user_msp_dir)
-
-    channel_name = conf['misc']['channel_name']
-    chaincode_name = conf['misc']['chaincode_name']
-
-    print('Querying chaincode in the channel \'%(channel_name)s\' on the peer \'%(peer_host)s\' ...' % {
-        'channel_name': channel_name,
-        'peer_host': peer['host']
-    }, flush=True)
-
-    try:
-        output = check_output(['peer', 'chaincode', 'query',
-                               '-C', channel_name,
-                               '-n', chaincode_name,
-                               '-c', arg]).decode()
-    except CalledProcessError as e:
-        output = e.output.decode()
-        print('Error:', flush=True)
-        print('Output: %s' % output, flush=True)
-        # clean env variables
-        clean_env_variables()
-    else:
+    # the signer of the channel creation transaction must have admin rights for one of the consortium orgs
+    # https://stackoverflow.com/questions/45726536/peer-channel-creation-fails-in-hyperledger-fabric
+    def createChannel(self):
         try:
-            value = json.loads(output)
+            res = self.loop.run_until_complete(self.cli.channel_create(
+                self.orderer,
+                self.channel_name,
+                self.org_admin,
+                config_tx=self.channel_tx_file))
+            print('channel creation: ', res)
         except:
-            value = output
+            raise ChannelAlreadyExist('Failed to create channel')
+
+    def peersJoinChannel(self):
+        self.loop.run_until_complete(self.cli.channel_join(
+            requestor=self.org_admin,
+            channel_name=self.channel_name,
+            peers=self.org_peers,
+            orderer=self.orderer,
+        ))
+
+    def createChannelConfig(self):
+        org_config = check_output(['configtxgen',
+                                   '-configPath', self.config_tx_path,
+                                   '-printOrg', self.org._name
+                                   ])
+        return json.loads(org_config.decode('utf-8'))
+
+    def createUpdateProposal(self, conf, new_channel_config, old_channel_config):
+
+        # Keep useful part
+        json.dump(old_channel_config, open('oldchannelconfig.json', 'w'))
+
+        # Add org
+        old_channel_config['channel_group']['groups']['Application']['groups'][conf['name']] = new_channel_config
+        json.dump(old_channel_config, open('newchannelconfig.json', 'w'))
+
+        # Compute diff
+        call(['configtxlator',
+              'proto_encode',
+              '--input', 'oldchannelconfig.json',
+              '--type', 'common.Config',
+              '--output', 'oldchannelconfig.pb'])
+
+        call(['configtxlator',
+              'proto_encode',
+              '--input', 'newchannelconfig.json',
+              '--type', 'common.Config',
+              '--output', 'newchannelconfig.pb'])
+
+        call(['configtxlator',
+              'compute_update',
+              '--channel_id', self.channel_name,
+              '--original', 'oldchannelconfig.pb',
+              '--updated', 'newchannelconfig.pb',
+              '--output', 'compute_update.pb'])
+
+        call(['configtxlator',
+              'proto_decode',
+              '--input', 'compute_update.pb',
+              '--type', 'common.ConfigUpdate',
+              '--output', 'compute_update.json'])
+
+        # Prepare proposal
+        update = json.load(open('compute_update.json', 'r'))
+        proposal = {'payload': {'header': {'channel_header': {'channel_id': self.channel_name,
+                                                              'type': 2}},
+                                'data': {'config_update': update}}}
+
+        json.dump(proposal, open('proposal.json', 'w'))
+
+        config_tx_file = 'proposal.pb'
+        call(['configtxlator',
+              'proto_encode',
+              '--input', 'proposal.json',
+              '--type', 'common.Envelope',
+              '--output', config_tx_file])
+        return config_tx_file
+
+    def signAndPushUpdateProposal(self, conf_externals, config_tx_file):
+        signatures = []
+        for conf in conf_externals:
+            # Sign
+            print(f"Sign update proposal on {conf['name']} ...", flush=True)
+
+            org_admin = self.cli.get_user(conf['name'], conf['users']['admin']['name'])
+
+            signature = self.cli.channel_signconfigtx(config_tx_file, org_admin)
+            signatures.append(signature)
         else:
-            msg = 'Query of channel \'%(channel_name)s\' on peer \'%(peer_host)s\' was successful' % {
-                'channel_name': channel_name,
-                'peer_host': peer['host']
-            }
-            print(msg, flush=True)
-            print('Value: %s' % value, flush=True)
+            # Push with last one
+            print(f"Send update proposal with org: {conf['name']}...", flush=True)
 
-        finally:
-            # clean env variables
-            clean_env_variables()
-            return value
+            self.loop.run_until_complete(self.cli.channel_update(
+                self.orderer,
+                self.channel_name,
+                org_admin,
+                config_tx=config_tx_file,
+                signatures=signatures))
 
+    def generateChannelUpdate(self, conf, conf_externals, old_channel_config):
+        new_channel_config = self.createChannelConfig()
 
-def queryChaincodeFromFirstPeerFirstOrg(conf):
-    org = conf
-    peer = org['peers'][0]
+        # Add Anchor peer
+        peer = random.choice(self.org_peers)
+        host, port = peer.endpoint.split(':')
+        new_channel_config['values']['AnchorPeers'] = {
+            'mod_policy': 'Admins',
+            'value': {
+                'anchor_peers': [
+                    {
+                        'host': host,
+                        'port': port
+                    }
+                ]},
+            'version': '0'
+        }
 
-    print('Try to query chaincode from first peer first org before invoke', flush=True)
+        config_tx_file = self.createUpdateProposal(conf, new_channel_config, old_channel_config)
+        self.signAndPushUpdateProposal(conf_externals, config_tx_file)
 
-    starttime = int(time.time())
-    while int(time.time()) - starttime < 15:
-        call(['sleep', '1'])
-        data = chainCodeQueryWith(conf,
-                                  '{"Args":["queryObjectives"]}',
-                                  org,
-                                  peer)
-        # data should be null
-        print(data, flush=True)
-        if data is None:
-            print('Correctly initialized', flush=True)
-            return True
+    # the updater of the channel anchor transaction must have admin rights for one of the consortium orgs
+    # Update the anchor peers
+    def updateAnchorPeers(self):
+        print(f"Updating anchor peers...", flush=True)
+        self.loop.run_until_complete(self.cli.channel_update(
+            self.orderer,
+            self.channel_name,
+            self.org_admin,
+            config_tx=self.config_tx))
 
-        print('.', end='', flush=True)
+    def installChainCodeOnPeers(self, conf, chaincode_version):
 
-    print('\n/!\ Failed to query chaincode with initialized values', flush=True)
-    return False
+        org_admin = self.cli.get_user(conf['name'], conf['users']['admin']['name'])
+        peers = [x['name'] for x in conf['peers']]
 
+        print(f"Installing chaincode on {peers} ...", flush=True)
 
-def createSystemUpdateProposal(org, conf_orderer):
+        kwargs = {
+            'requestor': org_admin,
+            'peers': peers,
+            'cc_path': self.chaincode_path,
+            'cc_name': self.chaincode_name,
+            'cc_version': chaincode_version,
+        }
 
-    # https://console.bluemix.net/docs/services/blockchain/howto/orderer_operate.html?locale=en#orderer-operate
+        self.loop.run_until_complete(self.cli.chaincode_install(**kwargs))
 
-    channel_name = org['misc']['system_channel_name']
-    channel_block = org['misc']['system_channel_block']
-    org_config = createChannelConfig(org, False)
+    def getChaincodeVersion(self, conf):
+        org_admin = self.cli.get_user(conf['name'], conf['users']['admin']['name'])
+        peers = [x['name'] for x in conf['peers']]
 
-    getSystemChannelConfigBlock(conf_orderer, channel_block)
+        responses = self.loop.run_until_complete(self.cli.query_instantiated_chaincodes(
+            requestor=org_admin,
+            channel_name=self.channel_name,
+            peers=peers
+        ))
 
-    call(['configtxlator',
-          'proto_decode',
-          '--input', channel_block,
-          '--type', 'common.Block',
-          '--output', 'system_channelconfig.json'])
-    system_channel_config = json.load(open('system_channelconfig.json', 'r'))
+        chaincodes = responses[0].chaincodes
+        for cc in chaincodes:
+            if self.chaincode_name == cc.name:
+                return float(cc.version)
+        else:
+            raise Exception(f'Could not find valid chaincode version, expected version: "{self.chaincode_name}"')
 
-    # Keep useful part
-    system_channel_config = system_channel_config['data']['data'][0]['payload']['data']['config']
-    json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
-    call(['configtxlator',
-          'proto_encode',
-          '--input', 'system_channelconfig.json',
-          '--type', 'common.Config',
-          '--output', 'systemchannelold.block'])
+    def makePolicy(self, orgs_mspid):
+        roles =[f"'{x}.member'" for x in orgs_mspid]
+        policy = f"OR({', '.join(roles)})"
+        print('policy: ', policy, flush=True)
 
-    # Update useful part
-    system_channel_config['channel_group']['groups']['Consortiums']['groups']['SampleConsortium']['groups'][org['name']] = org_config
-    json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
-    call(['configtxlator',
-          'proto_encode',
-          '--input', 'system_channelconfig.json',
-          '--type', 'common.Config',
-          '--output', 'systemchannelupdate.block'])
+        return s2d().parse(policy)
 
-    # Compute update
-    call(' '.join(['configtxlator',
-                   'compute_update',
-                   '--channel_id', channel_name,
-                   '--original', 'systemchannelold.block',
-                   '--updated', 'systemchannelupdate.block',
-                   ' | ', 'configtxlator',
-                   'proto_decode',
-                   '--type', 'common.ConfigUpdate',
-                   '--output', 'compute_update.json']),
-         shell=True)
+    def instanciateChaincode(self, args=None):
 
-    # Prepare proposal
-    update = json.load(open('compute_update.json', 'r'))
+        policy = self.makePolicy([self.mspid])
 
-    # print(json.dumps(update, indent=4))
-    proposal = {'payload': {'header': {'channel_header': {'channel_id': channel_name,
-                                                          'type': 2}},
-                            'data': {'config_update': update}}}
+        res = self.loop.run_until_complete(self.cli.chaincode_instantiate(
+            requestor=self.org_admin,
+            channel_name=self.channel_name,
+            peers=self.org_peers,
+            args=args,
+            cc_name=self.chaincode_name,
+            cc_version=self.chaincode_version,
+            cc_endorsement_policy=policy,
+            wait_for_event=True
+        ))
+        print(f'Instantiated chaincode with policy: {policy} and result: "{res}"')
 
-    json.dump(proposal, open('proposal.json', 'w'))
-    call(['configtxlator',
-          'proto_encode',
-          '--input', 'proposal.json',
-          '--type', 'common.Envelope',
-          '--output', 'proposal.pb'])
+    def upgradeChainCode(self, conf, orgs_mspid, chaincode_version, fcn, args=None):
+        policy = self.makePolicy(orgs_mspid)
 
+        org_admin = self.cli.get_user(conf['name'], conf['users']['admin']['name'])
+        peers = [x['name'] for x in conf['peers']]
 
-def getSystemChannelConfigBlock(conf, block_name):
-    getChannelConfigBlockWithOrderer(conf, conf['misc']['system_channel_name'], block_name)
+        res = self.loop.run_until_complete(self.cli.chaincode_upgrade(
+            requestor=org_admin,
+            channel_name=self.channel_name,
+            peers=peers,
+            fcn=fcn,
+            args=args,
+            cc_name=self.chaincode_name,
+            cc_version=chaincode_version,
+            cc_endorsement_policy=policy,
+            wait_for_event=True
+        ))
+        print(f'Upgraded chaincode with policy: {policy} and result: "{res}"')
 
+    def queryChaincodeFromPeers(self):
+        print(f"Try to query chaincode from peer {[x.name for x in self.org_peers]} on org {self.org._name}",
+              flush=True)
 
-def getChannelConfigBlockWithOrderer(org, channel_name, block_name):
-    # :warning: for creating channel make sure env variables CORE_PEER_MSPCONFIGPATH is correctly set
+        response = self.loop.run_until_complete(self.cli.chaincode_query(
+            requestor=self.org_user,
+            channel_name=self.channel_name,
+            peers=self.org_peers,
+            fcn='queryObjectives',
+            args=None,
+            cc_name=self.chaincode_name,
+        ))
+        print(f"Queried chaincode, result: {response}")
 
-    orderer_admin_home = org['users']['admin']['home']
-    orderer_admin_msp_dir = orderer_admin_home + '/msp'
+        return response
 
-    orderer = org['orderers'][0]
-    orderer_core = '/substra/conf/%s/%s' % (org['name'], orderer['name'])
+    def createSystemUpdateProposal(self):
+        # https://console.bluemix.net/docs/services/blockchain/howto/orderer_operate.html?locale=en#orderer-operate
 
-    set_env_variables(orderer_core, orderer_admin_msp_dir)
+        org_config = self.createChannelConfig()
+        system_channel_config_envelope = self.getChannelConfigBlockWithOrderer(self.system_channel_name)
+        system_channel_config = system_channel_config_envelope['config']
 
-    tls_peer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
+        json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
+        call(['configtxlator',
+              'proto_encode',
+              '--input', 'system_channelconfig.json',
+              '--type', 'common.Config',
+              '--output', 'systemchannelold.block'])
 
-    call([
-        'peer',
-        'channel',
-        'fetch',
-        'config',
-        block_name,
-        '-c', channel_name,
-        '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-        '--tls',
-        '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-        '--clientauth',
-        '--certfile', tls_peer_client_dir + '/' + orderer['tls']['client']['cert'],
-        '--keyfile', tls_peer_client_dir + '/' + orderer['tls']['client']['key']
-    ])
+        # Update useful part
+        system_channel_config['channel_group']['groups']['Consortiums']['groups']['SampleConsortium']['groups'][
+            self.org._name] = org_config
+        json.dump(system_channel_config, open('system_channelconfig.json', 'w'))
+        call(['configtxlator',
+              'proto_encode',
+              '--input', 'system_channelconfig.json',
+              '--type', 'common.Config',
+              '--output', 'systemchannelupdate.block'])
 
-    # clean env variables
-    clean_env_variables()
+        # Compute update
+        call(f'configtxlator compute_update --channel_id {self.system_channel_name}'
+             f' --original systemchannelold.block'
+             f' --updated systemchannelupdate.block'
+             f' | '
+             f'configtxlator proto_decode --type common.ConfigUpdate'
+             f' --output compute_update.json',
+             shell=True)
 
+        # Prepare proposal
+        update = json.load(open('compute_update.json', 'r'))
 
-def signAndPushSystemUpdateProposal(conf):
-    org = conf
-    channel_name = conf['misc']['system_channel_name']
+        proposal = {'payload': {'header': {'channel_header': {'channel_id': self.system_channel_name,
+                                                              'type': 2}},
+                                'data': {'config_update': update}}}
 
-    org_admin_home = org['users']['admin']['home']
-    orderer_admin_msp_dir = org_admin_home + '/msp'
+        json.dump(proposal, open('proposal.json', 'w'))
 
-    orderer = org['orderers'][0]
-    orderer_core = '/substra/conf/%s/%s' % (org['name'], orderer['name'])
+        config_tx_file = 'proposal.pb'
 
-    set_env_variables(orderer_core, orderer_admin_msp_dir)
+        call(['configtxlator',
+              'proto_encode',
+              '--input', 'proposal.json',
+              '--type', 'common.Envelope',
+              '--output', config_tx_file])
 
-    tls_peer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
+        return config_tx_file
 
-    call(['peer',
-          'channel', 'update',
-          '-f', 'proposal.pb',
-          '-c', channel_name,
-          '-o', '%(host)s:%(port)s' % {'host': orderer['host'], 'port': orderer['port']['internal']},
-          '--tls',
-          '--cafile', tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-          # https://hyperledger-fabric.readthedocs.io/en/release-1.1/enable_tls.html#configuring-tls-for-the-peer-cli
-          '--clientauth',
-          '--certfile', tls_peer_client_dir + '/' + orderer['tls']['client']['cert'],
-          '--keyfile', tls_peer_client_dir + '/' + orderer['tls']['client']['key']
-          ])
+    def getChannelConfigBlockWithOrderer(self, channel_name):
+        print('Will getChannelConfigBlockWithOrderer', flush=True)
 
-    # clean env variables
-    clean_env_variables()
+        config_envelope = self.loop.run_until_complete(self.cli.get_channel_config_with_orderer(
+            requestor=self.orderer_admin,
+            channel_name=channel_name,
+            orderer=self.orderer,
+        ))
+
+        print('got ChannelConfigBlockWithOrderer', flush=True)
+
+        return config_envelope
+
+    def signAndPushSystemUpdateProposal(self, config_tx_file):
+        print('signAndPushSystemUpdateProposal', flush=True)
+
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.cli.channel_update(
+            self.orderer,
+            self.system_channel_name,
+            self.orderer_admin,
+            config_tx=config_tx_file))

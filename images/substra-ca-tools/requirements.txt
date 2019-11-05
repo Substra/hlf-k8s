@@ -1,3 +1,4 @@
 docker == 3.5.0
 requests == 2.20.0
 grpcio >= 1.0.1
+git+git://github.com/hyperledger/fabric-sdk-py.git@36cc15021f74c11c7ae3196e380a5275c220145f # fabric-sdk-py==0.8.1

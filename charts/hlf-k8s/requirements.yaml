@@ -1,0 +1,34 @@
+# Copyright 2018 Owkin, inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+dependencies:
+  - name: hlf-ca
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    version: ~1.1.7
+    alias: ca
+    condition: ca.enabled
+  - name: hlf-ord
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    version: ~1.2.5
+    condition: orderer.enabled
+    alias: orderer
+  - name: hlf-peer
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    version: ~1.2.9
+    condition: peer.enabled
+    alias: peer
+  - name: nginx-ingress
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    version: ~1.20.0
+    condition: nginx-ingress.enabled

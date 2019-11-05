@@ -1,17 +1,22 @@
+# Copyright 2018 Owkin, inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
-import glob
 import socket
 
 import time
-from shutil import copytree, copy2
 from subprocess import call, check_output
-
-
-def copy_last_file_ext(ext, src, dst):
-    files = glob.iglob(os.path.join(src, ext))
-    for file in files:
-        if os.path.isfile(file):
-            copy2(file, dst)
 
 
 def create_directory(directory):
@@ -37,7 +42,6 @@ def waitPort(what, secs, logFile, host, port):
 
             if int(time.time()) - starttime > secs:
                 print('Failed waiting for %(what)s; see %(logFile)s' % {'what': what, 'logFile': logFile}, flush=True)
-                break
 
             print('.', end='', flush=True)
 
@@ -52,52 +56,18 @@ def dowait(what, secs, logFile, files):
             if logit:
                 print('Waiting for %s ...\n' % what, flush=True)
                 logit = False
-            call(['sleep', '1'])
+
+            time.sleep(1)
+
             if int(time.time()) - starttime > secs:
                 print('Failed waiting for %(what)s; see %(logFile)s\n' % {'what': what, 'logFile': logFile}, flush=True)
-                break
+                return False
+
             print('.', end='', flush=True)
+
     print('')
 
-
-def removeIntermediateCerts(intermediatecerts_dir):
-    print('Delete intermediate certs in ' + intermediatecerts_dir, flush=True)
-    if os.path.exists(intermediatecerts_dir):
-        for file in os.listdir(intermediatecerts_dir):
-            file_path = os.path.join(intermediatecerts_dir, file)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-
-
-def completeMSPSetup(org_msp_dir):
-
-    src = org_msp_dir + '/cacerts/'
-    dst = org_msp_dir + '/tlscacerts'
-
-    if not os.path.exists(dst):
-        copytree(src, dst)
-
-    # intermediate cacert management
-    if os.path.exists(org_msp_dir + '/intermediatecerts'):
-        # no intermediate cert in this config, delete generated files for not seeing warning
-        removeIntermediateCerts(org_msp_dir + '/intermediatecerts/')
-
-        # uncomment if using intermediate certs
-        # copytree(org_msp_dir + '/intermediatecerts/', org_msp_dir + '/tlsintermediatecerts/')
-
-
-def genTLSCert(host_name, cert_file, key_file, ca_file, enrollment_url):
-    call(['fabric-ca-client',
-          'enroll', '-d',
-          '--enrollment.profile', 'tls',
-          '-u', enrollment_url,
-          '-M', '/tmp/tls',
-          '--csr.hosts', host_name])
-
-    copy2('/tmp/tls/signcerts/cert.pem', cert_file)
-    copy_last_file_ext('*_sk', '/tmp/tls/keystore/', key_file)
-    copy_last_file_ext('*.pem', '/tmp/tls/tlscacerts/', ca_file)
-    call(['rm', '-rf', '/tmp/tls'])
+    return True
 
 
 # Remove chaincode docker images
@@ -110,8 +80,11 @@ def remove_chaincode_docker_images():
 
 
 # Remove chaincode docker containers
-def remove_chaincode_docker_containers():
-    chaincodeContainers = check_output('docker ps -a | grep "dev-peer" | awk \'{print $1}\'', shell=True)
+def remove_chaincode_docker_containers(version=None):
+    if version is None:
+        chaincodeContainers = check_output('docker ps -a | grep "dev-peer" | awk \'{print $1}\'', shell=True)
+    else:
+        chaincodeContainers = check_output('docker ps -a | grep "dev-peer" | grep "%s"| awk \'{print $1}\'' % version, shell=True)
 
     if chaincodeContainers:
         print('Removing chaincode docker containers ...', flush=True)

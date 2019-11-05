@@ -1,0 +1,216 @@
+# Copyright 2018 Owkin, inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+image:
+  repository: substrafoundation/hlf-k8s
+  tag: latest
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+  pullSecretsInline: []
+
+dnsPolicy: ClusterFirst
+
+nginx-ingress:
+  enabled: false
+  controller:
+    extraArgs:
+      enable-ssl-passthrough: ""
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+systemChannel: systemchannel
+appChannel: mychannel
+
+organization:
+  id: MyOrganizationMSP
+  name: MyOrganization
+
+ca:
+  enabled: true
+  image:
+    tag: 1.4.2
+  caName: rca
+  adminUsername: caAdmin
+  adminPassword: caPassword
+
+  config:
+    hlfToolsVersion: 1.4.2
+    csr:
+      ca:
+        pathlength: 1
+      names:
+        c: FR
+        st: Loire-Atlantique
+        l: Nantes
+        o: Substra
+        ou: null
+    affiliations:
+      substra: [paris, nantes]
+
+  persistence:
+    enabled: false
+
+peer:
+  peer:
+    gossip:
+      bootstrap: "127.0.0.1:7051"
+    tls:
+      server:
+        enabled: "true"
+      client:
+        enabled: "true"
+
+  enabled: true
+  host: peer-hostname
+  port: 7051
+  image:
+    tag: 1.4.2
+  persistence:
+    enabled: false
+
+  secrets:
+    ## These secrets should contain the Orderer crypto materials and credentials
+    peer:
+      ## Certificate, saved under key 'cert.pem'
+      cert: hlf-idcert
+      ## Key, saved under 'key.pem'
+      key: hlf-idkey
+      ## CA Cert, saved under 'cacert.pem'
+      caCert: hlf-cacert
+      ## Intermediate CA Cert (optional), saved under 'intermediatecacert.pem'
+      # intCaCert: hlf--peer1-caintcert
+      ## TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
+      tls: hlf-tls
+      ## TLS root CA certificate saved under key 'cert.pem'
+      tlsRootCert: hlf-tlsrootcert
+      ## TLS client root CA certificates saved under any names (as there may be multiple)
+      tlsClient: hlf-client-tls
+      ## TLS client root CA certificates saved under any names (as there may be multiple)
+      tlsClientRootCert: hlf-client-tlsrootcert
+    ## This should contain the Certificate of the Peer Organisation admin
+    ## This is necessary to successfully run the peer
+    adminCert: hlf-admincert
+    ## This should contain the Private Key of the Peer Organisation admin
+    ## This is necessary to successfully join a channel
+    adminKey: hlf-adminkey
+    ## This should include the Orderer TLS 'cacert.pem'
+    ordTlsRootCert: ord-tls-rootcert
+
+orderer:
+  enabled: false
+  host: orderer-hostname
+  port: 7050
+  image:
+    tag: 1.4.2
+  persistence:
+    enabled: false
+  ord:
+    type: solo
+    mspID: MyOrdererMSP
+    tls:
+      server:
+        enabled: "true"
+      client:
+        enabled: "true"
+  secrets:
+    ## These secrets should contain the Orderer crypto materials and credentials
+    ord:
+      ## Certificate, saved under key 'cert.pem'
+      cert: hlf-idcert
+      ## Key, saved under 'key.pem'
+      key: hlf-idkey
+      ## CA Cert, saved under 'cacert.pem'
+      caCert: hlf-cacert
+      ## TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
+      tls: hlf-tls
+      ## TLS root CA certificate saved under key 'cert.pem'
+      tlsRootCert: hlf-tlsrootcert
+      ## TLS client root CA certificates saved under any names (as there may be multiple)
+      tlsClientRootCert: hlf-client-tlsrootcert
+    ## This should contain "genesis" block derived from a configtx.yaml
+    ## configtxgen -profile OrdererGenesis -outputBlock genesis.block
+    genesis: hlf-genesis
+    ## This should contain the Certificate of the Orderer Organisation admin
+    ## This is necessary to successfully run the orderer
+    adminCert: hlf-admincert
+
+fetchSecrets: []
+  # -
+  #   from: from-secret
+  #   to: to-secret
+  #   filename: secret-data-filename
+  #   namespace: default
+
+channels: []
+  # -
+  #   name: mychannel
+  #   create: true
+  #   join: true
+  #   extraOrgs:
+  #     - { name: MyPeer2, secret: peer-2-org-config-anchor }
+
+chaincodes: []
+  # -
+  #   name: mycc
+  #   version: "1.0"
+  #   src: https://github.com/SubstraFoundation/substra-chaincode/archive/0.0.2.tar.gz
+  #   instantiate: false
+  #   policy: OR('Org1MSP.member')"
+
+users:
+  admin:
+      username: admin
+      password: adminpwd
+  user:
+      username: user
+      password: pwd
+
+systemOrganizations: []
+# Here is an exemple of structure:
+#   - { name: MyPeer1, secret: peer-1-org-config }
+#   - { name: MyPeer2, secret: peer-2-org-config }
+
+# Secrets names
+secrets:
+  # Certificate, saved under key 'cert.pem'
+  cert: hlf-idcert
+  # Key, saved under 'key.pem'
+  key: hlf-idkey
+  # CA Cert, saved under 'cacert.pem'
+  caCert: hlf-cacert
+  # TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
+  tls: hlf-tls
+  # TLS root CA certificate saved under key 'cert.pem'
+  tlsRootCert: hlf-tlsrootcert
+  # TLS client root CA certificates saved under any names (as there may be multiple)
+  tlsClient: hlf-client-tls
+  # TLS client root CA certificates saved under any names (as there may be multiple)
+  tlsClientRootCerts: hlf-client-tlsrootcert
+  # This should contain "genesis" block derived from a configtx.yaml
+  # configtxgen -profile OrdererGenesis -outputBlock genesis.block
+  genesis: hlf-genesis
+  # This should contain the Certificate of the Peer Organisation admin
+  # This is necessary to successfully run the peer
+  adminCert: hlf-admincert
+  # This should contain the Private Key of the Peer Organisation admin
+  # This is necessary to successfully join a channel
+  adminKey: hlf-adminkey
+  # This should include the Orderer TLS 'cacert.pem'
+  ordTlsRootCert: ord-tls-rootcert
+  # This will include the organization config json file (peer only)
+  orgConfig: org-config
