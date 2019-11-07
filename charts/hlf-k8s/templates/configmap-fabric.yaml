@@ -185,6 +185,7 @@ data:
         enabled: false
         listenAddress: 0.0.0.0:6060
       tls:
+        enabled: 'true'
         cert:
           file: /var/hyperledger/tls/server/pair/tls.crt
         key:
@@ -196,7 +197,6 @@ data:
           file: /var/hyperledger/tls/client/pair/tls.key
         clientRootCAs:
         - /var/hyperledger/admin_msp/cacerts/cacert.pem
-        enabled: 'true'
         rootcert:
           file: /var/hyperledger/admin_msp/cacerts/cacert.pem
       validatorPoolSize: null

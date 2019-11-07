@@ -214,3 +214,5 @@ secrets:
   ordTlsRootCert: ord-tls-rootcert
   # This will include the organization config json file (peer only)
   orgConfig: org-config
+
+  ca: hlf-ca
