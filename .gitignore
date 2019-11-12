@@ -3,3 +3,4 @@
 docker-compose.yml
 docker-compose-dynamic.yaml
 docker-compose-dynamic-add.yaml
+.venv
