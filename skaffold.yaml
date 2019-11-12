@@ -58,6 +58,7 @@ deploy:
           image: substrafoundation/hlf-k8s
         setValues:
           nginx-ingress.enabled: true
+          nginx-ingress.controller.scope.enabled: true
           ca.caName: rcaPeer1
           peer.host: network-peer-1.peer-1
           organization.id: MyPeer1MSP
@@ -93,6 +94,7 @@ deploy:
           image: substrafoundation/hlf-k8s
         setValues:
           nginx-ingress.enabled: true
+          nginx-ingress.controller.scope.enabled: true
           ca.caName: rcaPeer2
           peer.host: network-peer-2.peer-2
           organization.id: MyPeer2MSP
