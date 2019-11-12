@@ -48,10 +48,16 @@ function installChaincode() {
     if [ $? -eq 0 ]; then
         echo "Chaincode already exists. Skipping."
     else
-      curl --header "Authorization: token $GITHUB_TOKEN" -L $CHAINCODE_SRC -o chaincode.tar.gz
-      tar xvzf chaincode.tar.gz
+      if [[ -z "${GITHUB_TOKEN}" ]]; then
+        curl -L $CHAINCODE_SRC -o chaincode.tar.gz
+      else
+        curl --header "Authorization: token $GITHUB_TOKEN" -L $CHAINCODE_SRC -o chaincode.tar.gz
+      fi
+
+      mkdir substra-chaincode
+      tar -C substra-chaincode -xvzf chaincode.tar.gz --strip-components=1
       mkdir -p /opt/gopath/src/github.com/hyperledger
-      mv substra-chaincode-$(basename $CHAINCODE_SRC .tar.gz)/chaincode /opt/gopath/src/chaincode
+      mv substra-chaincode/chaincode /opt/gopath/src/chaincode
       peer chaincode install -n $CHAINCODE_NAME -v $CHAINCODE_VERSION -p chaincode
     fi
 }
