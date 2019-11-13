@@ -7,7 +7,7 @@ Then simply launch your cluster using `minikube start` and configure helm with `
 
 ## Install the package
 ```
-helm install --name network owkin/hlf-k8s
+helm install --name network substra/hlf-k8s
 ```
 
 ### Cleanup

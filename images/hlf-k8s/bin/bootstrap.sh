@@ -77,10 +77,14 @@ function bootstrap() {
     kubectl exec $CA_POD_NAME -- bash -c "fabric-ca-client enroll -d --enrollment.profile tls -u http://$ADMIN_USERNAME:$ADMIN_PASSWORD@\$SERVICE_DNS:7054 -M $TLS_ADMIN_DIR --csr.hosts $CSR_HOSTS"
     kubectl exec $CA_POD_NAME -- bash -c "fabric-ca-client enroll -d --enrollment.profile tls -u http://$USER_USERNAME:$USER_PASSWORD@\$SERVICE_DNS:7054 -M $TLS_USER_DIR --csr.hosts $CSR_HOSTS"
 
+    kubectl cp $CA_POD_NAME:/var/hyperledger/fabric-ca/msp/certs/ /tmp/certs
+
     kubectl cp $CA_POD_NAME:$MSP_ADMIN_DIR /tmp/mspAdmin
     kubectl cp $CA_POD_NAME:$MSP_USER_DIR /tmp/mspUser
     kubectl cp $CA_POD_NAME:$TLS_ADMIN_DIR /tmp/tlsAdmin
     kubectl cp $CA_POD_NAME:$TLS_USER_DIR /tmp/tlsUser
+
+    mv /tmp/certs/*-cert.pem /tmp/certs/ca-cert.pem
 
     mv /tmp/mspAdmin/keystore/* /tmp/mspAdmin/keystore/key.pem
     mv /tmp/mspUser/keystore/* /tmp/mspUser/keystore/key.pem
@@ -88,6 +92,8 @@ function bootstrap() {
     mv /tmp/mspUser/cacerts/* /tmp/mspUser/cacerts/cacert.pem
     mv /tmp/tlsAdmin/tlscacerts/* /tmp/tlsAdmin/tlscacerts/cacert.pem
     mv /tmp/tlsUser/tlscacerts/* /tmp/tlsUser/tlscacerts/cacert.pem
+
+    kubectl create secret generic $SECRET_NAME_CA --from-file=/tmp/certs/ca-cert.pem
 
     kubectl create secret generic $SECRET_NAME_CERT --from-file=/tmp/mspUser/signcerts/cert.pem
     kubectl create secret generic $SECRET_NAME_KEY --from-file=/tmp/mspUser/keystore/key.pem
