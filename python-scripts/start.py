@@ -51,6 +51,7 @@ def remove_all_docker():
                 if services:
                     call(['docker', 'rm', '-f'] + services)
 
+            down_cmds.append(['docker-compose', '-f', docker_compose_path, 'kill'])
             down_cmds.append(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
 
     for cmd in down_cmds:
@@ -65,6 +66,7 @@ def remove_all_docker():
 def intern_stop(docker_compose):
     print('stopping container', flush=True)
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'True'
+    check_call(['docker-compose', '-f', docker_compose, '--project-directory', dir_path, 'kill'])
     check_call(['docker-compose', '-f', docker_compose, '--project-directory', dir_path, 'down'])
     os.environ['COMPOSE_IGNORE_ORPHANS'] = 'False'
 
