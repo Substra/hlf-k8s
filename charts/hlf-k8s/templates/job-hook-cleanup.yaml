@@ -61,7 +61,7 @@ spec:
           - {{ .Values.secrets.ordTlsRootCert }}
           - {{ .Values.secrets.orgConfig }}
           - {{ .Values.secrets.orgConfig }}-anchor
-          - {{ .Values.secrets.genesis }}
+          # - {{ .Values.secrets.genesis }}
           - {{ .Values.secrets.adminKey }}
           {{- range .Values.fetchSecrets }}
           - {{ .to }}

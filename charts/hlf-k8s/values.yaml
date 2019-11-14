@@ -127,6 +127,12 @@ orderer:
         enabled: "true"
       client:
         enabled: "true"
+    genesis:
+      generate:
+        enabled: true
+        profile: OrgsOrdererGenesis
+        channelID: systemchannel
+        configMap: hlf-k8s-fabric
   secrets:
     ## These secrets should contain the Orderer crypto materials and credentials
     ord:
