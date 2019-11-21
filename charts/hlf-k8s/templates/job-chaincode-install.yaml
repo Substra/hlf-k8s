@@ -47,7 +47,11 @@ spec:
         args:
           - {{ .name | quote }}
           - {{ .version | quote }}
+          {{- if .srcPath }}
+          - {{ .srcPath | quote}}
+          {{- else }}
           - {{ .src | quote}}
+          {{- end }}
         env:
         - name: CORE_PEER_MSPCONFIGPATH
           value: /var/hyperledger/admin_msp
@@ -89,6 +93,10 @@ spec:
           name: cacert
         - mountPath: /var/hyperledger/admin_msp/admincerts
           name: admin-cert
+        {{- if .srcPath }}
+        - mountPath: {{ .srcPath }}
+          name: chaincode-local-src
+        {{- end }}
       volumes:
       - name: fabric-config
         configMap:
@@ -123,6 +131,11 @@ spec:
       - name: ord-tls-rootcert
         secret:
           secretName: {{ $.Values.secrets.ordTlsRootCert }}
+      {{- if .srcPath }}
+      - name: chaincode-local-src
+        hostPath:
+          path: {{ .srcPath }}
+      {{- end }}
     {{- with $.Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
