@@ -68,6 +68,7 @@ deploy:
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
           chaincodes[0].policy: OR("MyOrg1MSP.member"\,"MyOrg2MSP.member")
+          # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/dev.tar.gz
           channels[0].name: mychannel
           channels[0].create: true
@@ -102,6 +103,7 @@ deploy:
           peer.peer.mspID: MyOrg2MSP
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
+          # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/dev.tar.gz
           channels[0].name: mychannel
           channels[0].join: true
