@@ -47,11 +47,7 @@ spec:
         args:
           - {{ .name | quote }}
           - {{ .version | quote }}
-          {{- if .srcPath }}
-          - {{ .srcPath | quote}}
-          {{- else }}
           - {{ .src | quote}}
-          {{- end }}
         env:
         - name: CORE_PEER_MSPCONFIGPATH
           value: /var/hyperledger/admin_msp
@@ -93,8 +89,8 @@ spec:
           name: cacert
         - mountPath: /var/hyperledger/admin_msp/admincerts
           name: admin-cert
-        {{- if .srcPath }}
-        - mountPath: {{ .srcPath }}
+        {{- if ne "http" (regexFind "^http" .src) }}
+        - mountPath: {{ .src }}
           name: chaincode-local-src
         {{- end }}
       volumes:
@@ -131,10 +127,10 @@ spec:
       - name: ord-tls-rootcert
         secret:
           secretName: {{ $.Values.secrets.ordTlsRootCert }}
-      {{- if .srcPath }}
+      {{- if ne "http" (regexFind "^http" .src) }}
       - name: chaincode-local-src
         hostPath:
-          path: {{ .srcPath }}
+          path: {{ .src }}
       {{- end }}
     {{- with $.Values.nodeSelector }}
       nodeSelector:

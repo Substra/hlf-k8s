@@ -109,18 +109,9 @@ then head to `http://localhost/`
 
 By default, the `skaffold dev` command will start a substra network that uses the default [susbtra-chaincode](https://github.com/SubstraFoundation/substra-chaincode).
 
-If you want to use a custom chaincode locally, follow these steps:
-
-1. Make a `tar.gz` archive of your chaincode accessible from the substra network. The easiest way is to use Github:
-   - Push your local, custom branch of [susbtra-chaincode](https://github.com/SubstraFoundation/substra-chaincode) to a fork on your github account, e.g. https://github.com/my-github-account/substra-chaincode/my-branch
-     - /!\ The branch name cannot contain the `/` character (that's a Hyperledger Fabric limitation)
-   - The archive will now be available on https://github.com/my-github-account/substra-chaincode/archive/my-branch.tar.gz
-2. In [`skaffold.yaml`](./skaffold.yaml), update the chaincode `src`:
-   - `deploy.helm.realease.name[network-peer-1].setValues.chaincodes[0].src`: should point to https://github.com/my-github-account/substra-chaincode/archive/my-branch.tar.gz
-   - `deploy.helm.realease.name[network-peer-2].setValues.chaincodes[0].src`: same thing
-3. Start the network: `skaffold dev`. 
-   
-This substra network will use your custom chaincode.
+To use a custom chaincode locally, change the `chaincodes.src` values in [`skaffold.yaml`](./skaffold.yaml) to point to your local clone of the [susbtra-chaincode](https://github.com/SubstraFoundation/substra-chaincode), e.g.
+ - `deploy.helm.realease.name[network-peer-1].setValues.chaincodes[0].src: /home/johndoe/code/substra-chaincode`
+ - `deploy.helm.realease.name[network-peer-2].setValues.chaincodes[0].src: /home/johndoe/code/substra-chaincode`
 
 ## substra-backend
 
