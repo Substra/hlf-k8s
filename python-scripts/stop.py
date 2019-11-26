@@ -31,6 +31,7 @@ def stop():
     docker_compose_paths = glob.glob(os.path.join(SUBSTRA_PATH, 'dockerfiles/*.yaml'))
 
     for docker_compose_path in docker_compose_paths:
+        call(['docker-compose', '-f', docker_compose_path, 'kill'])
         call(['docker-compose', '-f', docker_compose_path, 'down', '--remove-orphans'])
 
 
