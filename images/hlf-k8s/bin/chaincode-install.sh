@@ -20,7 +20,7 @@ help() {
     echo "Arguments:"
     echo -e "\t- CHAINCODE_NAME Chaincode name (required)"
     echo -e "\t- CHAINCODE_VERSION Chaincode version (required)"
-    echo -e "\t- CHAINCODE_SRC Chaincode release archive url (required)"
+    echo -e "\t- CHAINCODE_SRC Chaincode source code absolute path or archive URL (tar.gz) (required)"
     echo ""
     echo "Options:"
     echo -e "-h Help!"
@@ -48,16 +48,26 @@ function installChaincode() {
     if [ $? -eq 0 ]; then
         echo "Chaincode already exists. Skipping."
     else
-      if [[ -z "${GITHUB_TOKEN}" ]]; then
-        curl -L $CHAINCODE_SRC -o chaincode.tar.gz
+      if [[ $CHAINCODE_SRC == http* ]];
+      then
+        echo "Installing chaincode from URL \"$CHAINCODE_SRC\"..."
+        if [[ -z "${GITHUB_TOKEN}" ]]; then
+          curl -L $CHAINCODE_SRC -o chaincode.tar.gz
+        else
+          curl --header "Authorization: token $GITHUB_TOKEN" -L $CHAINCODE_SRC -o chaincode.tar.gz
+        fi
+
+        mkdir substra-chaincode
+        tar -C substra-chaincode -xvzf chaincode.tar.gz --strip-components=1
+        mkdir -p /opt/gopath/src/github.com/hyperledger
+        mv substra-chaincode/chaincode /opt/gopath/src/chaincode
       else
-        curl --header "Authorization: token $GITHUB_TOKEN" -L $CHAINCODE_SRC -o chaincode.tar.gz
+        echo "Installing chaincode from path \"$CHAINCODE_SRC\"..."
+        mkdir -p /opt/gopath/src/chaincode
+        cp -R $CHAINCODE_SRC/chaincode/* /opt/gopath/src/chaincode
+        [[ $? -ne 0 ]] && echo "Error. Exiting." && exit 1
       fi
 
-      mkdir substra-chaincode
-      tar -C substra-chaincode -xvzf chaincode.tar.gz --strip-components=1
-      mkdir -p /opt/gopath/src/github.com/hyperledger
-      mv substra-chaincode/chaincode /opt/gopath/src/chaincode
       peer chaincode install -n $CHAINCODE_NAME -v $CHAINCODE_VERSION -p chaincode
     fi
 }
