@@ -113,7 +113,10 @@ To use a custom chaincode locally, change the `chaincodes.src` values in [`skaff
  - `deploy.helm.realease.name[network-peer-1].setValues.chaincodes[0].src: /home/johndoe/code/substra-chaincode`
  - `deploy.helm.realease.name[network-peer-2].setValues.chaincodes[0].src: /home/johndoe/code/substra-chaincode`
 
-The chaincode path must be accessible from your kubernetes cluster. For instance, on a running minikube, you need to run `nohup minikube mount <chaincode-absolute-path>:<chaincode-absolute-path> &`.
+The chaincode path must be accessible from your kubernetes cluster:
+
+- On Docker for Mac, go to Settings > File Sharing and make sure the chaincode folder is included in the mounted folders
+- On a running minikube instance, run `nohup minikube mount <chaincode-absolute-path>:<chaincode-absolute-path> &`
 
 ## substra-backend
 
