@@ -97,11 +97,11 @@ peer:
       ## TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
       tls: hlf-tls
       ## TLS root CA certificate saved under key 'cert.pem'
-      tlsRootCert: hlf-tlsrootcert
+      tlsRootCert: hlf-cacert
       ## TLS client root CA certificates saved under any names (as there may be multiple)
       tlsClient: hlf-client-tls
       ## TLS client root CA certificates saved under any names (as there may be multiple)
-      tlsClientRootCert: hlf-client-tlsrootcert
+      tlsClientRootCert: hlf-cacert
     ## This should contain the Certificate of the Peer Organisation admin
     ## This is necessary to successfully run the peer
     adminCert: hlf-admincert
@@ -139,9 +139,9 @@ orderer:
       ## TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
       tls: hlf-tls
       ## TLS root CA certificate saved under key 'cert.pem'
-      tlsRootCert: hlf-tlsrootcert
+      tlsRootCert: hlf-cacert
       ## TLS client root CA certificates saved under any names (as there may be multiple)
-      tlsClientRootCert: hlf-client-tlsrootcert
+      tlsClientRootCert: hlf-cacert
     ## This should contain "genesis" block derived from a configtx.yaml
     ## configtxgen -profile OrdererGenesis -outputBlock genesis.block
     genesis: hlf-genesis
@@ -201,12 +201,8 @@ secrets:
   caCert: hlf-cacert
   # TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
   tls: hlf-tls
-  # TLS root CA certificate saved under key 'cert.pem'
-  tlsRootCert: hlf-tlsrootcert
   # TLS client root CA certificates saved under any names (as there may be multiple)
   tlsClient: hlf-client-tls
-  # TLS client root CA certificates saved under any names (as there may be multiple)
-  tlsClientRootCerts: hlf-client-tlsrootcert
   # This should contain "genesis" block derived from a configtx.yaml
   # configtxgen -profile OrdererGenesis -outputBlock genesis.block
   genesis: hlf-genesis
@@ -220,5 +216,3 @@ secrets:
   ordTlsRootCert: ord-tls-rootcert
   # This will include the organization config json file (peer only)
   orgConfig: org-config
-
-  ca: hlf-ca

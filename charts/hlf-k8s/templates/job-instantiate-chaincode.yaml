@@ -75,11 +75,11 @@ spec:
         - mountPath: /var/hyperledger/tls/server/pair
           name: tls
         - mountPath: /var/hyperledger/tls/server/cert
-          name: tls-rootcert
+          name: cacert
         - mountPath: /var/hyperledger/tls/client/pair
           name: tls-client
         - mountPath: /var/hyperledger/tls/client/cert
-          name: tls-clientrootcert
+          name: cacert
         - mountPath: /var/hyperledger/tls/ord/cert
           name: ord-tls-rootcert
         - mountPath: /var/hyperledger/admin_msp/signcerts
@@ -108,15 +108,9 @@ spec:
       - name: tls
         secret:
           secretName: {{ $.Values.secrets.tls }}
-      - name: tls-rootcert
-        secret:
-          secretName: {{ $.Values.secrets.tlsRootCert }}
       - name: tls-client
         secret:
           secretName: {{ $.Values.secrets.tlsClient }}
-      - name: tls-clientrootcert
-        secret:
-          secretName: {{ $.Values.secrets.tlsClientRootCerts }}
       - name: admin-cert
         secret:
           secretName: {{ $.Values.secrets.adminCert }}

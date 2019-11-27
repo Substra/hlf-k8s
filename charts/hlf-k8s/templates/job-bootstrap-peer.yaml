@@ -58,11 +58,8 @@ spec:
             - { name: SECRET_NAME_CACERT, value: {{ .Values.secrets.caCert }} }
             - { name: SECRET_NAME_TLS_SERVER, value: {{ .Values.secrets.tls }} }
             - { name: SECRET_NAME_TLS_CLIENT, value: {{ .Values.secrets.tlsClient }} }
-            - { name: SECRET_NAME_TLS_SERVER_ROOT, value: {{ .Values.secrets.tlsRootCert }} }
-            - { name: SECRET_NAME_TLS_CLIENT_ROOT, value: {{ .Values.secrets.tlsClientRootCerts }} }
             - { name: SECRET_NAME_TLS_ORD_ROOT, value: {{ .Values.secrets.ordTlsRootCert }} }
             - { name: SECRET_NAME_ADMIN_CERT, value: {{ .Values.secrets.adminCert }} }
             - { name: SECRET_NAME_ADMIN_KEY, value: {{ .Values.secrets.adminKey }} }
-            - { name: SECRET_NAME_CA, value: {{ .Values.secrets.ca }} }
             - { name: GODEBUG, value: "netdns=go+1" }
 {{- end }}

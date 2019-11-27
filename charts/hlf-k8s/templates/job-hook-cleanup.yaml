@@ -48,14 +48,11 @@ spec:
         args:
           - delete
           - secrets
-          - {{ .Values.secrets.ca }}
           - {{ .Values.secrets.cert }}
           - {{ .Values.secrets.key }}
           - {{ .Values.secrets.caCert }}
           - {{ .Values.secrets.tls }}
           - {{ .Values.secrets.tlsClient }}
-          - {{ .Values.secrets.tlsRootCert }}
-          - {{ .Values.secrets.tlsClientRootCerts }}
           - {{ .Values.secrets.adminCert }}
           - {{ .Values.secrets.adminKey }}
           - {{ .Values.secrets.ordTlsRootCert }}
