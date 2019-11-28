@@ -199,7 +199,7 @@ def substra_network(org):
             substra_org(org, orderer)
             # substra-backend
             create_directory(f"{SUBSTRA_PATH}/dryrun/{org['name']}")
-            create_substra_backend_config(org, orderer)
+            create_substra_backend_config(org)
 
 
 if __name__ == '__main__':

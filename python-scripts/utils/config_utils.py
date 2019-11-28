@@ -228,7 +228,7 @@ def create_orderer_config(orderer_conf, metrics='prometheus'):
         create_core_config(org, orderer)
 
 
-def create_substra_backend_config(org, orderer_conf):
+def create_substra_backend_config(org):
 
     dir_path = f"{SUBSTRA_PATH}/conf/{org['name']}/substra-backend"
     create_directory(dir_path)
@@ -236,16 +236,12 @@ def create_substra_backend_config(org, orderer_conf):
     peer = org['peers'][0]
     peer_core = f'{SUBSTRA_PATH}/conf/{org["name"]}/{peer["name"]}'
 
-    orderer = orderer_conf['orderers'][0]
-
     tls_peer_client_dir = peer['tls']['dir']['external'] + '/' + peer['tls']['client']['dir']
-    tls_orderer_client_dir = orderer['tls']['dir']['external'] + '/' + orderer['tls']['client']['dir']
 
     filename = f"{SUBSTRA_PATH}/conf/{org['name']}/substra-backend/conf.json"
 
     res = {
         'name': org['name'],
-        'signcert': org['users']['user']['home'] + '/msp/signcerts/cert.pem',
         'core_peer_mspconfigpath': org['users']['user']['home'] + '/msp',
         'channel_name': org['misc']['channel_name'],
         'chaincode_name': org['misc']['chaincode_name'],
@@ -269,16 +265,6 @@ def create_substra_backend_config(org, orderer_conf):
             'grpcOptions': {
                 'grpc-max-send-message-length': 15,
                 'grpc.ssl_target_name_override': peer['host']
-            }
-        },
-        'orderer': {
-            'name': orderer['name'],
-            'host': orderer['host'],
-            'port': orderer['port']['external'],
-            'ca': tls_orderer_client_dir + '/' + orderer['tls']['client']['ca'],
-            'grpcOptions': {
-                'grpc-max-send-message-length': 15,
-                'grpc.ssl_target_name_override': orderer['host']
             }
         }
     }
