@@ -70,7 +70,7 @@ deploy:
           chaincodes[0].policy: OR("MyOrg1MSP.member"\,"MyOrg2MSP.member")
           # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
           #       This path must be accessible to kubernetes. See README for details.
-          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/dev.tar.gz
+          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           channels[0].name: mychannel
           channels[0].create: true
           channels[0].join: true
@@ -106,7 +106,7 @@ deploy:
           chaincodes[0].version: "1.0"
           # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
           #       This path folder must be accessible to kubernetes. See README for details.
-          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/dev.tar.gz
+          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           channels[0].name: mychannel
           channels[0].join: true
           orderer.host: network-orderer.orderer
