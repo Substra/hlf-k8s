@@ -69,6 +69,7 @@ function bootstrap() {
     TLS_ADMIN_DIR=$TMP_DIR/tlsAdmin
     TLS_USER_DIR=$TMP_DIR/tlsUser
 
+    # Generate certificates/keys
     kubectl exec $CA_POD_NAME -- bash -c "fabric-ca-client enroll -d -u http://\$CA_ADMIN:\$CA_PASSWORD@\$SERVICE_DNS:7054"
     kubectl exec $CA_POD_NAME -- bash -c "fabric-ca-client register -d -u http://\$CA_ADMIN:\$CA_PASSWORD@\$SERVICE_DNS:7054 --id.name $ADMIN_USERNAME --id.secret $ADMIN_PASSWORD --id.attrs \"$ADMIN_ATTRS\""
     kubectl exec $CA_POD_NAME -- bash -c "fabric-ca-client register -d -u http://\$CA_ADMIN:\$CA_PASSWORD@\$SERVICE_DNS:7054 --id.name $USER_USERNAME --id.secret $USER_PASSWORD --id.type $USER_TYPE"
@@ -77,24 +78,19 @@ function bootstrap() {
     kubectl exec $CA_POD_NAME -- bash -c "fabric-ca-client enroll -d --enrollment.profile tls -u http://$ADMIN_USERNAME:$ADMIN_PASSWORD@\$SERVICE_DNS:7054 -M $TLS_ADMIN_DIR --csr.hosts $CSR_HOSTS"
     kubectl exec $CA_POD_NAME -- bash -c "fabric-ca-client enroll -d --enrollment.profile tls -u http://$USER_USERNAME:$USER_PASSWORD@\$SERVICE_DNS:7054 -M $TLS_USER_DIR --csr.hosts $CSR_HOSTS"
 
-    kubectl cp $CA_POD_NAME:/var/hyperledger/fabric-ca/msp/certs/ /tmp/certs
-
+    # Fetch certificates/keys from CA pod
     kubectl cp $CA_POD_NAME:$MSP_ADMIN_DIR /tmp/mspAdmin
     kubectl cp $CA_POD_NAME:$MSP_USER_DIR /tmp/mspUser
     kubectl cp $CA_POD_NAME:$TLS_ADMIN_DIR /tmp/tlsAdmin
     kubectl cp $CA_POD_NAME:$TLS_USER_DIR /tmp/tlsUser
 
-    mv /tmp/certs/*-cert.pem /tmp/certs/ca-cert.pem
-
+    # Normalize file names
     mv /tmp/mspAdmin/keystore/* /tmp/mspAdmin/keystore/key.pem
     mv /tmp/mspUser/keystore/* /tmp/mspUser/keystore/key.pem
-    mv /tmp/mspAdmin/cacerts/* /tmp/mspAdmin/cacerts/cacert.pem
-    mv /tmp/mspUser/cacerts/* /tmp/mspUser/cacerts/cacert.pem
     mv /tmp/tlsAdmin/tlscacerts/* /tmp/tlsAdmin/tlscacerts/cacert.pem
     mv /tmp/tlsUser/tlscacerts/* /tmp/tlsUser/tlscacerts/cacert.pem
 
-    kubectl create secret generic $SECRET_NAME_CA --from-file=/tmp/certs/ca-cert.pem
-
+    # Create secrets
     kubectl create secret generic $SECRET_NAME_CERT --from-file=/tmp/mspUser/signcerts/cert.pem
     kubectl create secret generic $SECRET_NAME_KEY --from-file=/tmp/mspUser/keystore/key.pem
     kubectl create secret generic $SECRET_NAME_CACERT --from-file=/tmp/mspUser/cacerts/cacert.pem
