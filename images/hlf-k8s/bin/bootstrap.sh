@@ -106,7 +106,7 @@ function bootstrap() {
     kubectl create secret generic $SECRET_NAME_ADMIN_KEY --from-file=/tmp/mspAdmin/keystore/key.pem
 
     if [ "$USER_TYPE" == "orderer" ]; then
-        kubectl create secret generic $SECRET_NAME_TLS_ORD_ROOT --from-file=/tmp/tlsAdmin/tlscacerts/cacert.pem
+        kubectl create secret generic $SECRET_NAME_TLS_ORD_ROOT --from-file=/tmp/tlsUser/tlscacerts/cacert.pem
     fi
 }
 
