@@ -134,7 +134,7 @@ spec:
           secretName: {{ $.Values.secrets.adminKey }}
       - name: ord-tls-rootcert
         secret:
-          secretName: {{ $.Values.secrets.tlsRootCert }}
+          secretName: {{ $.Values.secrets.ordTlsRootCert }}
     {{- with $.Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

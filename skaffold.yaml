@@ -78,7 +78,7 @@ deploy:
           channels[0].extraOrgs[0].secret: org-2-org-config-anchor
           orderer.host: network-orderer.orderer
           peer.peer.gossip.externalEndpoint: network-org-1-peer-1.org-1:7051  # {name}.{namespace}:{port}
-          fetchSecrets[0].from: hlf-client-tlsrootcert
+          fetchSecrets[0].from: ord-tls-rootcert
           fetchSecrets[0].to: ord-tls-rootcert
           fetchSecrets[0].filename: cacert.pem
           fetchSecrets[0].namespace: orderer
@@ -111,7 +111,7 @@ deploy:
           channels[0].join: true
           orderer.host: network-orderer.orderer
           peer.peer.gossip.externalEndpoint: network-org-2-peer-1.org-2:7051  # {name}.{namespace}:{port}
-          fetchSecrets[0].from: hlf-client-tlsrootcert
+          fetchSecrets[0].from: ord-tls-rootcert
           fetchSecrets[0].to: ord-tls-rootcert
           fetchSecrets[0].filename: cacert.pem
           fetchSecrets[0].namespace: orderer
