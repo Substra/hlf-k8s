@@ -53,8 +53,6 @@ spec:
           value: /var/hyperledger/admin_msp
         - name: GODEBUG
           value: "netdns=go+1"
-        - name: GITHUB_TOKEN
-          value: 82943306e1c1408d3b4a78e33bfbac58ca4b798a
         volumeMounts:
         - mountPath: /etc/hyperledger/fabric
           name: fabric-config
