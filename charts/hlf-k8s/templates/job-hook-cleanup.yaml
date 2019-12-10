@@ -48,6 +48,7 @@ spec:
         args:
           - delete
           - secrets
+          - {{ .Values.secrets.ca }}
           - {{ .Values.secrets.cert }}
           - {{ .Values.secrets.key }}
           - {{ .Values.secrets.caCert }}

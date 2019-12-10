@@ -40,71 +40,77 @@ deploy:
           organization.id: MyOrdererMSP
           organization.name: MyOrderer
           orderer.enabled: true
-          systemOrganizations[0].name: MyPeer1
-          systemOrganizations[0].secret: peer-1-org-config
-          orderer.host: network-orderer.orderer
+          systemOrganizations[0].name: MyOrg1
+          systemOrganizations[0].secret: org-1-org-config
+          orderer.host: network-orderer.orderer  # {name}.{namespace}
           orderer.ord.mspID: MyOrdererMSP
           fetchSecrets[0].from: org-config
-          fetchSecrets[0].to: peer-1-org-config
+          fetchSecrets[0].to: org-1-org-config
           fetchSecrets[0].filename: configOrg.json
-          fetchSecrets[0].namespace: peer-1
+          fetchSecrets[0].namespace: org-1
 
-      - name: network-peer-1
+      - name: network-org-1-peer-1
         chartPath: charts/hlf-k8s
-        namespace: peer-1
+        namespace: org-1
         imageStrategy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
         setValues:
           nginx-ingress.enabled: true
-          ca.caName: rcaPeer1
-          peer.host: network-peer-1.peer-1
-          organization.id: MyPeer1MSP
-          organization.name: MyPeer1
-          peer.peer.mspID: MyPeer1MSP
+          nginx-ingress.controller.scope.enabled: true
+          ca.caName: rcaOrg1
+          peer.host: network-org-1-peer-1.org-1  # {name}.{namespace}
+          organization.id: MyOrg1MSP
+          organization.name: MyOrg1
+          peer.peer.mspID: MyOrg1MSP
           chaincodes[0].instantiate: true
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
-          chaincodes[0].policy: OR("MyPeer1MSP.member"\,"MyPeer2MSP.member")
-          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/dev.tar.gz
+          chaincodes[0].policy: OR("MyOrg1MSP.member"\,"MyOrg2MSP.member")
+          # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
+          #       This path must be accessible to kubernetes. See README for details.
+          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           channels[0].name: mychannel
           channels[0].create: true
           channels[0].join: true
-          channels[0].extraOrgs[0].name: MyPeer2
-          channels[0].extraOrgs[0].secret: peer-2-org-config-anchor
+          channels[0].extraOrgs[0].name: MyOrg2
+          channels[0].extraOrgs[0].secret: org-2-org-config-anchor
           orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-peer-1.peer-1:7051
+          peer.peer.gossip.externalEndpoint: network-org-1-peer-1.org-1:7051  # {name}.{namespace}:{port}
           fetchSecrets[0].from: hlf-client-tlsrootcert
           fetchSecrets[0].to: ord-tls-rootcert
           fetchSecrets[0].filename: cacert.pem
           fetchSecrets[0].namespace: orderer
           fetchSecrets[1].from: org-config-anchor
-          fetchSecrets[1].to: peer-2-org-config-anchor
+          fetchSecrets[1].to: org-2-org-config-anchor
           fetchSecrets[1].filename: configOrgWithAnchors.json
-          fetchSecrets[1].namespace: peer-2
+          fetchSecrets[1].namespace: org-2
 
-      - name: network-peer-2
+      - name: network-org-2-peer-1
         chartPath: charts/hlf-k8s
-        namespace: peer-2
+        namespace: org-2
         imageStrategy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
         setValues:
           nginx-ingress.enabled: true
-          ca.caName: rcaPeer2
-          peer.host: network-peer-2.peer-2
-          organization.id: MyPeer2MSP
-          organization.name: MyPeer2
-          peer.peer.mspID: MyPeer2MSP
+          nginx-ingress.controller.scope.enabled: true
+          ca.caName: rcaOrg2
+          peer.host: network-org-2-peer-1.org-2  # {name}.{namespace}
+          organization.id: MyOrg2MSP
+          organization.name: MyOrg2
+          peer.peer.mspID: MyOrg2MSP
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
-          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/dev.tar.gz
+          # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
+          #       This path folder must be accessible to kubernetes. See README for details.
+          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           channels[0].name: mychannel
           channels[0].join: true
           orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-peer-2.peer-2:7051
+          peer.peer.gossip.externalEndpoint: network-org-2-peer-1.org-2:7051  # {name}.{namespace}:{port}
           fetchSecrets[0].from: hlf-client-tlsrootcert
           fetchSecrets[0].to: ord-tls-rootcert
           fetchSecrets[0].filename: cacert.pem

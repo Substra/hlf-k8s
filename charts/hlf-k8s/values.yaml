@@ -168,6 +168,12 @@ chaincodes: []
   # -
   #   name: mycc
   #   version: "1.0"
+  ##  The chaincode source code. It can be either:
+  ##  - The absolute path to the source code on your local machine. (Note for minikube users: 
+  ##    this path must be mounted in minikube, see https://stackoverflow.com/a/53251666/1370722)
+  ##  - The URL of a tar gzipped archive of the chaincode source code, accessible from the 
+  ##    internet. /!\ The archive name cannot contain the `/` character.
+  #   src: /home/johndoe/code/susbtra-chaincode
   #   src: https://github.com/SubstraFoundation/substra-chaincode/archive/0.0.2.tar.gz
   #   instantiate: false
   #   policy: OR('Org1MSP.member')"
@@ -214,3 +220,5 @@ secrets:
   ordTlsRootCert: ord-tls-rootcert
   # This will include the organization config json file (peer only)
   orgConfig: org-config
+
+  ca: hlf-ca
