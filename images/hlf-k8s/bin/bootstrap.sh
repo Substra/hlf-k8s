@@ -93,7 +93,7 @@ function bootstrap() {
     # Create secrets
     kubectl create secret generic $SECRET_NAME_CERT --from-file=/tmp/mspUser/signcerts/cert.pem
     kubectl create secret generic $SECRET_NAME_KEY --from-file=/tmp/mspUser/keystore/key.pem
-    kubectl create secret generic $SECRET_NAME_CACERT --from-file=/tmp/mspUser/cacerts/cacert.pem
+    kubectl create secret generic $SECRET_NAME_CACERT --from-file=/tmp/certs/cacert.pem
     kubectl create secret tls $SECRET_NAME_TLS_SERVER --key $(find /tmp/tlsAdmin/keystore -type f) --cert /tmp/tlsAdmin/signcerts/cert.pem
     kubectl create secret tls $SECRET_NAME_TLS_CLIENT --key $(find /tmp/tlsUser/keystore -type f) --cert /tmp/tlsUser/signcerts/cert.pem
     kubectl create secret generic $SECRET_NAME_TLS_SERVER_ROOT --from-file=/tmp/tlsAdmin/tlscacerts/cacert.pem
