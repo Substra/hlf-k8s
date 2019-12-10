@@ -79,12 +79,14 @@ function bootstrap() {
     kubectl exec $CA_POD_NAME -- bash -c "fabric-ca-client enroll -d --enrollment.profile tls -u http://$USER_USERNAME:$USER_PASSWORD@\$SERVICE_DNS:7054 -M $TLS_USER_DIR --csr.hosts $CSR_HOSTS"
 
     # Fetch certificates/keys from CA pod
+    kubectl cp $CA_POD_NAME:/var/hyperledger/fabric-ca/msp/certs/ /tmp/certs
     kubectl cp $CA_POD_NAME:$MSP_ADMIN_DIR /tmp/mspAdmin
     kubectl cp $CA_POD_NAME:$MSP_USER_DIR /tmp/mspUser
     kubectl cp $CA_POD_NAME:$TLS_ADMIN_DIR /tmp/tlsAdmin
     kubectl cp $CA_POD_NAME:$TLS_USER_DIR /tmp/tlsUser
 
     # Normalize file names
+    mv /tmp/certs/*-cert.pem /tmp/certs/cacert.pem
     mv /tmp/mspAdmin/keystore/* /tmp/mspAdmin/keystore/key.pem
     mv /tmp/mspUser/keystore/* /tmp/mspUser/keystore/key.pem
     mv /tmp/tlsAdmin/tlscacerts/* /tmp/tlsAdmin/tlscacerts/cacert.pem
