@@ -44,7 +44,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["bootstrap.sh"]
           args:
-            - "app=ca,release={{ .Release.Name }}"
+            - "app={{ .Values.ca.appSelector }},release={{ .Release.Name }}"
             - {{ .Values.users.admin.username | quote }}
             - {{ .Values.users.admin.password | quote }}
             - "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"

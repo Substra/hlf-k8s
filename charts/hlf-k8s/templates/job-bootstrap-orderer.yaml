@@ -46,7 +46,7 @@ spec:
           args:
             - |
               bootstrap.sh \
-                "app=ca,release={{ .Release.Name }}" \
+                "app={{ .Values.ca.appSelector }},release={{ .Release.Name }}" \
                 {{ .Values.users.admin.username | quote }} \
                 {{ .Values.users.admin.password | quote }} \
                 "admin=true:ecert" \
