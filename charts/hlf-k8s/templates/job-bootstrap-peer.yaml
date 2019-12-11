@@ -63,6 +63,5 @@ spec:
             - { name: SECRET_NAME_TLS_ORD_ROOT, value: {{ .Values.secrets.ordTlsRootCert }} }
             - { name: SECRET_NAME_ADMIN_CERT, value: {{ .Values.secrets.adminCert }} }
             - { name: SECRET_NAME_ADMIN_KEY, value: {{ .Values.secrets.adminKey }} }
-            - { name: SECRET_NAME_CA, value: {{ .Values.secrets.ca }} }
             - { name: GODEBUG, value: "netdns=go+1" }
 {{- end }}
