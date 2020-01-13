@@ -19,7 +19,7 @@ version: 1.0.0-alpha.11
 description: Tolling package for Substra that configure the network
 icon: https://avatars1.githubusercontent.com/u/38098422?s=200&v=4
 sources:
-  - https://github.com/SubstraFoudation/hlf-k8s
+  - https://github.com/SubstraFoundation/hlf-k8s
 maintainers:
   - name: ClementGautier
     email: clement@gautier.im
