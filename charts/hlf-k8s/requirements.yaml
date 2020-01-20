@@ -30,5 +30,5 @@ dependencies:
     alias: peer
   - name: nginx-ingress
     repository: https://kubernetes-charts.storage.googleapis.com/
-    version: ~1.20.0
+    version: ~1.29.2
     condition: nginx-ingress.enabled
