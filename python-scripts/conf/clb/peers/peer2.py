@@ -29,7 +29,7 @@ peer2 = {
         'prometheus': {
             'port': {
                 'internal': 9443,
-                'external': 14443
+                'external': 15443
             }
         },
         'statsd': {
