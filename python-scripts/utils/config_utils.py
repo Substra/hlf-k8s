@@ -263,8 +263,9 @@ def create_substra_backend_config(org):
             'clientCert': tls_peer_client_dir + '/' + peer['tls']['client']['cert'],
             'clientKey': tls_peer_client_dir + '/' + peer['tls']['client']['key'],
             'grpcOptions': {
-                'grpc-max-send-message-length': 15,
-                'grpc.ssl_target_name_override': peer['host']
+                'grpc.ssl_target_name_override': peer['host'],
+                'grpc.max_send_message_length': -1,
+                'grpc.max_receive_message_length': -1
             }
         }
     }
