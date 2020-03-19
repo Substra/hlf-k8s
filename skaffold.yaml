@@ -17,7 +17,9 @@ kind: Config
 build:
   artifacts:
     - image: substrafoundation/hlf-k8s
-      context: images/hlf-k8s
+      context: .
+      docker:
+        dockerfile: images/hlf-k8s/Dockerfile
       sync:
         manual:
           - src: ./bin/*

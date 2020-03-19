@@ -13,8 +13,9 @@ RUN wget https://github.com/fullstorydev/grpcurl/releases/download/v1.3.0/grpcur
   tar xvzf grpcurl_1.3.0_linux_x86_64.tar.gz && \
   mv grpcurl /bin
 
-COPY ./setup-hfc-binaries.sh .
+COPY ./images/hlf-k8s/setup-hfc-binaries.sh .
 
+RUN ls -la
 RUN ./setup-hfc-binaries.sh
 
-COPY ./bin/* /usr/local/bin/
+COPY ./images/hlf-k8s/bin/* /usr/local/bin/
