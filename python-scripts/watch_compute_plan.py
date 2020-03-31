@@ -21,8 +21,8 @@ import substra
 
 USER, PASSWORD = ('substra', 'p@$swr0d44')
 client = substra.Client()
-client.add_profile('owkin', USER, PASSWORD, 'http://substra-backend.owkin.xyz:8000')
-client.login()
+client.add_profile('owkin', 'http://substra-backend.owkin.xyz:8000')
+client.login(USER, PASSWORD)
 
 
 def load_tuple_keys(path):
