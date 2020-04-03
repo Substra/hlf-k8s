@@ -64,4 +64,9 @@ spec:
             - { name: SECRET_NAME_ADMIN_CERT, value: {{ .Values.secrets.adminCert }} }
             - { name: SECRET_NAME_ADMIN_KEY, value: {{ .Values.secrets.adminKey }} }
             - { name: GODEBUG, value: "netdns=go+1" }
+            - { name: CORE_OPERATIONS_LISTENADDRESS, value: 0.0.0.0:8125 }
+            - { name: CORE_METRICS_PROVIDER, value: "statsd" }
+            - { name: CORE_METRICS_STATSD_NETWORK, value: "udp" }
+            - { name: CORE_METRICS_STATSD_ADDRESS, value: "graphite-0.graphite.monitoring.svc.cluster.local:8125" }
+            - { name: CORE_METRICS_STATSD_PREFIX, value: {{ .Values.peer.name }} }
 {{- end }}

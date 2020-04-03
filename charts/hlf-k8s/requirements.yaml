@@ -19,12 +19,12 @@ dependencies:
     alias: ca
     condition: ca.enabled
   - name: hlf-ord
-    repository: https://kubernetes-charts.storage.googleapis.com/
+    repository: file:///tmp/hlf-ord
     version: ~1.2.5
     condition: orderer.enabled
     alias: orderer
   - name: hlf-peer
-    repository: https://kubernetes-charts.storage.googleapis.com/
+    repository: file:///tmp/hlf-peer
     version: ~1.2.9
     condition: peer.enabled
     alias: peer
