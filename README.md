@@ -99,9 +99,9 @@ then head to `http://localhost:9090/`.
 
 ###### statsd
 
-Modify calls to `create_core_config` and `create_orderer_config` in `config_utils.py` with `metrics='statsd'`  
+Modify calls to `create_core_config` and `create_orderer_config` in `config_utils.py` with `metrics='statsd'`
 You can run a stats server with:
-
+hel
 ```sh
 docker run -d --name graphite --restart=always -p 80:80 -p 2003-2004:2003-2004 -p 2023-2024:2023-2024 -p 8125:8125/udp -p 8126:8126 graphiteapp/graphite-statsd
 docker network connect net_substra graphite
@@ -153,15 +153,15 @@ You will then be able to debug the go binaries. If you already launch a network,
 $> docker stop peer1-owkin
 ```
 
-Then create a directory named `/tmp/hyperledger/production` which will contains the backup of the `/var/hyperldger/production`.  
-Modify the `core.yaml` for pointing to `/tmp/hyperledger/production` instead of `/var/hyperldger/production`.  
-Create also a `/etc/hyperledger/fabric` folder and copy all needed files.  
+Then create a directory named `/tmp/hyperledger/production` which will contains the backup of the `/var/hyperldger/production`.
+Modify the `core.yaml` for pointing to `/tmp/hyperledger/production` instead of `/var/hyperldger/production`.
+Create also a `/etc/hyperledger/fabric` folder and copy all needed files.
 Usually:
 
-`/etc/hyperledger/fabric/tls/server`  
-`/etc/hyperledger/fabric/tls/client`  
-`/etc/hyperledger/fabric/msp`  
-`/etc/hyperledger/fabric/core.yaml`  
-`/etc/hyperledger/fabric/ca/ca-cert.pem`  
+`/etc/hyperledger/fabric/tls/server`
+`/etc/hyperledger/fabric/tls/client`
+`/etc/hyperledger/fabric/msp`
+`/etc/hyperledger/fabric/core.yaml`
+`/etc/hyperledger/fabric/ca/ca-cert.pem`
 
 You can check the produced dockerfiles for more information.

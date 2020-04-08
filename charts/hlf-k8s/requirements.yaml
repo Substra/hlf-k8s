@@ -19,13 +19,13 @@ dependencies:
     alias: ca
     condition: ca.enabled
   - name: hlf-ord
-    repository: file:///tmp/hlf-ord
-    version: ~1.2.5
+    repository: file:///{REPLACE_ME}/charts/stable/hlf-ord
+    version: ~1.3.0
     condition: orderer.enabled
     alias: orderer
   - name: hlf-peer
-    repository: file:///tmp/hlf-peer
-    version: ~1.2.9
+    repository: file:///{REPLACE_ME}/charts/stable/hlf-peer
+    version: ~1.3.0
     condition: peer.enabled
     alias: peer
   - name: nginx-ingress

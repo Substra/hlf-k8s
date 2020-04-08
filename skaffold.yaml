@@ -46,6 +46,12 @@ deploy:
           systemOrganizations[0].secret: org-1-org-config
           orderer.host: network-orderer.orderer  # {name}.{namespace}
           orderer.ord.mspID: MyOrdererMSP
+          orderer.ord.metrics.enabled: true
+          orderer.ord.metrics.listenAddress: "127.0.0.1:8125"
+          orderer.ord.metrics.provider: "statsd"
+          orderer.ord.metrics.statsd.network: "udp"
+          orderer.ord.metrics.statsd.address: "graphite-0.graphite.monitoring.svc.cluster.local:8125"
+          orderer.ord.metrics.statsd.prefix: "orderer"
           fetchSecrets[0].from: org-config
           fetchSecrets[0].to: org-1-org-config
           fetchSecrets[0].filename: configOrg.json
@@ -72,7 +78,7 @@ deploy:
           chaincodes[0].policy: OR("MyOrg1MSP.member"\,"MyOrg2MSP.member")
           # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
           #       This path must be accessible to kubernetes. See README for details.
-          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
+          chaincodes[0].src: /Users/inalgnu/Workspace/substra-chaincode
           channels[0].name: mychannel
           channels[0].create: true
           channels[0].join: true
@@ -80,6 +86,12 @@ deploy:
           channels[0].extraOrgs[0].secret: org-2-org-config-anchor
           orderer.host: network-orderer.orderer
           peer.peer.gossip.externalEndpoint: network-org-1-peer-1.org-1:7051  # {name}.{namespace}:{port}
+          peer.peer.metrics.enabled: true
+          peer.peer.metrics.listenAddress: "127.0.0.1:8125"
+          peer.peer.metrics.provider: "statsd"
+          peer.peer.metrics.statsd.network: "udp"
+          peer.peer.metrics.statsd.address: "graphite-0.graphite.monitoring.svc.cluster.local:8125"
+          peer.peer.metrics.statsd.prefix: "network-org-1-peer-1"
           fetchSecrets[0].from: ord-tls-rootcert
           fetchSecrets[0].to: ord-tls-rootcert
           fetchSecrets[0].filename: cacert.pem
@@ -106,13 +118,19 @@ deploy:
           peer.peer.mspID: MyOrg2MSP
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
-          # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
+          # Note: Instead of an URL, you can use an abso  lute path, e.g. /home/johndoe/code/substra-chaincode
           #       This path folder must be accessible to kubernetes. See README for details.
-          chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
+          chaincodes[0].src: /Users/inalgnu/Workspace/substra-chaincode
           channels[0].name: mychannel
           channels[0].join: true
           orderer.host: network-orderer.orderer
           peer.peer.gossip.externalEndpoint: network-org-2-peer-1.org-2:7051  # {name}.{namespace}:{port}
+          peer.peer.metrics.enabled: true
+          peer.peer.metrics.listenAddress: "127.0.0.1:8125"
+          peer.peer.metrics.provider: "statsd"
+          peer.peer.metrics.statsd.network: "udp"
+          peer.peer.metrics.statsd.address: "graphite-0.graphite.monitoring.svc.cluster.local:8125"
+          orderer.ord.metrics.statsd.prefix: "network-org-2-peer-1"
           fetchSecrets[0].from: ord-tls-rootcert
           fetchSecrets[0].to: ord-tls-rootcert
           fetchSecrets[0].filename: cacert.pem

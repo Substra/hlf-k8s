@@ -67,13 +67,6 @@ data:
           - *id001
       {{- end }}
   core.yaml: |
-    metrics:
-      provider: statsd
-      statsd:
-        network: udp
-        address: graphite-0.graphite.monitoring.svc.cluster.local:8125
-        writeInterval: 10s
-        prefix: hlf
     peer:
       BCCSP:
         Default: SW
