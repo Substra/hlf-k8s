@@ -19,12 +19,12 @@ dependencies:
     alias: ca
     condition: ca.enabled
   - name: hlf-ord
-    repository: file:///{REPLACE_ME}/charts/stable/hlf-ord
+    repository: https://substrafoundation.github.io/charts
     version: ~1.3.0
     condition: orderer.enabled
     alias: orderer
   - name: hlf-peer
-    repository: file:///{REPLACE_ME}/charts/stable/hlf-peer
+    repository: https://substrafoundation.github.io/charts
     version: ~1.3.0
     condition: peer.enabled
     alias: peer
