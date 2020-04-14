@@ -13,30 +13,28 @@
 # limitations under the License.
 
 {{- if .Values.orderer.enabled }}
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: {{ template "substra.fullname" . }}-generate-genesis
+  name: {{ template "substra.fullname" . }}-genesis-operator
   labels:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    app.kubernetes.io/name: {{ template "substra.name" . }}-generate-genesis
+    app.kubernetes.io/name: {{ template "substra.name" . }}-genesis-operator
     app.kubernetes.io/part-of: {{ template "substra.name" . }}
 spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        app.kubernetes.io/name: {{ template "substra.name" . }}-genesis-operator
+        app.kubernetes.io/instance: {{ .Release.Name }}
   template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ template "substra.name" . }}-genesis-operator
+        app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
-      dnsPolicy: {{ .Values.dnsPolicy }}
-      {{- if or .Values.image.pullSecretsInline .Values.image.pullSecrets }}
-      imagePullSecrets:
-      {{- range $index, $value := .Values.image.pullSecretsInline }}
-        - name: {{ template "substra.fullname" $ }}-pull-secret-{{ $index }}
-      {{- end }}
-      {{- range .Values.image.pullSecrets }}
-        - name: {{ . }}
-      {{- end }}
-      {{- end }}
-      restartPolicy: OnFailure
       serviceAccountName: {{ template "substra.fullname" . }}
       containers:
       - name: fabric-tools
@@ -45,8 +43,34 @@ spec:
         command: ['sh', '-c']
         args:
           - |
-            generate-genesis.sh {{ .Values.systemChannel }} {{ .Values.secrets.genesis }}
-            kubectl delete pods -l app=orderer,release={{ .Release.Name }}
+            ## Install requirements : kubectl
+            printf "[DEBUG] Installing requirements\n"
+            until $(curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl); do
+                echo ".";
+                sleep 5;
+            done
+            chmod +x ./kubectl
+            sudo mv ./kubectl /usr/local/bin/kubectl
+
+            while true; do
+
+                ## Generate Genesis block
+                until [ -f "genesis.block" ] ; do
+                    printf "[DEBUG] Generating genesis block\n"
+                    configtxgen -profile GenerateGenesis -channelID {{ .Values.systemChannel.name }} -outputBlock genesis.block --configPath /etc/hyperledger/fabric
+                    sleep 1
+                done
+
+                ## Create genesis block kubernetes secret
+                until kubectl get secret {{ .Values.secrets.genesis }} > /dev/null; do
+                    printf "[DEBUG] Genesis block kubernetes secret not found, creating it now:\n"
+                    kubectl create secret generic {{ .Values.secrets.genesis }} --from-file=genesis.block
+                    sleep 1
+                done
+
+                printf "[DEBUG] All done. Looping...\n"
+                sleep 10
+            done
         env:
         - name: CORE_PEER_MSPCONFIGPATH
           value: /var/hyperledger/admin_msp

@@ -50,7 +50,7 @@ data:
         Consortium: SampleConsortium
       {{- end }}
       {{- if .Values.orderer.enabled }}
-      OrgsOrdererGenesis:
+      GenerateGenesis:
         Consortiums:
           SampleConsortium:
             Organizations: *id001

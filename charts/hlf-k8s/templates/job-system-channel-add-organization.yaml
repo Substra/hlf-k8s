@@ -47,14 +47,14 @@ spec:
         args:
           - |
             channel-proposal-generate-add.sh \
-              {{ $.Values.systemChannel }} \
+              {{ $.Values.systemChannel.name }} \
               {{ $.Values.orderer.host }}:{{ $.Values.orderer.port }} \
               {{ .name }} \
               /org-config/configOrg.json \
               true
 
             channel-proposal-update.sh \
-              {{ $.Values.systemChannel }} \
+              {{ $.Values.systemChannel.name }} \
               {{ $.Values.orderer.host }}:{{ $.Values.orderer.port }} \
               ./proposal.pb
         env:

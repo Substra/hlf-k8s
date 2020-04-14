@@ -54,8 +54,6 @@ spec:
                 {{ .Values.users.user.password | quote }} \
                 "orderer" \
                 {{ .Values.orderer.host | quote }}
-
-              kubectl delete pods -l job-name={{ template "substra.fullname" . }}-generate-genesis --ignore-not-found=true
           env:
             - { name: SECRET_NAME_CERT, value: {{ .Values.secrets.cert }} }
             - { name: SECRET_NAME_KEY, value: {{ .Values.secrets.key }} }
