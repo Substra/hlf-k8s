@@ -118,7 +118,7 @@ deploy:
           peer.peer.mspID: MyOrg2MSP
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
-          # Note: Instead of an URL, you can use an abso  lute path, e.g. /home/johndoe/code/substra-chaincode
+          # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
           #       This path folder must be accessible to kubernetes. See README for details.
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           channels[0].name: mychannel

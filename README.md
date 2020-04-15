@@ -101,7 +101,7 @@ then head to `http://localhost:9090/`.
 
 Modify calls to `create_core_config` and `create_orderer_config` in `config_utils.py` with `metrics='statsd'`
 You can run a stats server with:
-hel
+
 ```sh
 docker run -d --name graphite --restart=always -p 80:80 -p 2003-2004:2003-2004 -p 2023-2024:2023-2024 -p 8125:8125/udp -p 8126:8126 graphiteapp/graphite-statsd
 docker network connect net_substra graphite
