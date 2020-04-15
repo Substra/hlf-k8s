@@ -26,6 +26,7 @@ build:
             dest: /usr/local/bin/
 
 deploy:
+  statusCheckDeadlineSeconds: 300
   helm:
     releases:
       - name: network-orderer
