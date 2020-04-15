@@ -130,7 +130,7 @@ deploy:
           peer.peer.metrics.provider: "statsd"
           peer.peer.metrics.statsd.network: "udp"
           peer.peer.metrics.statsd.address: "graphite-0.graphite.monitoring.svc.cluster.local:8125"
-          orderer.ord.metrics.statsd.prefix: "network-org-2-peer-1"
+          peer.peer.metrics.statsd.prefix: "network-org-2-peer-1"
           fetchSecrets[0].from: ord-tls-rootcert
           fetchSecrets[0].to: ord-tls-rootcert
           fetchSecrets[0].filename: cacert.pem
