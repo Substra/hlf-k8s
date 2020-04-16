@@ -40,6 +40,8 @@ deploy:
           nginx-ingress.enabled: true
           peer.enabled: false
           ca.caName: rcaOrderer
+          ca.host: network-orderer-ca.orderer  # {name}.{namespace}
+          ca.orderer.host: network-orderer-ca.orderer  # {name}.{namespace}
           organization.id: MyOrdererMSP
           organization.name: MyOrderer
           orderer.enabled: true
@@ -51,6 +53,13 @@ deploy:
           fetchSecrets[0].to: org-1-org-config
           fetchSecrets[0].filename: configOrg.json
           fetchSecrets[0].namespace: org-1
+          enrollments.creds[0].name: admin
+          enrollments.creds[0].secret: adminpwd
+          enrollments.creds[0].options: "--id.attrs admin=true:ecert"
+          enrollments.creds[1].name: user
+          enrollments.creds[1].secret: pwd
+          enrollments.creds[1].options: "--id.type orderer"
+          enrollements.csrHost: network-orderer.orderer
 
       - name: network-org-1-peer-1
         chartPath: charts/hlf-k8s
@@ -63,6 +72,8 @@ deploy:
           nginx-ingress.enabled: true
           nginx-ingress.controller.scope.enabled: true
           ca.caName: rcaOrg1
+          ca.host: network-org-1-peer-1-ca.org-1  # {name}.{namespace}
+          ca.orderer.host: network-orderer-ca.orderer
           peer.host: network-org-1-peer-1.org-1  # {name}.{namespace}
           organization.id: MyOrg1MSP
           organization.name: MyOrg1
@@ -81,14 +92,18 @@ deploy:
           channels[0].extraOrgs[0].secret: org-2-org-config-anchor
           orderer.host: network-orderer.orderer
           peer.peer.gossip.externalEndpoint: network-org-1-peer-1.org-1:7051  # {name}.{namespace}:{port}
-          fetchSecrets[0].from: ord-tls-rootcert
-          fetchSecrets[0].to: ord-tls-rootcert
-          fetchSecrets[0].filename: cacert.pem
-          fetchSecrets[0].namespace: orderer
-          fetchSecrets[1].from: org-config-anchor
-          fetchSecrets[1].to: org-2-org-config-anchor
-          fetchSecrets[1].filename: configOrgWithAnchors.json
-          fetchSecrets[1].namespace: org-2
+          fetchSecrets[0].from: org-config-anchor
+          fetchSecrets[0].to: org-2-org-config-anchor
+          fetchSecrets[0].filename: configOrgWithAnchors.json
+          fetchSecrets[0].namespace: org-2
+          enrollments.creds[0].name: admin
+          enrollments.creds[0].secret: adminpwd
+          enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
+          enrollments.creds[1].name: user,
+          enrollments.creds[1].secret: pwd,
+          enrollments.creds[1].options: "--id.type peer"
+          enrollements.csrHost: network-org-1-peer-1.org-1
+
 
       - name: network-org-2-peer-1
         chartPath: charts/hlf-k8s
@@ -101,6 +116,8 @@ deploy:
           nginx-ingress.enabled: true
           nginx-ingress.controller.scope.enabled: true
           ca.caName: rcaOrg2
+          ca.host: network-org-2-peer-1-ca.org-2  # {name}.{namespace}
+          ca.orderer.host: network-orderer-ca.orderer
           peer.host: network-org-2-peer-1.org-2  # {name}.{namespace}
           organization.id: MyOrg2MSP
           organization.name: MyOrg2
@@ -114,7 +131,10 @@ deploy:
           channels[0].join: true
           orderer.host: network-orderer.orderer
           peer.peer.gossip.externalEndpoint: network-org-2-peer-1.org-2:7051  # {name}.{namespace}:{port}
-          fetchSecrets[0].from: ord-tls-rootcert
-          fetchSecrets[0].to: ord-tls-rootcert
-          fetchSecrets[0].filename: cacert.pem
-          fetchSecrets[0].namespace: orderer
+          enrollments.creds[0].name: admin
+          enrollments.creds[0].secret: adminpwd
+          enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
+          enrollments.creds[1].name: user,
+          enrollments.creds[1].secret: pwd,
+          enrollments.creds[1].options: "--id.type peer"
+          enrollements.csrHost: network-org-2-peer-1.org-2

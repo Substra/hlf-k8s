@@ -1,0 +1,156 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "substra.fullname" . }}-enrollment-operator
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ template "substra.name" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        app.kubernetes.io/name: {{ template "substra.name" . }}-enrollment-operator
+        app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ template "substra.name" . }}-enrollment-operator
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ template "substra.fullname" . }}
+      containers:
+        - name: fabric-tools
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          command: ['sh', '-c']
+          args:
+            - |
+              ## Update CA certs
+              update-ca-certificates
+              ## Install requirements : kubectl
+              printf "[DEBUG] Installing requirements\n"
+              until $(curl -SL https://github.com/hyperledger/fabric-ca/releases/download/v1.4.4/hyperledger-fabric-ca-linux-amd64-1.4.4.tar.gz | tar xz); do echo ".";sleep 5;done
+              until $(curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl); do echo ".";sleep 5;done
+              chmod +x ./kubectl
+              sudo mv ./kubectl /usr/local/bin/kubectl
+
+              ## Check connection with the Certificate Authority
+              printf "[DEBUG] Testing the connection with the Certificate Authority ({{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }})\n"
+              until fabric-ca-client getcainfo -u {{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }}; do
+                printf "[DEBUG] Certificate Authority ({{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }}) server is not reacheable, retry in 5s\n"
+                sleep 5
+              done
+
+              ## Enroll CA administrator
+              printf "[DEBUG] Testing enrollment of CA admin\n"
+              until fabric-ca-client identity list -u {{ .Values.ca.scheme }}://{{ .Values.ca.adminUsername }}:{{ .Values.ca.adminPassword }}@{{ .Values.ca.host }}:{{ .Values.ca.port }} --id {{ .Values.ca.adminUsername }}; do
+                printf "[DEBUG] Certificate Authority admin is not enrolled, enrolling it now:\n"
+                fabric-ca-client enroll -d -u {{ .Values.ca.scheme }}://{{ .Values.ca.adminUsername }}:{{ .Values.ca.adminPassword }}@{{ .Values.ca.host }}:{{ .Values.ca.port }} -M /var/hyperledger/fabric-ca/msp
+                sleep 1
+              done
+
+              ## Create cacerts kubernetes secret
+              ## Note - The CA cacerts is shared between all identities (CA Admin, Orderer Admins and Users)
+              until kubectl get secret {{ .Values.secrets.caCert }} > /dev/null; do
+                printf "[DEBUG] CA cacerts k8s secret not found, creating it now:\n"
+                kubectl create secret generic {{ .Values.secrets.caCert }} --from-file=cacert.pem=$(find /var/hyperledger/fabric-ca/msp/cacerts -type f)
+                sleep 1
+              done
+
+              ## Check connection with the Orderer Certificate Authority
+              printf "[DEBUG] Testing the connection with the Orderer Certificate Authority ({{ .Values.ca.orderer.scheme }}://{{ .Values.ca.orderer.host }}:{{ .Values.ca.orderer.port}})\n"
+              until fabric-ca-client getcainfo -u {{ .Values.ca.orderer.scheme }}://{{ .Values.ca.orderer.host }}:{{ .Values.ca.orderer.port }} -H /tmp/orderer; do
+                printf "[DEBUG] Orderer Certificate Authority ({{ .Values.ca.orderer.scheme }}://{{ .Values.ca.orderer.host }}:{{ .Values.ca.orderer.port}}) server is not reacheable, retry in 5s\n"
+                sleep 5
+              done
+
+              ## Create Orderer cacerts kubernetes secret
+              until kubectl get secret {{ .Values.secrets.ordTlsRootCert }} > /dev/null; do
+                printf "[DEBUG] Orderer CA cacerts k8s secret not found, creating it now:\n"
+                kubectl create secret generic {{ .Values.secrets.ordTlsRootCert }} --from-file=cacert.pem=$(find /tmp/orderer/msp/cacerts -type f)
+                sleep 1
+              done
+
+              while true; do
+
+                while IFS=" " read -r name secret options; do
+
+                  printf "[DEBUG] Testing enrollment of CA user $name\n"
+
+                  ## Register user
+                  until fabric-ca-client identity list -u {{ .Values.ca.scheme }}://{{ .Values.ca.adminUsername }}:{{ .Values.ca.adminPassword }}@{{ .Values.ca.host }}:{{ .Values.ca.port }} --id $name; do
+                    printf "[DEBUG] User $name is not registered, registering the user now:\n"
+                    fabric-ca-client register -d -u {{ .Values.ca.scheme }}://{{ .Values.ca.adminUsername }}:{{ .Values.ca.adminPassword }}@{{ .Values.ca.host }}:{{ .Values.ca.port }} --id.name $name --id.secret $secret $options
+                    sleep 1
+                  done
+
+                  ## Enroll user
+                  until [ -d "/data/$name/msp" ]; do
+                    printf "[DEBUG] Membership certificates are not found, enrolling the user $name now:\n"
+                    fabric-ca-client enroll -d -u {{ .Values.ca.scheme }}://$name:$secret@{{ .Values.ca.host }}:{{ .Values.ca.port }} -M /data/$name/msp
+                    sleep 1
+                  done
+
+                  ## Enroll TLS
+                  until [ -d "/data/$name/tls" ]; do
+                    printf "[DEBUG] TLS certificates are not found, enrolling the user $name with tls profile now:\n"
+                    fabric-ca-client enroll -d --enrollment.profile tls -u {{ .Values.ca.scheme }}://$name:$secret@{{ .Values.ca.host }}:{{ .Values.ca.port }} -M /data/$name/tls --csr.hosts {{ .Values.enrollments.csrHost }}
+                    sleep 1
+                  done
+
+                  ## MSP cert secret
+                  until kubectl get secret hlf-msp-cert-$name > /dev/null; do
+                    printf "[DEBUG] User $name MSP certs k8s secret not found, creating it now:\n"
+                    kubectl create secret generic hlf-msp-cert-$name --from-file=cert.pem=/data/$name/msp/signcerts/cert.pem
+                    sleep 1
+                  done
+
+                  ## MSP key secret
+                  until kubectl get secret hlf-msp-key-$name > /dev/null; do
+                    printf "[DEBUG] User $name MSP key k8s secret not found, creating it now:\n"
+                    kubectl create secret generic hlf-msp-key-$name --from-file=key.pem=$(find /data/$name/msp/keystore -type f)
+                    sleep 1
+                  done
+
+                  ## TLS pair secret
+                  until kubectl get secret hlf-tls-$name > /dev/null; do
+                    printf "[DEBUG] User $name TLS pair k8s secret not found, creating it now:\n"
+                    kubectl create secret tls hlf-tls-$name --key $(find /data/$name/tls/keystore -type f) --cert /data/$name/tls/signcerts/cert.pem
+                    sleep 1
+                  done
+
+                done < /config/enrollments
+
+                sleep 10
+              done
+          resources:
+            {{- toYaml .Values.resources | nindent 14 }}
+          volumeMounts:
+            - mountPath: /etc/hyperledger/fabric
+              name: fabric-config
+              readOnly: true
+            - mountPath: /config
+              name: enrollment
+              readOnly: true
+            - mountPath: /data
+              name: data
+            {{- if .Values.privateCa.enabled }}
+            - mountPath: /usr/local/share/ca-certificates/{{ .Values.privateCa.configMap.fileName }}
+              name: private-ca
+              subPath: {{ .Values.privateCa.configMap.fileName }}
+            {{- end }}
+      volumes:
+        - name: fabric-config
+          configMap:
+            name: {{ template "substra.fullname" . }}-fabric
+        - name: enrollment
+          configMap:
+            name: {{ template "substra.fullname" . }}-enrollment
+        - name: data
+          emptyDir: {}
+        {{- if .Values.privateCa.enabled }}
+        - name: private-ca
+          configMap:
+            name: {{ .Values.privateCa.configMap.name }}
+        {{- end }}

@@ -43,6 +43,9 @@ organization:
 
 ca:
   enabled: true
+  scheme: http
+  host: ca-hostname
+  port: 7054
   image:
     tag: 1.4.2
   caName: rca
@@ -66,6 +69,11 @@ ca:
   persistence:
     enabled: false
 
+  orderer:
+    scheme: http
+    host: orderer-ca-hostname
+    port: 7054
+
 peer:
   peer:
     gossip:
@@ -88,27 +96,27 @@ peer:
     ## These secrets should contain the Orderer crypto materials and credentials
     peer:
       ## Certificate, saved under key 'cert.pem'
-      cert: hlf-idcert
+      cert: hlf-msp-cert-user
       ## Key, saved under 'key.pem'
-      key: hlf-idkey
+      key: hlf-msp-key-user
       ## CA Cert, saved under 'cacert.pem'
       caCert: hlf-cacert
       ## Intermediate CA Cert (optional), saved under 'intermediatecacert.pem'
       # intCaCert: hlf--peer1-caintcert
       ## TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
-      tls: hlf-tls
+      tls: hlf-tls-admin
       ## TLS root CA certificate saved under key 'cert.pem'
-      tlsRootCert: hlf-tlsrootcert
+      tlsRootCert: hlf-cacert
       ## TLS client root CA certificates saved under any names (as there may be multiple)
-      tlsClient: hlf-client-tls
+      tlsClient: hlf-tls-user
       ## TLS client root CA certificates saved under any names (as there may be multiple)
-      tlsClientRootCert: hlf-client-tlsrootcert
+      tlsClientRootCert: hlf-cacert
     ## This should contain the Certificate of the Peer Organisation admin
     ## This is necessary to successfully run the peer
-    adminCert: hlf-admincert
+    adminCert: hlf-msp-cert-admin
     ## This should contain the Private Key of the Peer Organisation admin
     ## This is necessary to successfully join a channel
-    adminKey: hlf-adminkey
+    adminKey: hlf-msp-key-admin
     ## This should include the Orderer TLS 'cacert.pem'
     ordTlsRootCert: ord-tls-rootcert
 
@@ -132,23 +140,27 @@ orderer:
     ## These secrets should contain the Orderer crypto materials and credentials
     ord:
       ## Certificate, saved under key 'cert.pem'
-      cert: hlf-idcert
+      cert: hlf-msp-cert-user
       ## Key, saved under 'key.pem'
-      key: hlf-idkey
+      key: hlf-msp-key-user
       ## CA Cert, saved under 'cacert.pem'
       caCert: hlf-cacert
       ## TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
-      tls: hlf-tls
+      tls: hlf-tls-admin
       ## TLS root CA certificate saved under key 'cert.pem'
-      tlsRootCert: hlf-tlsrootcert
+      tlsRootCert: hlf-cacert
       ## TLS client root CA certificates saved under any names (as there may be multiple)
-      tlsClientRootCert: hlf-client-tlsrootcert
+      tlsClient: hlf-tls-user
+      ## TLS client root CA certificates saved under any names (as there may be multiple)
+      tlsClientRootCert: hlf-cacert
     ## This should contain "genesis" block derived from a configtx.yaml
     ## configtxgen -profile OrdererGenesis -outputBlock genesis.block
     genesis: hlf-genesis
     ## This should contain the Certificate of the Orderer Organisation admin
     ## This is necessary to successfully run the orderer
-    adminCert: hlf-admincert
+    adminCert: hlf-msp-cert-admin
+    ## This is necessary to successfully join a channel
+    adminKey: hlf-msp-key-admin
 
 fetchSecrets: []
   # -
@@ -195,28 +207,28 @@ systemOrganizations: []
 # Secrets names
 secrets:
   # Certificate, saved under key 'cert.pem'
-  cert: hlf-idcert
+  cert: hlf-msp-cert-user
   # Key, saved under 'key.pem'
-  key: hlf-idkey
+  key: hlf-msp-key-user
   # CA Cert, saved under 'cacert.pem'
   caCert: hlf-cacert
   # TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
-  tls: hlf-tls
+  tls: hlf-tls-admin
   # TLS root CA certificate saved under key 'cert.pem'
-  tlsRootCert: hlf-tlsrootcert
+  tlsRootCert: hlf-cacert
   # TLS client root CA certificates saved under any names (as there may be multiple)
-  tlsClient: hlf-client-tls
+  tlsClient: hlf-tls-user
   # TLS client root CA certificates saved under any names (as there may be multiple)
-  tlsClientRootCerts: hlf-client-tlsrootcert
+  tlsClientRootCerts: hlf-cacert
   # This should contain "genesis" block derived from a configtx.yaml
   # configtxgen -profile OrdererGenesis -outputBlock genesis.block
   genesis: hlf-genesis
   # This should contain the Certificate of the Peer Organisation admin
   # This is necessary to successfully run the peer
-  adminCert: hlf-admincert
+  adminCert: hlf-msp-cert-admin
   # This should contain the Private Key of the Peer Organisation admin
   # This is necessary to successfully join a channel
-  adminKey: hlf-adminkey
+  adminKey: hlf-msp-key-admin
   # This should include the Orderer TLS 'cacert.pem'
   ordTlsRootCert: ord-tls-rootcert
   # This will include the organization config json file (peer only)
@@ -228,3 +240,14 @@ privateCa:
     name: private-ca
 #    data: nil
     fileName: private-ca.crt
+
+
+enrollments:
+  creds: []
+  # Orderer
+  # - { name: admin, secret: adminpwd, options: "--id.attrs admin=true:ecert"}
+  # - { name: user, secret: pwd, options: "--id.type orderer"}
+  # Peer
+  # - { name: admin, secret: adminpwd, options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"}
+  # - { name: user, secret: pwd, options: "--id.type peer"}
+  csrHost: service-hostname
