@@ -225,6 +225,6 @@ secrets:
 privateCa:
   enabled: false
   configMap:
-    name: peer-private-ca
+    name: private-ca
 #    data: nil
     fileName: private-ca.crt
