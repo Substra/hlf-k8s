@@ -221,3 +221,10 @@ secrets:
   ordTlsRootCert: ord-tls-rootcert
   # This will include the organization config json file (peer only)
   orgConfig: org-config
+
+privateCa:
+  enabled: false
+  configMap:
+    name: peer-private-ca
+#    data: nil
+    fileName: private-ca.crt
