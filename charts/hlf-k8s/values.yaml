@@ -35,6 +35,11 @@ affinity: {}
 
 systemChannel:
   name: systemchannel
+  organizations:
+    # Here is an exemple of structure:
+    #   - { orgName: MyPeer1, configUrl: peer-1-org-config-operator.org-1/config/configOrg.json }
+    #   - { orgName: MyPeer2, configUrl: peer-2-org-config-operator.org-2/config/configOrg.json }
+
 appChannel: mychannel
 
 organization:
@@ -199,11 +204,6 @@ users:
       username: user
       password: pwd
 
-systemOrganizations: []
-# Here is an exemple of structure:
-#   - { name: MyPeer1, secret: peer-1-org-config }
-#   - { name: MyPeer2, secret: peer-2-org-config }
-
 # Secrets names
 secrets:
   # Certificate, saved under key 'cert.pem'
@@ -219,7 +219,7 @@ secrets:
   # TLS client root CA certificates saved under any names (as there may be multiple)
   tlsClient: hlf-tls-user
   # TLS client root CA certificates saved under any names (as there may be multiple)
-  tlsClientRootCerts: hlf-cacert
+  tlsClientRootCert: hlf-cacert
   # This should contain "genesis" block derived from a configtx.yaml
   # configtxgen -profile OrdererGenesis -outputBlock genesis.block
   genesis: hlf-genesis

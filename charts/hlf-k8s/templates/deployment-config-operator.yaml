@@ -104,34 +104,34 @@ spec:
             name: {{ template "substra.fullname" . }}-fabric
         - name: id-cert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.cert }}
+            secretName: {{ .Values.secrets.cert }}
         - name: id-key
           secret:
-            secretName: {{ .Values.peer.secrets.peer.key }}
+            secretName: {{ .Values.secrets.key }}
         - name: cacert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.caCert }}
+            secretName: {{ .Values.secrets.caCert }}
         - name: tls
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tls }}
+            secretName: {{ .Values.secrets.tls }}
         - name: tls-rootcert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tlsRootCert }}
+            secretName: {{ .Values.secrets.tlsRootCert }}
         - name: tls-client
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tlsClient }}
+            secretName: {{ .Values.secrets.tlsClient }}
         - name: tls-clientrootcert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tlsClientRootCert }}
+            secretName: {{ .Values.secrets.tlsClientRootCert }}
         - name: admin-cert
           secret:
-            secretName: {{ .Values.peer.secrets.adminCert }}
+            secretName: {{ .Values.secrets.adminCert }}
         - name: admin-key
           secret:
-            secretName: {{ .Values.peer.secrets.adminKey }}
+            secretName: {{ .Values.secrets.adminKey }}
         - name: ord-tls-rootcert
           secret:
-            secretName: {{ .Values.peer.secrets.ordTlsRootCert }}
+            secretName: {{ .Values.secrets.ordTlsRootCert }}
         - name: data
           emptyDir: {}
         {{- if .Values.privateCa.enabled }}

@@ -109,7 +109,7 @@ spec:
           secretName: {{ $.Values.secrets.tlsClient }}
       - name: tls-clientrootcert
         secret:
-          secretName: {{ $.Values.secrets.tlsClientRootCerts }}
+          secretName: {{ $.Values.secrets.tlsClientRootCert }}
       - name: admin-cert
         secret:
           secretName: {{ $.Values.secrets.adminCert }}

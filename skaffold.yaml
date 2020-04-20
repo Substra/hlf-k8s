@@ -45,21 +45,19 @@ deploy:
           organization.id: MyOrdererMSP
           organization.name: MyOrderer
           orderer.enabled: true
-          systemOrganizations[0].name: MyOrg1
-          systemOrganizations[0].secret: org-1-org-config
+          systemChannel.organizations[0].orgName: MyOrg1
+          systemChannel.organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrg.json
+          systemChannel.organizations[1].orgName: MyOrg2
+          systemChannel.organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrg.json
           orderer.host: network-orderer.orderer  # {name}.{namespace}
           orderer.ord.mspID: MyOrdererMSP
-          fetchSecrets[0].from: org-config
-          fetchSecrets[0].to: org-1-org-config
-          fetchSecrets[0].filename: configOrg.json
-          fetchSecrets[0].namespace: org-1
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs admin=true:ecert"
           enrollments.creds[1].name: user
           enrollments.creds[1].secret: pwd
           enrollments.creds[1].options: "--id.type orderer"
-          enrollements.csrHost: network-orderer.orderer
+          enrollments.csrHost: network-orderer.orderer
 
       - name: network-org-1-peer-1
         chartPath: charts/hlf-k8s
@@ -102,7 +100,7 @@ deploy:
           enrollments.creds[1].name: user,
           enrollments.creds[1].secret: pwd,
           enrollments.creds[1].options: "--id.type peer"
-          enrollements.csrHost: network-org-1-peer-1.org-1
+          enrollments.csrHost: network-org-1-peer-1.org-1
 
 
       - name: network-org-2-peer-1
@@ -137,4 +135,4 @@ deploy:
           enrollments.creds[1].name: user,
           enrollments.creds[1].secret: pwd,
           enrollments.creds[1].options: "--id.type peer"
-          enrollements.csrHost: network-org-2-peer-1.org-2
+          enrollments.csrHost: network-org-2-peer-1.org-2

@@ -54,18 +54,18 @@ spec:
           - {{ .Values.secrets.tls }}
           - {{ .Values.secrets.tlsClient }}
           - {{ .Values.secrets.tlsRootCert }}
-          - {{ .Values.secrets.tlsClientRootCerts }}
+          - {{ .Values.secrets.tlsClientRootCert }}
           - {{ .Values.secrets.adminCert }}
           - {{ .Values.secrets.adminKey }}
           - {{ .Values.secrets.ordTlsRootCert }}
           - {{ .Values.secrets.orgConfig }}
           - {{ .Values.secrets.orgConfig }}-anchor
           - {{ .Values.secrets.genesis }}
-          - {{ .Values.secrets.adminKey }}
           {{- range .Values.fetchSecrets }}
           - {{ .to }}
           {{- end }}
           - --ignore-not-found=true
+          - --force=true
     {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

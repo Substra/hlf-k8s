@@ -1,0 +1,13 @@
+{{- if .Values.orderer.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "substra.fullname" . }}-system-organizations
+data:
+  system-organizations: |
+    {{- range .Values.systemChannel.organizations }}
+      {{ .orgName }} {{ .configUrl }}
+    {{- end }}
+---
+{{- end }}

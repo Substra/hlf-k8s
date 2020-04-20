@@ -98,8 +98,6 @@ spec:
           name: tls-client
         - mountPath: /var/hyperledger/tls/client/cert
           name: tls-clientrootcert
-        - mountPath: /var/hyperledger/tls/ord/cert
-          name: ord-tls-rootcert
         - mountPath: /var/hyperledger/admin_msp/signcerts
           name: admin-cert
         - mountPath: /var/hyperledger/admin_msp/keystore
@@ -116,34 +114,31 @@ spec:
           name: {{ template "substra.fullname" . }}-fabric
       - name: id-cert
         secret:
-          secretName: {{ .Values.secrets.cert }}
+          secretName: {{ .Values.orderer.secrets.ord.cert }}
       - name: id-key
         secret:
-          secretName: {{ .Values.secrets.key }}
+          secretName: {{ .Values.orderer.secrets.ord.key }}
       - name: cacert
         secret:
-          secretName: {{ .Values.secrets.caCert }}
+          secretName: {{ .Values.orderer.secrets.ord.caCert }}
       - name: tls
         secret:
-          secretName: {{ .Values.secrets.tls }}
+          secretName: {{ .Values.orderer.secrets.ord.tls }}
       - name: tls-rootcert
         secret:
-          secretName: {{ .Values.secrets.tlsRootCert }}
+          secretName: {{ .Values.orderer.secrets.ord.tlsRootCert }}
       - name: tls-client
         secret:
-          secretName: {{ .Values.secrets.tlsClient }}
+          secretName: {{ .Values.orderer.secrets.ord.tlsClient }}
       - name: tls-clientrootcert
         secret:
-          secretName: {{ .Values.secrets.tlsClientRootCerts }}
+          secretName: {{ .Values.orderer.secrets.ord.tlsClientRootCert }}
       - name: admin-cert
         secret:
-          secretName: {{ .Values.secrets.adminCert }}
+          secretName: {{ .Values.orderer.secrets.adminCert }}
       - name: admin-key
         secret:
-          secretName: {{ .Values.secrets.adminKey }}
-      - name: ord-tls-rootcert
-        secret:
-          secretName: {{ .Values.secrets.ordTlsRootCert }}
+          secretName: {{ .Values.orderer.secrets.adminKey }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
