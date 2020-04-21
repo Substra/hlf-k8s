@@ -46,31 +46,27 @@ spec:
             - |
               ## Update CA certs
               update-ca-certificates
+
+              ## Install chaincode on peer
               while true; do
 
-                ## Install chaincode on peer
                 until grep {{ .name }} chaincode.list | grep {{ .version }} > /dev/null; do
                   printf "[DEBUG] Installing chaincode {{ .name }} {{ .version }} from {{ .src }} ...\n"
 
-                  ## Clean substra-chaincode potential remaining artifacts
+                  ## Clean potential remaining artifacts
                   rm -rf substra-chaincode
                   mkdir substra-chaincode
                   rm -rf /opt/gopath/src/github.com/hyperledger
                   mkdir -p /opt/gopath/src/github.com/hyperledger
                   rm -rf /opt/gopath/src/chaincode
 
-
+                  ## Fetch chaincode src
                   if [[ {{ .src | quote }} == http* ]];
                   then
-                    ## Fetch chaincode from src
                     curl -L {{ .src }} -o chaincode.tar.gz
-
-                    ## Extract chaincode
                     tar -C substra-chaincode -xzf chaincode.tar.gz --strip-components=1
                     mv substra-chaincode/chaincode /opt/gopath/src/chaincode
-
                   else
-                    ## Extract chaincode
                     mkdir -p /opt/gopath/src/chaincode
                     cp -R {{ .src }}/chaincode/* /opt/gopath/src/chaincode
                   fi

@@ -30,6 +30,7 @@ spec:
           - |
             ## Update CA certs
             update-ca-certificates
+
             ## Check connection with the Orderer
             printf "[DEBUG] Testing the connection with the Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }})\n"
             until $(nc -z {{ .Values.orderer.host }} {{ .Values.orderer.port }}); do
@@ -37,28 +38,27 @@ spec:
               sleep 5
             done
 
-            ## Add orgs to system channel
-
+            ## Add orgs to the system channel
             while true; do
 
-              printf "[DEBUG] Creating system channel ({{ .Values.systemChannel.name }}) updates\n"
+              printf "[DEBUG] Creating updates for system channel '{{ .Values.systemChannel.name }}'\n"
 
               while IFS=" " read -r orgName configUrl ; do
 
-                ## Check if update has been already sent
-                printf "[DEBUG] Fetch system channel configuration to verify if $orgName is in it \n"
+                ## Check if system channel update has already been sent
+                printf "[DEBUG] Check whether '$orgName' is in the system channel:\n"
                 peer channel fetch config channel-$orgName-hasjoined.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
                 configtxlator proto_decode --input channel-$orgName-hasjoined.block --type common.Block | jq .data.data[0].payload.data.config > channel-$orgName-hasjoined.json
-
                 if grep "$orgName" channel-$orgName-hasjoined.json > /dev/null; then
-                  printf "[DEBUG] $orgName is already in the system channel\n"
+                  printf "[DEBUG]   '$orgName' is in the system channel\n"
                   sleep 5
                   continue
                 else
-                  ## Remove all configuration files because of edge cases (network issue, proposal issue). We prefer to delete all and retry all steps to avoid side effect.
+                  printf "[DEBUG]   '$orgName' is NOT in the system channel\n"
+                  ## Remove all configuration files because of edge cases (network issue, proposal issue).
+                  ## We prefer to delete all and retry all steps to avoid side effects.
                   rm -f *-$orgName.*
                 fi
-
 
                 ## Fetch system channel configuration block
                 until [ -f "channel-$orgName.block" ] && [ -s "channel-$orgName.block" ]; do
@@ -82,7 +82,7 @@ spec:
                   sleep 3
                 done
 
-                ## Create system channel update proposal
+                ## Create proposal
                 until [ -f "proposal-$orgName.pb" ]; do
                   printf "[DEBUG] Create system channel update proposal for $orgName\n"
 
@@ -100,7 +100,7 @@ spec:
                   sleep 2
                 done
 
-                ## Submit system channel update proposal
+                ## Submit proposal
                 until $(grep "$orgName" channelconfignew-$orgName.json > /dev/null 2> /dev/null); do
 
                   printf "[DEBUG] Send system channel update proposal for $orgName\n"
