@@ -23,8 +23,9 @@ metadata:
     app.kubernetes.io/name: {{ template "substra.name" . }}-hook-cleanup
     app.kubernetes.io/part-of: {{ template "substra.name" . }}
   annotations:
-    "helm.sh/hook": pre-delete
+    "helm.sh/hook": post-delete
     "helm.sh/hook-delete-policy": hook-succeeded
+  namespace: kube-system # As we use post-delete to remove secret we should use tiller SA in kube-system namespace
 spec:
   template:
     spec:
@@ -39,7 +40,7 @@ spec:
       {{- end }}
       {{- end }}
       restartPolicy: OnFailure
-      serviceAccountName: {{ template "substra.fullname" . }}
+      serviceAccountName: tiller  # As we use post-delete to remove secret we should use tiller SA
       containers:
       - name: fabric-tools
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -48,6 +49,7 @@ spec:
         args:
           - delete
           - secrets
+          - -n {{ .Release.Namespace }}
           - {{ .Values.secrets.cert }}
           - {{ .Values.secrets.key }}
           - {{ .Values.secrets.caCert }}
