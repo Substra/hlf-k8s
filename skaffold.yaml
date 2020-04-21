@@ -79,21 +79,19 @@ deploy:
           chaincodes[0].instantiate: true
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
-          chaincodes[0].policy: OR("MyOrg1MSP.member"\,"MyOrg2MSP.member")
           # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
           #       This path must be accessible to kubernetes. See README for details.
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
-          channels[0].name: mychannel
-          channels[0].create: true
-          channels[0].join: true
-          channels[0].extraOrgs[0].name: MyOrg2
-          channels[0].extraOrgs[0].secret: org-2-org-config-anchor
+          appChannel.name: mychannel
+          appChannel.organizations[0].orgName: MyOrg1
+          appChannel.organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json
+          appChannel.organizations[1].orgName: MyOrg2
+          appChannel.organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json
+          appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
+          appChannel.chaincodeName: mycc
+          appChannel.chaincodeVersion: "1.0"
           orderer.host: network-orderer.orderer
           peer.peer.gossip.externalEndpoint: network-org-1-peer-1.org-1:7051  # {name}.{namespace}:{port}
-          fetchSecrets[0].from: org-config-anchor
-          fetchSecrets[0].to: org-2-org-config-anchor
-          fetchSecrets[0].filename: configOrgWithAnchors.json
-          fetchSecrets[0].namespace: org-2
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
@@ -125,8 +123,14 @@ deploy:
           # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
           #       This path folder must be accessible to kubernetes. See README for details.
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
-          channels[0].name: mychannel
-          channels[0].join: true
+          appChannel.name: mychannel
+          appChannel.organizations[0].orgName: MyOrg1
+          appChannel.organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json
+          appChannel.organizations[1].orgName: MyOrg2
+          appChannel.organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json
+          appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
+          appChannel.chaincodeName: mycc
+          appChannel.chaincodeVersion: "1.0"
           orderer.host: network-orderer.orderer
           peer.peer.gossip.externalEndpoint: network-org-2-peer-1.org-2:7051  # {name}.{namespace}:{port}
           enrollments.creds[0].name: admin

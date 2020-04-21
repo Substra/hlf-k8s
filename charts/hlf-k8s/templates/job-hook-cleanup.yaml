@@ -60,8 +60,6 @@ spec:
           - {{ .Values.secrets.adminCert }}
           - {{ .Values.secrets.adminKey }}
           - {{ .Values.secrets.ordTlsRootCert }}
-          - {{ .Values.secrets.orgConfig }}
-          - {{ .Values.secrets.orgConfig }}-anchor
           - {{ .Values.secrets.genesis }}
           {{- range .Values.fetchSecrets }}
           - {{ .to }}

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "substra.fullname" . }}-application-organizations
+data:
+  application-organizations: |
+    {{- range .Values.appChannel.organizations }}
+      {{ .orgName }} {{ .configUrl }}
+    {{- end }}

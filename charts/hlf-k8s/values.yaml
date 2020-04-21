@@ -40,7 +40,15 @@ systemChannel:
     #   - { orgName: MyPeer1, configUrl: peer-1-org-config-operator.org-1/config/configOrg.json }
     #   - { orgName: MyPeer2, configUrl: peer-2-org-config-operator.org-2/config/configOrg.json }
 
-appChannel: mychannel
+appChannel:
+  name: mychannel
+  # organizations:
+  #   - { orgName: Org1, configUrl: peer-1-org-config-operator.org-1/config/configOrgWithAnchors.json }
+  #   - { orgName: Org2, configUrl: peer-2-org-config-operator.org-2/config/configOrgWithAnchors.json }
+  # chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
+  # chaincodeName: mycc
+  # chaincodeVersion: "1.0"
+
 
 organization:
   id: MyOrganizationMSP
@@ -167,21 +175,6 @@ orderer:
     ## This is necessary to successfully join a channel
     adminKey: hlf-msp-key-admin
 
-fetchSecrets: []
-  # -
-  #   from: from-secret
-  #   to: to-secret
-  #   filename: secret-data-filename
-  #   namespace: default
-
-channels: []
-  # -
-  #   name: mychannel
-  #   create: true
-  #   join: true
-  #   extraOrgs:
-  #     - { name: MyPeer2, secret: peer-2-org-config-anchor }
-
 chaincodes: []
   # -
   #   name: mycc
@@ -193,8 +186,6 @@ chaincodes: []
   ##    internet. /!\ The archive name cannot contain the `/` character.
   #   src: /home/johndoe/code/susbtra-chaincode
   #   src: https://github.com/SubstraFoundation/substra-chaincode/archive/0.0.2.tar.gz
-  #   instantiate: false
-  #   policy: OR('Org1MSP.member')"
 
 users:
   admin:
@@ -231,8 +222,6 @@ secrets:
   adminKey: hlf-msp-key-admin
   # This should include the Orderer TLS 'cacert.pem'
   ordTlsRootCert: ord-tls-rootcert
-  # This will include the organization config json file (peer only)
-  orgConfig: org-config
 
 privateCa:
   enabled: false
