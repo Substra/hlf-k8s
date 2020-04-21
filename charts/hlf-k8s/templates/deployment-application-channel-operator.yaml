@@ -30,6 +30,7 @@ spec:
           - |
             ## Update CA certs
             update-ca-certificates
+
             ## Check connection with the Orderer
             printf "[DEBUG] Testing the connection with the Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }})\n"
             until $(nc -z {{ .Values.orderer.host }} {{ .Values.orderer.port }}); do
@@ -37,14 +38,13 @@ spec:
               sleep 5
             done
 
-            ## Add orgs to application channel
-
+            ## Add orgs to the application channel
             while true; do
 
               ## Create and join application channel
               until grep -e "existing.*{{ .Values.appChannel.name }}" -e "FORBIDDEN" channel.created > /dev/null; do
 
-                printf "[DEBUG] Create and join the application channel {{ .Values.appChannel.name }}\n"
+                printf "[DEBUG] Create and join the application channel ({{ .Values.appChannel.name }})\n"
 
                 ## Create channel
                 configtxgen -profile OrgsChannel --outputCreateChannelTx channel.tx -channelID {{ .Values.appChannel.name }} -asOrg {{ .Values.organization.name }}
@@ -89,10 +89,11 @@ spec:
                   sleep 5
                   continue
                 else
-                  ## Remove all configuration files because of edge cases (network issue, proposal issue). We prefer to delete all and retry all steps to avoid side effect.
+                  printf "[DEBUG] $orgName is not in the application channel\n"
+                  ## Remove all configuration files because of edge cases (network issue, proposal issue).
+                  ## We prefer to delete all and retry all steps to avoid side effect.
                   rm -f *-$orgName.*
                 fi
-
 
                 ## Fetch channel configuration block
                 until [ -f "channel-$orgName.block" ] && [ -s "channel-$orgName.block" ]; do
@@ -140,7 +141,7 @@ spec:
 
                 done < /proposal/proposal-organizations
 
-                ## Create channel update proposal if not fetched
+                ## Create proposal if not fetched
                 until [ -f "proposal-$orgName.pb" ]; do
                   printf "[DEBUG] Create application channel update for $orgName \n"
 
@@ -165,7 +166,7 @@ spec:
                 cp proposal-$orgName.pb /data/proposal-$orgName.pb
                 chmod +r /data/proposal-$orgName.pb
 
-                ## Submit application channel update proposal
+                ## Submit proposal
                 NUM_SIGNATURES=$(configtxlator proto_decode --input proposal-$orgName.pb --type common.Envelope | jq '.payload.data.signatures | length')
                 printf "[DEBUG] Send application channel update for '$orgName' with $NUM_SIGNATURES signatures\n"
                 peer channel update -f proposal-$orgName.pb -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
