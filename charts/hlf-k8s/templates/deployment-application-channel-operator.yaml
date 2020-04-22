@@ -85,6 +85,7 @@ spec:
 
                 if grep "$orgName" channel-$orgName-hasjoined.json > /dev/null; then
                   printf "[DEBUG] $orgName is already in the application channel\n"
+                  rm -f /data/proposal-$orgName.pb
                   sleep 5
                   continue
                 else
@@ -116,31 +117,26 @@ spec:
 
                 ## Fetch update proposal from external orgs if exists
                 while IFS=" " read -r orgNameProposal proposalServerUrl ; do
-                  printf "[DEBUG] Fetch the update proposal build by organization ($orgNameProposal) for organization ($orgName) from $proposalServerUrl/proposal-$orgName.pb \n"
-                  curl -L --output ./external-$orgNameProposal-proposal-$orgName.pb $proposalServerUrl/proposal-$orgName.pb || continue # continue to next org if curl fails
 
+                  printf "[DEBUG] Fetch the update proposal build by organization ($orgNameProposal) for organization ($orgName) from $proposalServerUrl/proposal-$orgName.pb \n"
+                  curl --fail -L --output ./external-$orgNameProposal-proposal-$orgName.pb $proposalServerUrl/proposal-$orgName.pb
+
+                  ## Compare external proposal file with local one, keep the largest (more signatures) between them as the only difference will be the number of signatures
                   if [ -s "external-$orgNameProposal-proposal-$orgName.pb" ]
                   then
-                    # external proposal.pb exists, use it
-
-                    if [ -s "proposal-$orgName.pb" ]
-                    then
-                      # A proposal-$orgName.pb already exists, keep the largest
-                      if [ $(stat -c %s "external-$orgNameProposal-proposal-$orgName.pb") -gt $(stat -c %s "proposal-$orgName.pb") ]
-                      then
-                         cp external-$orgNameProposal-proposal-$orgName.pb proposal-$orgName.pb
+                    if [ -s "proposal-$orgName.pb" ] ; then
+                      if [ $(stat -c %s "external-$orgNameProposal-proposal-$orgName.pb") -gt $(stat -c %s "proposal-$orgName.pb") ] ; then
+                        printf "[DEBUG] Use the $orgName update proposal from $orgNameProposal as there are more signatures in it !\n"
+                        cp external-$orgNameProposal-proposal-$orgName.pb proposal-$orgName.pb
                       fi
                     else
-                      # proposal-$orgName.pb does not exists
+                      printf "[DEBUG] Fetch the update proposal build by organization ($orgNameProposal) for organization ($orgName) from $proposalServerUrl/proposal-$orgName.pb \n"
+                      printf "[DEBUG] Use the $orgName update proposal from $orgNameProposal \n"
                       cp external-$orgNameProposal-proposal-$orgName.pb proposal-$orgName.pb
                     fi
                   fi
-                done < /proposal/proposal-organizations
 
-                # Remove file if error 40X html in it
-                if grep "html" proposal-$orgName.pb > /dev/null; then
-                  rm -f proposal-$orgName.pb
-                fi
+                done < /proposal/proposal-organizations
 
                 ## Create channel update proposal if not fetched
                 until [ -f "proposal-$orgName.pb" ]; do
@@ -171,6 +167,14 @@ spec:
                 printf "[DEBUG] Send application channel update for $orgName \n"
                 peer channel update -f proposal-$orgName.pb -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
                 sleep 5
+
+                ## Recycle file if number of signatures > number of application-organizations
+                ## That's suggest a potential proposal update not up to date along the last ledger state
+                wc -l /proposal/proposal-organizations
+                if [ $(configtxlator proto_decode --input proposal-$orgName.pb --type common.Envelope | jq '.payload.data.signatures | length') -gt $(wc -l /proposal/proposal-organizations | cut -c 1) ] ; then
+                  printf "[DEBUG] Clean proposal for organization $orgName : too much signatures, maybe the proposal is not at the ledger last state \n"
+                  rm -f /data/proposal-$orgName.pb proposal-$orgName.pb
+                fi
 
               done < /config/application-organizations
 
