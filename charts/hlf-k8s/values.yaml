@@ -45,6 +45,9 @@ appChannel:
   # organizations:
   #   - { orgName: Org1, configUrl: peer-1-org-config-operator.org-1/config/configOrgWithAnchors.json }
   #   - { orgName: Org2, configUrl: peer-2-org-config-operator.org-2/config/configOrgWithAnchors.json }
+  # proposalOrganizations:
+  #   - { orgName: Org1, proposalServerUrl: peer-1-org-application-channel-operator.org-1/proposal/ }
+  #   - { orgName: Org2, proposalServerUrl: peer-2-org-application-channel-operator.org-2/proposal/ }
   # chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
   # chaincodeName: mycc
   # chaincodeVersion: "1.0"

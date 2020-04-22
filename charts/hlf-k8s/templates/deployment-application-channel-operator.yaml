@@ -113,7 +113,36 @@ spec:
                   curl -L --output ./configOrg-$orgName.json $configUrl || continue # continue to next org if curl fails
                 fi
 
-                ## Create channel update proposal
+
+                ## Fetch update proposal from external orgs if exists
+                while IFS=" " read -r orgNameProposal proposalServerUrl ; do
+                  printf "[DEBUG] Fetch the update proposal build by organization ($orgNameProposal) for organization ($orgName) from $proposalServerUrl/proposal-$orgName.pb \n"
+                  curl -L --output ./external-$orgNameProposal-proposal-$orgName.pb $proposalServerUrl/proposal-$orgName.pb || continue # continue to next org if curl fails
+
+                  if [ -s "external-$orgNameProposal-proposal-$orgName.pb" ]
+                  then
+                    # external proposal.pb exists, use it
+
+                    if [ -s "proposal-$orgName.pb" ]
+                    then
+                      # A proposal-$orgName.pb already exists, keep the largest
+                      if [ $(stat -c %s "external-$orgNameProposal-proposal-$orgName.pb") -gt $(stat -c %s "proposal-$orgName.pb") ]
+                      then
+                         cp external-$orgNameProposal-proposal-$orgName.pb proposal-$orgName.pb
+                      fi
+                    else
+                      # proposal-$orgName.pb does not exists
+                      cp external-$orgNameProposal-proposal-$orgName.pb proposal-$orgName.pb
+                    fi
+                  fi
+                done < /proposal/proposal-organizations
+
+                # Remove file if error 40X html in it
+                if grep "html" proposal-$orgName.pb > /dev/null; then
+                  rm -f proposal-$orgName.pb
+                fi
+
+                ## Create channel update proposal if not fetched
                 until [ -f "proposal-$orgName.pb" ]; do
                   printf "[DEBUG] Create application channel update for $orgName \n"
 
@@ -131,17 +160,18 @@ spec:
                   sleep 2
                 done
 
-                ## Submit application channel update proposal
-                until $(grep "$orgName" channelconfignew-$orgName.json > /dev/null 2> /dev/null); do
-                  printf "[DEBUG] Send application channel update for $orgName \n"
-                  peer channel update -f proposal-$orgName.pb -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
-                  sleep 2
+                ## Sign update proposal
+                peer channel signconfigtx -f proposal-$orgName.pb -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
 
-                  printf "[DEBUG] Fetch application channel configuration to check the update for $orgName\n"
-                  peer channel fetch config channelnew-$orgName.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
-                  configtxlator proto_decode --input channelnew-$orgName.block --type common.Block | jq .data.data[0].payload.data.config > channelconfignew-$orgName.json
-                  sleep 5
-                done
+                ## Update proposal in /data
+                cp proposal-$orgName.pb /data/proposal-$orgName.pb
+                chmod +r /data/proposal-$orgName.pb
+
+                ## Submit application channel update proposal
+                printf "[DEBUG] Send application channel update for $orgName \n"
+                peer channel update -f proposal-$orgName.pb -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                sleep 5
+
               done < /config/application-organizations
 
               ## Instantiate chaincode
@@ -170,6 +200,9 @@ spec:
             readOnly: true
           - mountPath: /config
             name: application-organizations
+            readOnly: true
+          - mountPath: /proposal
+            name: proposal-organizations
             readOnly: true
           - mountPath: /var/hyperledger/msp/signcerts
             name: id-cert
@@ -201,15 +234,27 @@ spec:
             name: cacert
           - mountPath: /var/hyperledger/admin_msp/admincerts
             name: admin-cert
+          - mountPath: /data
+            name: data
           {{- if .Values.privateCa.enabled }}
           - mountPath: /usr/local/share/ca-certificates/{{ .Values.privateCa.configMap.fileName }}
             name: private-ca
             subPath: {{ .Values.privateCa.configMap.fileName }}
           {{- end }}
+      - name: nginx
+        image: nginx:1.17.6
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - mountPath: /usr/share/nginx/html/proposal
+            name: data
       volumes:
         - name: application-organizations
           configMap:
             name: {{ template "substra.fullname" . }}-application-organizations
+        - name: proposal-organizations
+          configMap:
+            name: {{ template "substra.fullname" . }}-proposal-organizations
         - name: fabric-config
           configMap:
             name: {{ template "substra.fullname" . }}-fabric
@@ -243,6 +288,8 @@ spec:
         - name: ord-tls-rootcert
           secret:
             secretName: {{ .Values.secrets.ordTlsRootCert }}
+        - name: data
+          emptyDir: {}
         {{- if .Values.privateCa.enabled }}
         - name: private-ca
           configMap:
@@ -260,5 +307,25 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "substra.fullname" . }}-application-channel-operator
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ template "substra.name" . }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app.kubernetes.io/name: {{ template "substra.name" . }}-application-channel-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
 ---
 {{- end }}
