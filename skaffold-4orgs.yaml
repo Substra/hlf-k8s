@@ -52,6 +52,8 @@ deploy:
           systemChannel.organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrg.json
           systemChannel.organizations[2].orgName: MyOrg3
           systemChannel.organizations[2].configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrg.json
+          systemChannel.organizations[3].orgName: MyOrg4
+          systemChannel.organizations[3].configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrg.json
           orderer.host: network-orderer.orderer  # {name}.{namespace}
           orderer.ord.mspID: MyOrdererMSP
           enrollments.creds[0].name: admin
