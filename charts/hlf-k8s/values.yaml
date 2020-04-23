@@ -37,17 +37,17 @@ systemChannel:
   name: systemchannel
   organizations:
     # Here is an exemple of structure:
-    #   - { orgName: MyPeer1, configUrl: peer-1-org-config-operator.org-1/config/configOrg.json }
-    #   - { orgName: MyPeer2, configUrl: peer-2-org-config-operator.org-2/config/configOrg.json }
+    #   - { org: MyPeer1, configUrl: peer-1-org-config-operator.org-1/config/configOrg.json }
+    #   - { org: MyPeer2, configUrl: peer-2-org-config-operator.org-2/config/configOrg.json }
 
 appChannel:
   name: mychannel
   # organizations:
-  #   - { orgName: Org1, configUrl: peer-1-org-config-operator.org-1/config/configOrgWithAnchors.json }
-  #   - { orgName: Org2, configUrl: peer-2-org-config-operator.org-2/config/configOrgWithAnchors.json }
+  #   - { org: Org1, configUrl: peer-1-org-config-operator.org-1/config/configOrgWithAnchors.json }
+  #   - { org: Org2, configUrl: peer-2-org-config-operator.org-2/config/configOrgWithAnchors.json }
   # proposalOrganizations:
-  #   - { orgName: Org1, proposalServerUrl: peer-1-org-application-channel-operator.org-1/proposal/ }
-  #   - { orgName: Org2, proposalServerUrl: peer-2-org-application-channel-operator.org-2/proposal/ }
+  #   - { org: Org1, proposalServerUrl: peer-1-org-application-channel-operator.org-1/proposal/ }
+  #   - { org: Org2, proposalServerUrl: peer-2-org-application-channel-operator.org-2/proposal/ }
   # chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
   # chaincodeName: mycc
   # chaincodeVersion: "1.0"

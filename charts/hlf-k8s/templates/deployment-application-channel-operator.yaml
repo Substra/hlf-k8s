@@ -76,108 +76,108 @@ spec:
 
               ## Add organizations to application channel
 
-              while IFS=" " read -r orgName configUrl ; do
+              while IFS=" " read -r org configUrl ; do
 
                 ## Check if update has been already sent
-                printf "[DEBUG] Fetch application channel configuration to verify if $orgName is in it \n"
-                peer channel fetch config channel-$orgName-hasjoined.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
-                configtxlator proto_decode --input channel-$orgName-hasjoined.block --type common.Block | jq .data.data[0].payload.data.config > channel-$orgName-hasjoined.json
+                printf "[DEBUG] Fetch application channel configuration to verify if $org is in it \n"
+                peer channel fetch config channel-$org-hasjoined.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+                configtxlator proto_decode --input channel-$org-hasjoined.block --type common.Block | jq .data.data[0].payload.data.config > channel-$org-hasjoined.json
 
-                if grep "$orgName" channel-$orgName-hasjoined.json > /dev/null; then
-                  printf "[DEBUG] $orgName is already in the application channel\n"
-                  rm -f /data/proposal-$orgName.pb
+                if grep "$org" channel-$org-hasjoined.json > /dev/null; then
+                  printf "[DEBUG] $org is already in the application channel\n"
+                  rm -f /data/proposal-$org.pb
                   sleep 5
                   continue
                 else
-                  printf "[DEBUG] $orgName is not in the application channel\n"
+                  printf "[DEBUG] $org is not in the application channel\n"
                   ## Remove all configuration files because of edge cases (network issue, proposal issue).
                   ## We prefer to delete all and retry all steps to avoid side effect.
-                  rm -f *-$orgName.*
+                  rm -f *-$org.*
                 fi
 
                 ## Fetch channel configuration block
-                until [ -f "channel-$orgName.block" ] && [ -s "channel-$orgName.block" ]; do
+                until [ -f "channel-$org.block" ] && [ -s "channel-$org.block" ]; do
                   printf "[DEBUG] Fetching the channel ({{ .Values.appChannel.name }}) configuration block\n"
-                  peer channel fetch config channel-$orgName.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+                  peer channel fetch config channel-$org.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
                   sleep 3
                 done
 
                 ## Extract application channel configuration
-                until [ -f "channelold-$orgName.block" ] && [ -s "channelold-$orgName.block" ]; do
-                  configtxlator proto_decode --input channel-$orgName.block --type common.Block | jq .data.data[0].payload.data.config > channelconfig-$orgName.json
-                  configtxlator proto_encode --input channelconfig-$orgName.json --type common.Config --output channelold-$orgName.block
+                until [ -f "channelold-$org.block" ] && [ -s "channelold-$org.block" ]; do
+                  configtxlator proto_decode --input channel-$org.block --type common.Block | jq .data.data[0].payload.data.config > channelconfig-$org.json
+                  configtxlator proto_encode --input channelconfig-$org.json --type common.Config --output channelold-$org.block
                   sleep 2
                 done
 
                 ## Fetch organization configuration
-                if ! ([ -f "configOrg-$orgName.json" ] && [ -s "configOrg-$orgName.json" ]); then
-                  printf "[DEBUG] Fetch the organization ($orgName) configuration from $configUrl\n"
-                  curl --fail -L --output ./configOrg-$orgName.json $configUrl || continue # continue to next org if curl fails
+                if ! ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
+                  printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
+                  curl --fail -L --output ./configOrg-$org.json $configUrl || continue # continue to next org if curl fails
                 fi
 
 
                 ## Fetch update proposal from external orgs if exists
-                while IFS=" " read -r orgNameProposal proposalServerUrl ; do
+                while IFS=" " read -r orgProposal proposalServerUrl ; do
 
                   # Don't need to network-fetch proposals made by ourselves
-                  if [ "$orgNameProposal" = "{{ .Values.organization.name }}" ]; then continue; fi
+                  if [ "$orgProposal" = "{{ .Values.organization.name }}" ]; then continue; fi
 
-                  printf "[DEBUG] Fetch the update proposal built by organization ($orgNameProposal) for organization ($orgName) from $proposalServerUrl/proposal-$orgName.pb \n"
-                  curl --fail -L --output ./external-$orgNameProposal-proposal-$orgName.pb $proposalServerUrl/proposal-$orgName.pb
+                  printf "[DEBUG] Fetch the update proposal built by organization ($orgProposal) for organization ($org) from $proposalServerUrl/proposal-$org.pb \n"
+                  curl --fail -L --output ./external-$orgProposal-proposal-$org.pb $proposalServerUrl/proposal-$org.pb
 
                   ## Compare external proposal file with local one, keep the largest (more signatures) between them as the only difference will be the number of signatures
-                  if [ -s "external-$orgNameProposal-proposal-$orgName.pb" ]
+                  if [ -s "external-$orgProposal-proposal-$org.pb" ]
                   then
-                    if [ -s "proposal-$orgName.pb" ] ; then
-                      if [ $(stat -c %s "external-$orgNameProposal-proposal-$orgName.pb") -gt $(stat -c %s "proposal-$orgName.pb") ] ; then
-                        printf "[DEBUG] Use the $orgName update proposal from $orgNameProposal as there are more signatures in it !\n"
-                        cp external-$orgNameProposal-proposal-$orgName.pb proposal-$orgName.pb
+                    if [ -s "proposal-$org.pb" ] ; then
+                      if [ $(stat -c %s "external-$orgProposal-proposal-$org.pb") -gt $(stat -c %s "proposal-$org.pb") ] ; then
+                        printf "[DEBUG] Use the $org update proposal from $orgProposal as there are more signatures in it !\n"
+                        cp external-$orgProposal-proposal-$org.pb proposal-$org.pb
                       fi
                     else
-                      printf "[DEBUG] Use the $orgName update proposal from $orgNameProposal \n"
-                      cp external-$orgNameProposal-proposal-$orgName.pb proposal-$orgName.pb
+                      printf "[DEBUG] Use the $org update proposal from $orgProposal \n"
+                      cp external-$orgProposal-proposal-$org.pb proposal-$org.pb
                     fi
                   fi
 
                 done < /proposal/proposal-organizations
 
                 ## Create proposal if not fetched
-                until [ -f "proposal-$orgName.pb" ]; do
-                  printf "[DEBUG] Create application channel update for $orgName \n"
+                until [ -f "proposal-$org.pb" ]; do
+                  printf "[DEBUG] Create application channel update for $org \n"
 
                   ## Add the Organization in the Applciation group
-                  jq -s '.[0] * {"channel_group":{"groups":{"Application":{"groups":{"'$orgName'":.[1]}}}}}' channelconfig-$orgName.json configOrg-$orgName.json > channelconfigUpdated-$orgName.json
-                  configtxlator proto_encode --input channelconfigUpdated-$orgName.json --type common.Config --output channelupdate-$orgName.block
+                  jq -s '.[0] * {"channel_group":{"groups":{"Application":{"groups":{"'$org'":.[1]}}}}}' channelconfig-$org.json configOrg-$org.json > channelconfigUpdated-$org.json
+                  configtxlator proto_encode --input channelconfigUpdated-$org.json --type common.Config --output channelupdate-$org.block
 
                   ## Compute update between channel old configuration and the updated one
-                  configtxlator compute_update --channel_id {{ .Values.appChannel.name }} --original channelold-$orgName.block --updated channelupdate-$orgName.block | configtxlator proto_decode --type common.ConfigUpdate | jq . > compute_update-$orgName.json
+                  configtxlator compute_update --channel_id {{ .Values.appChannel.name }} --original channelold-$org.block --updated channelupdate-$org.block | configtxlator proto_decode --type common.ConfigUpdate | jq . > compute_update-$org.json
 
                   ## Create the update proposal
-                  echo '{"payload":{"header":{"channel_header":{"channel_id": "{{ .Values.appChannel.name }}", "type":2}},"data":{"config_update":'$(cat compute_update-$orgName.json)'}}}' | jq . > proposal-$orgName.json
-                  configtxlator proto_encode --input proposal-$orgName.json --type common.Envelope --output proposal-$orgName.pb
+                  echo '{"payload":{"header":{"channel_header":{"channel_id": "{{ .Values.appChannel.name }}", "type":2}},"data":{"config_update":'$(cat compute_update-$org.json)'}}}' | jq . > proposal-$org.json
+                  configtxlator proto_encode --input proposal-$org.json --type common.Envelope --output proposal-$org.pb
 
                   sleep 2
                 done
 
                 ## Sign update proposal
-                peer channel signconfigtx -f proposal-$orgName.pb -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer channel signconfigtx -f proposal-$org.pb -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
 
                 ## Update proposal in /data
-                cp proposal-$orgName.pb /data/proposal-$orgName.pb
-                chmod +r /data/proposal-$orgName.pb
+                cp proposal-$org.pb /data/proposal-$org.pb
+                chmod +r /data/proposal-$org.pb
 
                 ## Submit proposal
-                NUM_SIGNATURES=$(configtxlator proto_decode --input proposal-$orgName.pb --type common.Envelope | jq '.payload.data.signatures | length')
-                printf "[DEBUG] Send application channel update for '$orgName' with $NUM_SIGNATURES signatures\n"
-                peer channel update -f proposal-$orgName.pb -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                NUM_SIGNATURES=$(configtxlator proto_decode --input proposal-$org.pb --type common.Envelope | jq '.payload.data.signatures | length')
+                printf "[DEBUG] Send application channel update for '$org' with $NUM_SIGNATURES signatures\n"
+                peer channel update -f proposal-$org.pb -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
                 sleep 5
 
                 ## Delete proposal if number of signatures > number of application-organizations
                 ## That suggests the proposal update is not up to date with the latest ledger state
                 NUM_APPLICATION_ORGS=$(wc -l /proposal/proposal-organizations | cut -c 1)
                 if [ "$NUM_SIGNATURES" -gt "$NUM_APPLICATION_ORGS" ] ; then
-                  printf "[DEBUG] Delete proposal for '$orgName' : $NUM_SIGNATURES signatures > $NUM_APPLICATION_ORGS organizations. Maybe the proposal is not at the ledger latest state?\n"
-                  rm -f /data/proposal-$orgName.pb proposal-$orgName.pb
+                  printf "[DEBUG] Delete proposal for '$org' : $NUM_SIGNATURES signatures > $NUM_APPLICATION_ORGS organizations. Maybe the proposal is not at the ledger latest state?\n"
+                  rm -f /data/proposal-$org.pb proposal-$org.pb
                 fi
 
               done < /config/application-organizations
