@@ -80,7 +80,7 @@ spec:
 
                 ## Check if update has been already sent
                 printf "[DEBUG] Fetch application channel configuration to verify if $orgName is in it \n"
-                peer channel fetch config channel-$orgName-hasjoined.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer channel fetch config channel-$orgName-hasjoined.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
                 configtxlator proto_decode --input channel-$orgName-hasjoined.block --type common.Block | jq .data.data[0].payload.data.config > channel-$orgName-hasjoined.json
 
                 if grep "$orgName" channel-$orgName-hasjoined.json > /dev/null; then
@@ -97,7 +97,7 @@ spec:
                 ## Fetch channel configuration block
                 until [ -f "channel-$orgName.block" ] && [ -s "channel-$orgName.block" ]; do
                   printf "[DEBUG] Fetching the channel ({{ .Values.appChannel.name }}) configuration block\n"
-                  peer channel fetch config channel-$orgName.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                  peer channel fetch config channel-$orgName.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
                   sleep 3
                 done
 

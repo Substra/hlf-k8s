@@ -47,7 +47,7 @@ spec:
 
                 ## Check if update has been already sent
                 printf "[DEBUG] Fetch system channel configuration to verify if $orgName is in it \n"
-                peer channel fetch config channel-$orgName-hasjoined.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer channel fetch config channel-$orgName-hasjoined.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
                 configtxlator proto_decode --input channel-$orgName-hasjoined.block --type common.Block | jq .data.data[0].payload.data.config > channel-$orgName-hasjoined.json
 
                 if grep "$orgName" channel-$orgName-hasjoined.json > /dev/null; then
@@ -63,7 +63,7 @@ spec:
                 ## Fetch system channel configuration block
                 until [ -f "channel-$orgName.block" ] && [ -s "channel-$orgName.block" ]; do
                   printf "[DEBUG] Fetching the system channel ({{ .Values.systemChannel.name }}) configuration block\n"
-                  peer channel fetch config channel-$orgName.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                  peer channel fetch config channel-$orgName.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
                   sleep 3
                 done
 
@@ -109,7 +109,7 @@ spec:
                   sleep 2
 
                   printf "[DEBUG] Fetch system channel configuration to check the update for $orgName\n"
-                  peer channel fetch config channelnew-$orgName.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                  peer channel fetch config channelnew-$orgName.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
                   configtxlator proto_decode --input channelnew-$orgName.block --type common.Block | jq .data.data[0].payload.data.config > channelconfignew-$orgName.json
 
                   sleep 5
