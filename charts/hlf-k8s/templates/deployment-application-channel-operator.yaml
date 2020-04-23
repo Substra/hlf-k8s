@@ -167,16 +167,25 @@ spec:
                 chmod +r /data/proposal-$org.pb
 
                 ## Submit proposal
-                NUM_SIGNATURES=$(configtxlator proto_decode --input proposal-$org.pb --type common.Envelope | jq '.payload.data.signatures | length')
-                printf "[DEBUG] Send application channel update for '$org' with $NUM_SIGNATURES signatures\n"
+
+                NUM_SIGNATURES=$(configtxlator proto_decode --input proposal-$org.pb --type common.Envelope | jq '.payload.data.signatures | map(.signature_header.creator.mspid) | unique | length')
+                NUM_APPLICATION_ORGS=$(wc -l /proposal/proposal-organizations | cut -c 1)
+
+                printf "[DEBUG] Send application channel update for '$org' with $NUM_SIGNATURES signatures on $NUM_APPLICATION_ORGS organizations \n"
                 peer channel update -f proposal-$org.pb -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
                 sleep 5
 
-                ## Delete proposal if number of signatures > number of application-organizations
+                ## Proposal update should have a readset application version matching config application version
                 ## That suggests the proposal update is not up to date with the latest ledger state
-                NUM_APPLICATION_ORGS=$(wc -l /proposal/proposal-organizations | cut -c 1)
-                if [ "$NUM_SIGNATURES" -gt "$NUM_APPLICATION_ORGS" ] ; then
-                  printf "[DEBUG] Delete proposal for '$org' : $NUM_SIGNATURES signatures > $NUM_APPLICATION_ORGS organizations. Maybe the proposal is not at the ledger latest state?\n"
+
+                READSET_APPLICATION_VERSION=$(configtxlator proto_decode --input proposal-$org.pb --type common.Envelope | jq '.payload.data.config_update.read_set.groups.Application.version')
+                APPLICATION_VERSION=$(cat channelconfig-$org.json | jq '.channel_group.groups.Application.version')
+
+                printf "[DEBUG] Proposal update state is at $READSET_APPLICATION_VERSION, the ledger currently fetch state is at $APPLICATION_VERSION \n"
+
+                ## Delete proposal if versions are not equal
+                if [ $READSET_APPLICATION_VERSION != $APPLICATION_VERSION ] ; then
+                  printf "[DEBUG] Delete proposal for '$org' : the proposal state ($READSET_APPLICATION_VERSION) is not at the ledger latest state ($APPLICATION_VERSION) \n"
                   rm -f /data/proposal-$org.pb proposal-$org.pb
                 fi
 
