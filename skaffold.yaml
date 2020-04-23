@@ -45,6 +45,7 @@ deploy:
           organization.id: MyOrdererMSP
           organization.name: MyOrderer
           orderer.enabled: true
+          orderer.monitor.enabled: true
           # Add Org to system channel to allows them to adminstrate application channels
           systemChannel.organizations[0].orgName: MyOrg1
           systemChannel.organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrg.json
