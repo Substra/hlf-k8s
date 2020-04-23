@@ -152,6 +152,8 @@ orderer:
         enabled: "true"
       client:
         enabled: "true"
+  monitor:
+    enabled: false
   secrets:
     ## These secrets should contain the Orderer crypto materials and credentials
     ord:
