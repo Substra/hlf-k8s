@@ -47,6 +47,16 @@ appChannel:
   # chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
   # chaincodeName: mycc
   # chaincodeVersion: "1.0"
+  # policies: |-
+  #   Readers:
+  #       Type: ImplicitMeta
+  #       Rule: "ANY Readers"
+  #   Writers:
+  #       Type: ImplicitMeta
+  #       Rule: "ANY Writers"
+  #   Admins:
+  #       Type: ImplicitMeta
+  #       Rule: "ANY Admins"
 
 
 organization:

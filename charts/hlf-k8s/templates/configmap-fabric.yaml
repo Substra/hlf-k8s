@@ -45,18 +45,10 @@ data:
       {{- if .Values.peer.enabled }}
       OrgsChannel:
         Application:
-          # Default are 'Rule: "MAJORITY * "' https://hyperledger-fabric.readthedocs.io/en/release-2.0/policies.html#policy-types
-          # If you want to change uncomment below for instance
-          # Policies:
-          #   Readers:
-          #       Type: ImplicitMeta
-          #       Rule: "ANY Readers"
-          #   Writers:
-          #       Type: ImplicitMeta
-          #       Rule: "ANY Writers"
-          #   Admins:
-          #       Type: ImplicitMeta
-          #       Rule: "ANY Admins"
+          {{- if .Values.appChannel.policies }}
+          Policies:
+            {{- .Values.appChannel.policies | nindent 12 -}}
+          {{- end }}
           Organizations:
           - *id001
         Consortium: SampleConsortium
