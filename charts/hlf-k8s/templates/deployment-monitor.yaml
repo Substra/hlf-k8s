@@ -69,7 +69,7 @@ spec:
 
               configtxlator proto_decode --input applicationChannel.block --type common.Block | jq '.data.data[0].payload.data.config.channel_group.groups.Application.groups | keys'
 
-              sleep 5
+              sleep 10
             done
         resources:
           {{- toYaml .Values.resources | nindent 14 }}

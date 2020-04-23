@@ -17,5 +17,3 @@ COPY ./images/hlf-k8s/setup-hfc-binaries.sh .
 
 RUN ls -la
 RUN ./setup-hfc-binaries.sh
-
-COPY ./images/hlf-k8s/bin/* /usr/local/bin/
