@@ -118,7 +118,10 @@ spec:
                 ## Fetch update proposal from external orgs if exists
                 while IFS=" " read -r orgNameProposal proposalServerUrl ; do
 
-                  printf "[DEBUG] Fetch the update proposal build by organization ($orgNameProposal) for organization ($orgName) from $proposalServerUrl/proposal-$orgName.pb \n"
+                  # Don't need to network-fetch proposals made by ourselves
+                  if [ "$orgNameProposal" = "{{ .Values.organization.name }}" ]; then continue; fi
+
+                  printf "[DEBUG] Fetch the update proposal built by organization ($orgNameProposal) for organization ($orgName) from $proposalServerUrl/proposal-$orgName.pb \n"
                   curl --fail -L --output ./external-$orgNameProposal-proposal-$orgName.pb $proposalServerUrl/proposal-$orgName.pb
 
                   ## Compare external proposal file with local one, keep the largest (more signatures) between them as the only difference will be the number of signatures
