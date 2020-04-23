@@ -34,8 +34,8 @@ spec:
             ## Check connection with the Orderer
             printf "[DEBUG] Testing the connection with the Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }})\n"
             until $(nc -z {{ .Values.orderer.host }} {{ .Values.orderer.port }}); do
-              printf "[DEBUG] Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }}) is not reacheable, retry in 5s\n"
-              sleep 5
+              printf "[DEBUG] Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }}) is not reacheable, retry in 3s\n"
+              sleep 3
             done
 
             while true; do
