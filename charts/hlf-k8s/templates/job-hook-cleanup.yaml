@@ -31,16 +31,6 @@ metadata:
 spec:
   template:
     spec:
-      dnsPolicy: {{ .Values.dnsPolicy }}
-      {{- if or .Values.image.pullSecretsInline .Values.image.pullSecrets }}
-      imagePullSecrets:
-      {{- range $index, $value := .Values.image.pullSecretsInline }}
-        - name: {{ template "substra.fullname" $ }}-pull-secret-{{ $index }}
-      {{- end }}
-      {{- range .Values.image.pullSecrets }}
-        - name: {{ . }}
-      {{- end }}
-      {{- end }}
       restartPolicy: OnFailure
       serviceAccountName: tiller  # Since we delete the secrets after
                                   # 'helm delete', we need to use the Tiller SA

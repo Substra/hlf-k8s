@@ -16,10 +16,6 @@ image:
   repository: substrafoundation/hlf-k8s
   tag: latest
   pullPolicy: IfNotPresent
-  pullSecrets: []
-  pullSecretsInline: []
-
-dnsPolicy: ClusterFirst
 
 nginx-ingress:
   enabled: false
