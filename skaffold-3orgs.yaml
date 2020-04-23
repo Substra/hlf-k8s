@@ -40,8 +40,8 @@ deploy:
           nginx-ingress.enabled: true
           peer.enabled: false
           ca.caName: rcaOrderer
-          ca.host: network-orderer-ca.orderer  # {name}.{namespace}
-          ca.orderer.host: network-orderer-ca.orderer  # {name}.{namespace}
+          ca.host: network-orderer-ca.orderer
+          ca.orderer.host: network-orderer-ca.orderer
           organization.id: MyOrdererMSP
           organization.name: MyOrderer
           orderer.enabled: true
@@ -53,7 +53,7 @@ deploy:
           systemChannel.organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrg.json
           systemChannel.organizations[2].org: MyOrg3
           systemChannel.organizations[2].configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrg.json
-          orderer.host: network-orderer.orderer  # {name}.{namespace}
+          orderer.host: network-orderer.orderer
           orderer.ord.mspID: MyOrdererMSP
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
@@ -74,9 +74,9 @@ deploy:
           nginx-ingress.enabled: true
           nginx-ingress.controller.scope.enabled: true
           ca.caName: rcaOrg1
-          ca.host: network-org-1-peer-1-ca.org-1  # {name}.{namespace}
+          ca.host: network-org-1-peer-1-ca.org-1
           ca.orderer.host: network-orderer-ca.orderer
-          peer.host: network-org-1-peer-1.org-1  # {name}.{namespace}
+          peer.host: network-org-1-peer-1.org-1
           organization.id: MyOrg1MSP
           organization.name: MyOrg1
           peer.peer.mspID: MyOrg1MSP
@@ -104,7 +104,7 @@ deploy:
           appChannel.chaincodeName: mycc
           appChannel.chaincodeVersion: "1.0"
           orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-org-1-peer-1.org-1:7051  # {name}.{namespace}:{port}
+          peer.peer.gossip.externalEndpoint: network-org-1-peer-1.org-1:7051  :{port}
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
@@ -125,9 +125,9 @@ deploy:
           nginx-ingress.enabled: true
           nginx-ingress.controller.scope.enabled: true
           ca.caName: rcaOrg2
-          ca.host: network-org-2-peer-1-ca.org-2  # {name}.{namespace}
+          ca.host: network-org-2-peer-1-ca.org-2
           ca.orderer.host: network-orderer-ca.orderer
-          peer.host: network-org-2-peer-1.org-2  # {name}.{namespace}
+          peer.host: network-org-2-peer-1.org-2
           organization.id: MyOrg2MSP
           organization.name: MyOrg2
           peer.peer.mspID: MyOrg2MSP
@@ -154,7 +154,7 @@ deploy:
           appChannel.chaincodeName: mycc
           appChannel.chaincodeVersion: "1.0"
           orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-org-2-peer-1.org-2:7051  # {name}.{namespace}:{port}
+          peer.peer.gossip.externalEndpoint: network-org-2-peer-1.org-2:7051  :{port}
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
@@ -175,9 +175,9 @@ deploy:
           nginx-ingress.enabled: true
           nginx-ingress.controller.scope.enabled: true
           ca.caName: rcaOrg3
-          ca.host: network-org-3-peer-1-ca.org-3  # {name}.{namespace}
+          ca.host: network-org-3-peer-1-ca.org-3
           ca.orderer.host: network-orderer-ca.orderer
-          peer.host: network-org-3-peer-1.org-3  # {name}.{namespace}
+          peer.host: network-org-3-peer-1.org-3
           organization.id: MyOrg3MSP
           organization.name: MyOrg3
           peer.peer.mspID: MyOrg3MSP
@@ -203,7 +203,7 @@ deploy:
           appChannel.chaincodeName: mycc
           appChannel.chaincodeVersion: "1.0"
           orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-org-3-peer-1.org-3:7051  # {name}.{namespace}:{port}
+          peer.peer.gossip.externalEndpoint: network-org-3-peer-1.org-3:7051  :{port}
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
