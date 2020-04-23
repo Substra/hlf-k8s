@@ -5,5 +5,5 @@ metadata:
 data:
   application-organizations: |
     {{- range .Values.appChannel.organizations }}
-      {{ .orgName }} {{ .configUrl }}
+      {{ .org }} {{ .configUrl }}
     {{- end }}

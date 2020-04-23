@@ -25,7 +25,9 @@ metadata:
   annotations:
     "helm.sh/hook": post-delete
     "helm.sh/hook-delete-policy": hook-succeeded
-  namespace: kube-system # As we use post-delete to remove secret we should use tiller SA in kube-system namespace
+  namespace: kube-system # Since we delete the secrets after 'helm delete',
+                         # we need to use the Tiller SA in the kube-system
+                         # namespace
 spec:
   template:
     spec:
@@ -40,7 +42,8 @@ spec:
       {{- end }}
       {{- end }}
       restartPolicy: OnFailure
-      serviceAccountName: tiller  # As we use post-delete to remove secret we should use tiller SA
+      serviceAccountName: tiller  # Since we delete the secrets after
+                                  # 'helm delete', we need to use the Tiller SA
       containers:
       - name: fabric-tools
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

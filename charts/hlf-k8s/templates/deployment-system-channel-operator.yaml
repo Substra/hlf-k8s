@@ -30,6 +30,7 @@ spec:
           - |
             ## Update CA certs
             update-ca-certificates
+
             ## Check connection with the Orderer
             printf "[DEBUG] Testing the connection with the Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }})\n"
             until $(nc -z {{ .Values.orderer.host }} {{ .Values.orderer.port }}); do
@@ -37,80 +38,80 @@ spec:
               sleep 5
             done
 
-            ## Add orgs to system channel
-
+            ## Add orgs to the system channel
             while true; do
 
-              printf "[DEBUG] Creating system channel ({{ .Values.systemChannel.name }}) updates\n"
+              printf "[DEBUG] Creating updates for system channel ({{ .Values.systemChannel.name }})\n"
 
-              while IFS=" " read -r orgName configUrl ; do
+              while IFS=" " read -r org configUrl ; do
 
                 ## Check if update has been already sent
-                printf "[DEBUG] Fetch system channel configuration to verify if $orgName is in it \n"
-                peer channel fetch config channel-$orgName-hasjoined.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
-                configtxlator proto_decode --input channel-$orgName-hasjoined.block --type common.Block | jq .data.data[0].payload.data.config > channel-$orgName-hasjoined.json
+                printf "[DEBUG] Check whether '$org' is in the system channel:\n"
+                peer channel fetch config channel-$org-hasjoined.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+                configtxlator proto_decode --input channel-$org-hasjoined.block --type common.Block | jq .data.data[0].payload.data.config > channel-$org-hasjoined.json
 
-                if grep "$orgName" channel-$orgName-hasjoined.json > /dev/null; then
-                  printf "[DEBUG] $orgName is already in the system channel\n"
+                if grep "$org" channel-$org-hasjoined.json > /dev/null; then
+                  printf "[DEBUG] $org is already in the system channel\n"
                   sleep 5
                   continue
                 else
-                  ## Remove all configuration files because of edge cases (network issue, proposal issue). We prefer to delete all and retry all steps to avoid side effect.
-                  rm -f *-$orgName.*
+                  printf "[DEBUG] $org is not in the system channel\n"
+                  ## Remove all configuration files because of edge cases (network issue, proposal issue).
+                  ## We prefer to delete all and retry all steps to avoid side effects.
+                  rm -f *-$org.*
                 fi
 
-
                 ## Fetch system channel configuration block
-                until [ -f "channel-$orgName.block" ] && [ -s "channel-$orgName.block" ]; do
+                until [ -f "channel-$org.block" ] && [ -s "channel-$org.block" ]; do
                   printf "[DEBUG] Fetching the system channel ({{ .Values.systemChannel.name }}) configuration block\n"
-                  peer channel fetch config channel-$orgName.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                  peer channel fetch config channel-$org.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
                   sleep 3
                 done
 
                 ## Extract system channel configuration
-                until [ -f "channelold-$orgName.block" ] && [ -s "channelold-$orgName.block" ]; do
+                until [ -f "channelold-$org.block" ] && [ -s "channelold-$org.block" ]; do
                   printf "[DEBUG] Extract the system channel configuration part\n"
-                  configtxlator proto_decode --input channel-$orgName.block --type common.Block | jq .data.data[0].payload.data.config > channelconfig-$orgName.json
-                  configtxlator proto_encode --input channelconfig-$orgName.json --type common.Config --output channelold-$orgName.block
+                  configtxlator proto_decode --input channel-$org.block --type common.Block | jq .data.data[0].payload.data.config > channelconfig-$org.json
+                  configtxlator proto_encode --input channelconfig-$org.json --type common.Config --output channelold-$org.block
                   sleep 2
                 done
 
                 ## Fetch organization configuration
-                until [ -f "configOrg-$orgName.json" ] && [ -s "configOrg-$orgName.json" ]; do
-                  printf "[DEBUG] Fetch the organization ($orgName) configuration from $configUrl\n"
-                  curl -L --output ./configOrg-$orgName.json $configUrl
+                until [ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]; do
+                  printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
+                  curl -L --output ./configOrg-$org.json $configUrl
                   sleep 3
                 done
 
-                ## Create system channel update proposal
-                until [ -f "proposal-$orgName.pb" ]; do
-                  printf "[DEBUG] Create system channel update proposal for $orgName\n"
+                ## Create proposal
+                until [ -f "proposal-$org.pb" ]; do
+                  printf "[DEBUG] Create system channel update proposal for $org\n"
 
                   ## Add organization to consortium
-                  jq -s '.[0] * {"channel_group":{"groups":{"Consortiums":{"groups":{"SampleConsortium":{"groups":{"'$orgName'":.[1]}}}}}}}' channelconfig-$orgName.json configOrg-$orgName.json > channelconfigUpdated-$orgName.json
-                  configtxlator proto_encode --input channelconfigUpdated-$orgName.json --type common.Config --output channelupdate-$orgName.block
+                  jq -s '.[0] * {"channel_group":{"groups":{"Consortiums":{"groups":{"SampleConsortium":{"groups":{"'$org'":.[1]}}}}}}}' channelconfig-$org.json configOrg-$org.json > channelconfigUpdated-$org.json
+                  configtxlator proto_encode --input channelconfigUpdated-$org.json --type common.Config --output channelupdate-$org.block
 
                   ## Compute update between channel old configuration and the updated one
-                  configtxlator compute_update --channel_id {{ .Values.systemChannel.name }} --original channelold-$orgName.block --updated channelupdate-$orgName.block | configtxlator proto_decode --type common.ConfigUpdate | jq . > compute_update-$orgName.json
+                  configtxlator compute_update --channel_id {{ .Values.systemChannel.name }} --original channelold-$org.block --updated channelupdate-$org.block | configtxlator proto_decode --type common.ConfigUpdate | jq . > compute_update-$org.json
 
                   ## Create update proposal
-                  echo '{"payload":{"header":{"channel_header":{"channel_id": "{{ .Values.systemChannel.name }}", "type":2}},"data":{"config_update":'$(cat compute_update-$orgName.json)'}}}' | jq . > proposal-$orgName.json
-                  configtxlator proto_encode --input proposal-$orgName.json --type common.Envelope --output proposal-$orgName.pb
+                  echo '{"payload":{"header":{"channel_header":{"channel_id": "{{ .Values.systemChannel.name }}", "type":2}},"data":{"config_update":'$(cat compute_update-$org.json)'}}}' | jq . > proposal-$org.json
+                  configtxlator proto_encode --input proposal-$org.json --type common.Envelope --output proposal-$org.pb
 
                   sleep 2
                 done
 
-                ## Submit system channel update proposal
-                until $(grep "$orgName" channelconfignew-$orgName.json > /dev/null 2> /dev/null); do
+                ## Submit proposal
+                until $(grep "$org" channelconfignew-$org.json > /dev/null 2> /dev/null); do
 
-                  printf "[DEBUG] Send system channel update proposal for $orgName\n"
-                  peer channel update -f proposal-$orgName.pb -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                  printf "[DEBUG] Send system channel update proposal for $org\n"
+                  peer channel update -f proposal-$org.pb -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
 
                   sleep 2
 
-                  printf "[DEBUG] Fetch system channel configuration to check the update for $orgName\n"
-                  peer channel fetch config channelnew-$orgName.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
-                  configtxlator proto_decode --input channelnew-$orgName.block --type common.Block | jq .data.data[0].payload.data.config > channelconfignew-$orgName.json
+                  printf "[DEBUG] Fetch system channel configuration to check the update for $org\n"
+                  peer channel fetch config channelnew-$org.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+                  configtxlator proto_decode --input channelnew-$org.block --type common.Block | jq .data.data[0].payload.data.config > channelconfignew-$org.json
 
                   sleep 5
                 done

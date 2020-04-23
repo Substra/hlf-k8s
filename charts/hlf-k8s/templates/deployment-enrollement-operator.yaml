@@ -28,6 +28,7 @@ spec:
             - |
               ## Update CA certs
               update-ca-certificates
+
               ## Install requirements : kubectl
               printf "[DEBUG] Installing requirements\n"
               until $(curl -SL https://github.com/hyperledger/fabric-ca/releases/download/v1.4.4/hyperledger-fabric-ca-linux-amd64-1.4.4.tar.gz | tar xz); do echo ".";sleep 5;done
@@ -36,7 +37,7 @@ spec:
               sudo mv ./kubectl /usr/local/bin/kubectl
 
               ## Check connection with the Certificate Authority
-              printf "[DEBUG] Testing the connection with the Certificate Authority ({{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }})\n"
+              printf "[DEBUG] Testing the connection with this node's Certificate Authority ({{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }})\n"
               until fabric-ca-client getcainfo -u {{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }}; do
                 printf "[DEBUG] Certificate Authority ({{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }}) server is not reacheable, retry in 5s\n"
                 sleep 5
@@ -50,8 +51,8 @@ spec:
                 sleep 1
               done
 
-              ## Create cacerts kubernetes secret
-              ## Note - The CA cacerts is shared between all identities (CA Admin, Orderer Admins and Users)
+              ## Create CA cert kubernetes secret
+              ## Note: The CA cert is shared between all identities (CA admin, admins, and users)
               until kubectl get secret {{ .Values.secrets.caCert }} > /dev/null; do
                 printf "[DEBUG] CA cacerts k8s secret not found, creating it now:\n"
                 kubectl create secret generic {{ .Values.secrets.caCert }} --from-file=cacert.pem=$(find /var/hyperledger/fabric-ca/msp/cacerts -type f)
@@ -65,18 +66,19 @@ spec:
                 sleep 5
               done
 
-              ## Create Orderer cacerts kubernetes secret
+              ## Create Orderer CA Cert kubernetes secret
               until kubectl get secret {{ .Values.secrets.ordTlsRootCert }} > /dev/null; do
                 printf "[DEBUG] Orderer CA cacerts k8s secret not found, creating it now:\n"
                 kubectl create secret generic {{ .Values.secrets.ordTlsRootCert }} --from-file=cacert.pem=$(find /tmp/orderer/msp/cacerts -type f)
                 sleep 1
               done
 
+              ## Enroll users
               while true; do
 
                 while IFS=" " read -r name secret options; do
 
-                  printf "[DEBUG] Testing enrollment of CA user $name\n"
+                  printf "[DEBUG] Checking enrollment of CA user $name\n"
 
                   ## Register user
                   until fabric-ca-client identity list -u {{ .Values.ca.scheme }}://{{ .Values.ca.adminUsername }}:{{ .Values.ca.adminPassword }}@{{ .Values.ca.host }}:{{ .Values.ca.port }} --id $name; do
@@ -85,37 +87,37 @@ spec:
                     sleep 1
                   done
 
-                  ## Enroll user
+                  ## Enroll user (MSP)
                   until [ -d "/data/$name/msp" ]; do
-                    printf "[DEBUG] Membership certificates are not found, enrolling the user $name now:\n"
+                    printf "[DEBUG] MSP certificate not found: enrolling user '$name' now:\n"
                     fabric-ca-client enroll -d -u {{ .Values.ca.scheme }}://$name:$secret@{{ .Values.ca.host }}:{{ .Values.ca.port }} -M /data/$name/msp
                     sleep 1
                   done
 
-                  ## Enroll TLS
+                  ## Enroll user (TLS)
                   until [ -d "/data/$name/tls" ]; do
-                    printf "[DEBUG] TLS certificates are not found, enrolling the user $name with tls profile now:\n"
+                    printf "[DEBUG] TLS certificate not found: enrolling user '$name' with TLS profile now:\n"
                     fabric-ca-client enroll -d --enrollment.profile tls -u {{ .Values.ca.scheme }}://$name:$secret@{{ .Values.ca.host }}:{{ .Values.ca.port }} -M /data/$name/tls --csr.hosts {{ .Values.enrollments.csrHost }}
                     sleep 1
                   done
 
-                  ## MSP cert secret
+                  ## Create secret: MSP cert
                   until kubectl get secret hlf-msp-cert-$name > /dev/null; do
-                    printf "[DEBUG] User $name MSP certs k8s secret not found, creating it now:\n"
+                    printf "[DEBUG] User '$name' 'MSP cert' secret not found, creating it now:\n"
                     kubectl create secret generic hlf-msp-cert-$name --from-file=cert.pem=/data/$name/msp/signcerts/cert.pem
                     sleep 1
                   done
 
-                  ## MSP key secret
+                  ## Create secret: MSP key
                   until kubectl get secret hlf-msp-key-$name > /dev/null; do
-                    printf "[DEBUG] User $name MSP key k8s secret not found, creating it now:\n"
+                    printf "[DEBUG] User '$name' 'MSP key' secret not found, creating it now:\n"
                     kubectl create secret generic hlf-msp-key-$name --from-file=key.pem=$(find /data/$name/msp/keystore -type f)
                     sleep 1
                   done
 
-                  ## TLS pair secret
+                  ## Create secret: TLS pair
                   until kubectl get secret hlf-tls-$name > /dev/null; do
-                    printf "[DEBUG] User $name TLS pair k8s secret not found, creating it now:\n"
+                    printf "[DEBUG] User '$name' 'TLS pair' secret not found, creating it now:\n"
                     kubectl create secret tls hlf-tls-$name --key $(find /data/$name/tls/keystore -type f) --cert /data/$name/tls/signcerts/cert.pem
                     sleep 1
                   done

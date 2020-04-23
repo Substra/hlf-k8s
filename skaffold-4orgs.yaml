@@ -45,14 +45,15 @@ deploy:
           organization.id: MyOrdererMSP
           organization.name: MyOrderer
           orderer.enabled: true
+          orderer.monitor.enabled: true
           # Add Org to system channel to allows them to adminstrate application channels
-          systemChannel.organizations[0].orgName: MyOrg1
+          systemChannel.organizations[0].org: MyOrg1
           systemChannel.organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrg.json
-          systemChannel.organizations[1].orgName: MyOrg2
+          systemChannel.organizations[1].org: MyOrg2
           systemChannel.organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrg.json
-          systemChannel.organizations[2].orgName: MyOrg3
+          systemChannel.organizations[2].org: MyOrg3
           systemChannel.organizations[2].configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrg.json
-          systemChannel.organizations[3].orgName: MyOrg4
+          systemChannel.organizations[3].org: MyOrg4
           systemChannel.organizations[3].configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrg.json
           orderer.host: network-orderer.orderer  # {name}.{namespace}
           orderer.ord.mspID: MyOrdererMSP
@@ -88,21 +89,21 @@ deploy:
           #       This path must be accessible to kubernetes. See README for details.
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           appChannel.name: mychannel
-          appChannel.organizations[0].orgName: MyOrg1
+          appChannel.organizations[0].org: MyOrg1
           appChannel.organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json
-          appChannel.organizations[1].orgName: MyOrg2
+          appChannel.organizations[1].org: MyOrg2
           appChannel.organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json
-          appChannel.organizations[2].orgName: MyOrg3
+          appChannel.organizations[2].org: MyOrg3
           appChannel.organizations[2].configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrgWithAnchors.json
-          appChannel.organizations[3].orgName: MyOrg4
+          appChannel.organizations[3].org: MyOrg4
           appChannel.organizations[3].configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrgWithAnchors.json
-          appChannel.proposalOrganizations[0].orgName: MyOrg1
+          appChannel.proposalOrganizations[0].org: MyOrg1
           appChannel.proposalOrganizations[0].proposalServerUrl: network-org-1-peer-1-hlf-k8s-application-channel-operator.org-1/proposal/
-          appChannel.proposalOrganizations[1].orgName: MyOrg2
+          appChannel.proposalOrganizations[1].org: MyOrg2
           appChannel.proposalOrganizations[1].proposalServerUrl: network-org-2-peer-1-hlf-k8s-application-channel-operator.org-2/proposal/
-          appChannel.proposalOrganizations[2].orgName: MyOrg3
+          appChannel.proposalOrganizations[2].org: MyOrg3
           appChannel.proposalOrganizations[2].proposalServerUrl: network-org-3-peer-1-hlf-k8s-application-channel-operator.org-3/proposal/
-          appChannel.proposalOrganizations[3].orgName: MyOrg4
+          appChannel.proposalOrganizations[3].org: MyOrg4
           appChannel.proposalOrganizations[3].proposalServerUrl: network-org-4-peer-1-hlf-k8s-application-channel-operator.org-4/proposal/
           # appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
           appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member'\,'MyOrg3MSP.member'\,'MyOrg4MSP.member')
@@ -142,21 +143,21 @@ deploy:
           #       This path folder must be accessible to kubernetes. See README for details.
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           appChannel.name: mychannel
-          appChannel.organizations[0].orgName: MyOrg1
+          appChannel.organizations[0].org: MyOrg1
           appChannel.organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json
-          appChannel.organizations[1].orgName: MyOrg2
+          appChannel.organizations[1].org: MyOrg2
           appChannel.organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json
-          appChannel.organizations[2].orgName: MyOrg3
+          appChannel.organizations[2].org: MyOrg3
           appChannel.organizations[2].configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrgWithAnchors.json
-          appChannel.organizations[3].orgName: MyOrg4
+          appChannel.organizations[3].org: MyOrg4
           appChannel.organizations[3].configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrgWithAnchors.json
-          appChannel.proposalOrganizations[0].orgName: MyOrg1
+          appChannel.proposalOrganizations[0].org: MyOrg1
           appChannel.proposalOrganizations[0].proposalServerUrl: network-org-1-peer-1-hlf-k8s-application-channel-operator.org-1/proposal/
-          appChannel.proposalOrganizations[1].orgName: MyOrg2
+          appChannel.proposalOrganizations[1].org: MyOrg2
           appChannel.proposalOrganizations[1].proposalServerUrl: network-org-2-peer-1-hlf-k8s-application-channel-operator.org-2/proposal/
-          appChannel.proposalOrganizations[2].orgName: MyOrg3
+          appChannel.proposalOrganizations[2].org: MyOrg3
           appChannel.proposalOrganizations[2].proposalServerUrl: network-org-3-peer-1-hlf-k8s-application-channel-operator.org-3/proposal/
-          appChannel.proposalOrganizations[3].orgName: MyOrg4
+          appChannel.proposalOrganizations[3].org: MyOrg4
           appChannel.proposalOrganizations[3].proposalServerUrl: network-org-4-peer-1-hlf-k8s-application-channel-operator.org-4/proposal/
           # appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
           appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member'\,'MyOrg3MSP.member'\,'MyOrg4MSP.member')
@@ -196,21 +197,21 @@ deploy:
           #       This path folder must be accessible to kubernetes. See README for details.
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           appChannel.name: mychannel
-          appChannel.organizations[0].orgName: MyOrg1
+          appChannel.organizations[0].org: MyOrg1
           appChannel.organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json
-          appChannel.organizations[1].orgName: MyOrg2
+          appChannel.organizations[1].org: MyOrg2
           appChannel.organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json
-          appChannel.organizations[2].orgName: MyOrg3
+          appChannel.organizations[2].org: MyOrg3
           appChannel.organizations[2].configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrgWithAnchors.json
-          appChannel.organizations[3].orgName: MyOrg4
+          appChannel.organizations[3].org: MyOrg4
           appChannel.organizations[3].configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrgWithAnchors.json
-          appChannel.proposalOrganizations[0].orgName: MyOrg1
+          appChannel.proposalOrganizations[0].org: MyOrg1
           appChannel.proposalOrganizations[0].proposalServerUrl: network-org-1-peer-1-hlf-k8s-application-channel-operator.org-1/proposal/
-          appChannel.proposalOrganizations[1].orgName: MyOrg2
+          appChannel.proposalOrganizations[1].org: MyOrg2
           appChannel.proposalOrganizations[1].proposalServerUrl: network-org-2-peer-1-hlf-k8s-application-channel-operator.org-2/proposal/
-          appChannel.proposalOrganizations[2].orgName: MyOrg3
+          appChannel.proposalOrganizations[2].org: MyOrg3
           appChannel.proposalOrganizations[2].proposalServerUrl: network-org-3-peer-1-hlf-k8s-application-channel-operator.org-3/proposal/
-          appChannel.proposalOrganizations[3].orgName: MyOrg4
+          appChannel.proposalOrganizations[3].org: MyOrg4
           appChannel.proposalOrganizations[3].proposalServerUrl: network-org-4-peer-1-hlf-k8s-application-channel-operator.org-4/proposal/
           # appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
           appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member'\,'MyOrg3MSP.member'\,'MyOrg4MSP.member')
@@ -249,21 +250,21 @@ deploy:
           #       This path folder must be accessible to kubernetes. See README for details.
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           appChannel.name: mychannel
-          appChannel.organizations[0].orgName: MyOrg1
+          appChannel.organizations[0].org: MyOrg1
           appChannel.organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json
-          appChannel.organizations[1].orgName: MyOrg2
+          appChannel.organizations[1].org: MyOrg2
           appChannel.organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json
-          appChannel.organizations[2].orgName: MyOrg3
+          appChannel.organizations[2].org: MyOrg3
           appChannel.organizations[2].configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrgWithAnchors.json
-          appChannel.organizations[3].orgName: MyOrg4
+          appChannel.organizations[3].org: MyOrg4
           appChannel.organizations[3].configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrgWithAnchors.json
-          appChannel.proposalOrganizations[0].orgName: MyOrg1
+          appChannel.proposalOrganizations[0].org: MyOrg1
           appChannel.proposalOrganizations[0].proposalServerUrl: network-org-1-peer-1-hlf-k8s-application-channel-operator.org-1/proposal/
-          appChannel.proposalOrganizations[1].orgName: MyOrg2
+          appChannel.proposalOrganizations[1].org: MyOrg2
           appChannel.proposalOrganizations[1].proposalServerUrl: network-org-2-peer-1-hlf-k8s-application-channel-operator.org-2/proposal/
-          appChannel.proposalOrganizations[2].orgName: MyOrg3
+          appChannel.proposalOrganizations[2].org: MyOrg3
           appChannel.proposalOrganizations[2].proposalServerUrl: network-org-3-peer-1-hlf-k8s-application-channel-operator.org-3/proposal/
-          appChannel.proposalOrganizations[3].orgName: MyOrg4
+          appChannel.proposalOrganizations[3].org: MyOrg4
           appChannel.proposalOrganizations[3].proposalServerUrl: network-org-4-peer-1-hlf-k8s-application-channel-operator.org-4/proposal/
           # appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
           appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member'\,'MyOrg3MSP.member'\,'MyOrg4MSP.member')
