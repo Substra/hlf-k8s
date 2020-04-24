@@ -28,7 +28,7 @@ This project runs Hyperledger Fabric v1.4.
     - **Config operator** Expose the peer's configuration on an HTTP endpoint
     - **Monitor pod** Periodically poll the the system channel and the application channel, and output the list of organizations that have joined each channel. Look at the logs of this pod to have a high-level view of which organizations have successfully joined each channel.
 
-For more details about certificate authorities, peers, orderers, channels, and channel proposals, please refer to the [Hyperledger Fabric documentation](https://hyperledger-fabric.readthedocs.io/en/release-2.0/).
+For more details about certificate authorities, peers, orderers, channels, and channel proposals, please refer to the [Hyperledger Fabric documentation](https://hyperledger-fabric.readthedocs.io/en/release-1.4/).
 
 ## Local deployment
 
@@ -61,28 +61,10 @@ The chaincode path must be accessible from your kubernetes cluster:
 - On Docker for Mac, go to Settings > File Sharing and make sure the chaincode folder is included in the mounted folders
 - On minikube, run `nohup minikube mount <chaincode-absolute-path>:<chaincode-absolute-path> &`
 
+### More resources
 
-## Application channel policy
-
- hlf-k8s supports two application channel policies, ANY and MAJORITY.
-
-### ANY
-
-This is the simplest mode. It is used by the default local deployment (see [skaffold.yaml](./skaffold.yaml))
-
-A node can add any another node to the application channel without the need of approval.
-
-
-### MAJORITY
-
-A node can only be added to the application channel if a majority of the nodes already present in the channel agree.
-
-This agreement is obtained  via the signature of a "proposal". Each node `A` can sign a channel update proposal allowing node `B` to enter the application channel. Proposals are signed by nodes and exposed to other nodes via HTTP endpoints. Nodes request signed proposals from each other over HTTP and add their own signature. Once enough signatures are collected, the channel update proposal is submitted to the orderer. For more information, see the [application channel operator](./charts/hlf-k8s/templates/deployment-application-channel-operator.yaml).
-
-### Other policies
-
-Although ANY and MAJORITY are the two supported and documented application channel policies in hlf-k8s, a custom application channel policy should be achievable through the `appChannel.policy` key in the [values.yaml](./charts/hlf-k8s/values.yaml) file.
-
+- hlf-k8s Helm chart [documentation](./charts/hlf-k8s/README.md)
+- Hyperledger Fabric [documentation](https://hyperledger-fabric.readthedocs.io/en/release-1.4/)
 
 ## License
 
