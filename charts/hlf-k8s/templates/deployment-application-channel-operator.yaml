@@ -189,7 +189,7 @@ spec:
 
                 sleep 5
 
-              done < /config/application-organizations
+              done < /config/application-proposal-organizations
 
               ## Instantiate chaincode
               until grep "{{ .Values.appChannel.chaincodeName }}" chaincode.list | grep "{{ .Values.appChannel.chaincodeVersion }}" > /dev/null; do
@@ -216,7 +216,7 @@ spec:
             name: fabric-config
             readOnly: true
           - mountPath: /config
-            name: application-organizations
+            name: application-proposal-organizations
             readOnly: true
           - mountPath: /proposal
             name: proposal-organizations
@@ -266,9 +266,9 @@ spec:
           - mountPath: /usr/share/nginx/html/proposal
             name: data
       volumes:
-        - name: application-organizations
+        - name: application-proposal-organizations
           configMap:
-            name: {{ template "substra.fullname" . }}-application-organizations
+            name: {{ template "substra.fullname" . }}-application-proposal-organizations
         - name: proposal-organizations
           configMap:
             name: {{ template "substra.fullname" . }}-proposal-organizations
