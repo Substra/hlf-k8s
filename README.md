@@ -6,11 +6,23 @@ A deployment of [Hyperledger Fabric](https://www.hyperledger.org/projects/fabric
 
 - [kubernetes](https://kubernetes.io/) v1.15
 - [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) v1.18
-- [helm](https://github.com/helm/helm) v2.14.2
+- [helm](https://github.com/helm/helm) v2.14
+
+## Technical overview
+
+This project runs Hyperledger Fabric v1.4.
+
+- [skaffold.yaml](./skaffold.yaml). This file descibes the standard deployment used for local development. See also the [Local deployment](#Local_deployment) section.
+- Kubernetes resources:
+  - [System channel operator](./charts/hlf-k8s/templates/deployment-system-channel-operator.yaml). This operator adds organizations to the system channel.
+  - [Application channel operator](./charts/hlf-k8s/templates/deployment-application-channel-operator.yaml). This operator adds organizations to the application channel.
+  - [Monitor pod](./charts/hlf-k8s/templates/deployment-monitor.yaml). This pod periodically polls the the system channel and the application channel, and outputs the list of organizations that have joined each channel. You can look at the logs of this pod to have a high-level view of which organizations have successfully joined each channel.
+
+For more details about channels, peers and orderers, please refer to the [Hyperledger Fabric documentation](https://hyperledger-fabric.readthedocs.io/en/release-2.0/).
 
 ## Local deployment
 
-For local deployment, use [skaffold](https://github.com/GoogleContainerTools/skaffold) v1.8.0.
+To deploy hlf-k8s locally, use [skaffold](https://github.com/GoogleContainerTools/skaffold) v1.7+.
 
 The [skaffold.yaml](./skaffold.yaml) file defines a deployment with:
 
@@ -23,7 +35,7 @@ Start the network with
 skaffold run
 ```
 
-Once the network is started, the two organizations `MyOrg1` and `MyOrg` are added to the system channel by the [system channel operator](./charts/hlf-k8s/templates/deployment-system-channel-operator.yaml), and then to the application channel by the [application channel operator](./charts/hlf-k8s/templates/deployment-application-channel-operator.yaml).
+Once the network is started, the two organizations `MyOrg1` and `MyOrg` are added to the system channel, and then to the application channel. See the [Components](#Components) section for more details.
 
 The [monitor pod](./charts/hlf-k8s/templates/deployment-monitor.yaml) periodically polls the the system channel and the application channel, and outputs the list of organizations that have joined each channel. You can look at the logs of this pod to have a high-level view of which organizations have successfully joined each channel.
 
