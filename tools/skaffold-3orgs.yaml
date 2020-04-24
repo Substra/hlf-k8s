@@ -110,7 +110,7 @@ deploy:
           appChannel.chaincodeName: mycc
           appChannel.chaincodeVersion: "1.0"
           orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-org-1-peer-1.org-1:7051  :{port}
+          peer.peer.gossip.externalEndpoint: network-org-1-peer-1.org-1:7051
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
@@ -160,7 +160,7 @@ deploy:
           appChannel.chaincodeName: mycc
           appChannel.chaincodeVersion: "1.0"
           orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-org-2-peer-1.org-2:7051  :{port}
+          peer.peer.gossip.externalEndpoint: network-org-2-peer-1.org-2:7051
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
@@ -209,7 +209,7 @@ deploy:
           appChannel.chaincodeName: mycc
           appChannel.chaincodeVersion: "1.0"
           orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-org-3-peer-1.org-3:7051  :{port}
+          peer.peer.gossip.externalEndpoint: network-org-3-peer-1.org-3:7051
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
