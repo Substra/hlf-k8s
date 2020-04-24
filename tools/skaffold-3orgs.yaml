@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# ABOUT
+#
+#   This is An hlf-k8s deployment with 3 organizations using the default
+#   application channel policy ("MAJORITY")
+#
+
 apiVersion: skaffold/v1beta13
 kind: Config
 build:
