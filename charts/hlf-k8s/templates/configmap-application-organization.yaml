@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "substra.fullname" . }}-application-proposal-organizations
+  name: {{ template "substra.fullname" . }}-application-organizations
 data:
-  application-proposal-organizations: |
+  application-organizations: |
     {{- range .Values.appChannel.organizations }}
       {{ .org }} {{ .configUrl }}
     {{- end }}

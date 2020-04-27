@@ -142,7 +142,7 @@ spec:
                     fi
                   fi
 
-                done < /proposal/proposal-organizations
+                done < /proposal/application-proposal-organizations
 
                 ## Create proposal if not fetched
                 until [ -f "proposal-$org.pb" ]; do
@@ -183,13 +183,13 @@ spec:
 
                 ## Submit proposal
                 NUM_SIGNATURES=$(configtxlator proto_decode --input proposal-$org.pb --type common.Envelope | jq '.payload.data.signatures | map(.signature_header.creator.mspid) | unique | length')
-                NUM_APPLICATION_ORGS=$(wc -l /proposal/proposal-organizations | cut -c 1)
+                NUM_APPLICATION_ORGS=$(wc -l /proposal/application-proposal-organizations | cut -c 1)
                 printf "[DEBUG] Submit channel update for '$org' with $NUM_SIGNATURES signatures (out of $NUM_APPLICATION_ORGS organizations)\n"
                 peer channel update -f proposal-$org.pb -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
 
                 sleep 5
 
-              done < /config/application-proposal-organizations
+              done < /config/application-organizations
 
               ## Instantiate chaincode
               until grep "{{ .Values.appChannel.chaincodeName }}" chaincode.list | grep "{{ .Values.appChannel.chaincodeVersion }}" > /dev/null; do
@@ -216,10 +216,10 @@ spec:
             name: fabric-config
             readOnly: true
           - mountPath: /config
-            name: application-proposal-organizations
+            name: application-organizations
             readOnly: true
           - mountPath: /proposal
-            name: proposal-organizations
+            name: application-proposal-organizations
             readOnly: true
           - mountPath: /var/hyperledger/msp/signcerts
             name: id-cert
@@ -266,12 +266,12 @@ spec:
           - mountPath: /usr/share/nginx/html/proposal
             name: data
       volumes:
+        - name: application-organizations
+          configMap:
+            name: {{ template "substra.fullname" . }}-application-organizations
         - name: application-proposal-organizations
           configMap:
             name: {{ template "substra.fullname" . }}-application-proposal-organizations
-        - name: proposal-organizations
-          configMap:
-            name: {{ template "substra.fullname" . }}-proposal-organizations
         - name: fabric-config
           configMap:
             name: {{ template "substra.fullname" . }}-fabric
