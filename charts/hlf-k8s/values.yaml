@@ -61,6 +61,39 @@ appChannel:
   #       Rule: "ANY Admins"
 
 
+configOperator:
+  ingress:
+    enabled: false
+    # annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   cert-manager.io/cluster-issuer: letsencrypt-prod
+    #   cert-manager.io/http01-edit-in-place: "true"
+    #   nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+    #   nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    # tls:
+    #   - secretName: config-server-tls-cert
+    #     hosts:
+    #       - peer-1-peer-config-operator.org-1
+    # hosts:
+    #   - { host: peer-1-peer-config-operator.org-1, paths: ["/"] }
+
+applicationChannelOperator:
+  ingress:
+    enabled: false
+    # annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   cert-manager.io/cluster-issuer: letsencrypt-prod
+    #   cert-manager.io/http01-edit-in-place: "true"
+    #   nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+    #   nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    # tls:
+    #   - secretName: config-server-tls-cert
+    #     hosts:
+    #       - peer-1-peer-application-channel-operator.org-1
+    # hosts:
+    #   - { host: peer-1-peer-application-channel-operator.org-1, paths: ["/"] }
+
+
 organization:
   id: MyOrganizationMSP
   name: MyOrganization
@@ -235,6 +268,7 @@ secrets:
   adminKey: hlf-msp-key-admin
   # This should include the Orderer TLS 'cacert.pem'
   ordTlsRootCert: ord-tls-rootcert
+
 
 privateCa:
   enabled: false
