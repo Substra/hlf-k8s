@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+{{- if .Values.peer.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -173,3 +174,4 @@ spec:
   selector:
     app.kubernetes.io/name: {{ template "substra.name" . }}-config-operator
     app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
