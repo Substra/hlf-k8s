@@ -2,7 +2,7 @@
 
 HLF-k8s is a network of [Hyperledger Fabric](https://hyperledger-fabric.readthedocs.io/en/release-1.4) orderers and peers, forming a permissioned blockchain.
 
-The network is formed of multiple nodes (peers/orderers). Each node is installed using the same chart, but with different configurations (see [Usage](#Usage)).
+The network is formed of multiple nodes (peers/orderers). Each node is installed using the same chart, but with different configurations (see [Usage](#usage)).
 
 Hlf-k8s runs Hyperledger Fabric v1.4.
 
@@ -29,27 +29,27 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `peer.persistence.enabled` | If true, enable persistence for the Peer | `false` |
 | `peer.persistence.size` | Size of data volume | (undefined) |
 | `peer.persistence.storageClass` | Storage class of backing PVC | (undefined) |
-| `chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#Install_a_chaincode). | `[]` |
+| `chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
 | `appChannel.name` | The name of the application channel | `mychannel` |
-| `appChannel.organizations` | The organizations to add to the application channel. See [Add an organization to the application channel](#Add_an_organization_to_the_application_channel). | `[]` |
+| `appChannel.organizations` | The organizations to add to the application channel. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | `[]` |
 | `appChannel.proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
-| `appChannel.chaincodePolicy` | The chaincode policy | `"OR('Org1MSP.member','Org2MSP.member')"` |
+| `appChannel.chaincodePolicy` | The chaincode policy | `OR(`<br>`'Org1MSP.member',`<br>`  'Org2MSP.member')` |
 | `appChannel.chaincodeName` | The chaincode name | (undefined) |
 | `appChannel.chaincodeVersion` | The chaincode version | (undefined) |
-| `appChannel.policies` | This value, if set, will override the default HLF application channel policy. See [Add an organization to the application channel](#Add_an_organization_to_the_application_channel). | (undefined) |
+| `appChannel.policies` | This value, if set, will override the default HLF application channel policy. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | (undefined) |
 | `configOperator.ingress.enabled` | If true, Ingress will be created for the config operator. | `false` |
 | `configOperator.ingress.annotations` | Config operator ingress annotations | (undefined) |
 | `configOperator.ingress.tls` | Config operator ingress TLS configuration | (undefined) |
 | `configOperator.ingress.hosts` | Config operator ingress hosts | (undefined) |
-| `applicationChannelOperator.ingress.enabled` | If true, Ingress will be created for the application channel operator. | `false` |
-| `applicationChannelOperator.ingress.annotations` | Application channel operator ingress annotations | (undefined) |
-| `applicationChannelOperator.ingress.tls` | Application channel operator ingress TLS configuration | (undefined) |
-| `applicationChannelOperator.ingress.hosts` | Application channel operator ingress hosts | (undefined) |
+| `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.enabled` | If true, Ingress will be created for the application channel operator. | `false` |
+| `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.annotations` | Application channel operator ingress annotations | (undefined) |
+| `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.tls` | Application channel operator ingress TLS configuration | (undefined) |
+| `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.hosts` | Application channel operator ingress hosts | (undefined) |
 | **Orderer** |  |  |
 | `orderer.enabled` | If true, a HLF Orderer will be installed | `false` |
 | `orderer.host` | The hostname for the Orderer | `orderer-hostname` |
 | `orderer.ord.mspID` | ID of MSP the Orderer belongs to | `MyOrdererMSP` |
-| `orderer.monitor.enabled` | If true, create a monitor pod (see [Monitor pod](#Monitor_pod)) | `false` |
+| `orderer.monitor.enabled` | If true, create a monitor pod (see [Monitor pod](#monitor-pod)) | `false` |
 | `orderer.ingress.enabled` | If true, Ingress will be created for the Orderer | (undefined) |
 | `orderer.ingress.annotations` | Orderer ingress annotations | (undefined) |
 | `orderer.ingress.tls` | Orderer ingress TLS configuration | (undefined) |
@@ -58,7 +58,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `orderer.persistence.size` | Size of data volume | (undefined) |
 | `orderer.persistence.storageClass` | Storage class of backing PVC | (undefined) |
 | `systemChannel.name` | The name of the system channel | `systemchannel` |
-| `systemChannel.organizations` | The organizations to add to the system channel. See [Add an organization to the system channel](#Add_an_organization_to_the_system_channel). | `[]` |
+| `systemChannel.organizations` | The organizations to add to the system channel. See [Add an organization to the system channel](#add-an-organization-to-the-system-channel). | `[]` |
 | **Common / Other** |  |  |
 | `image.repository` | `hlf-k8s` image repository | `substrafoundation/hlf-k8s` |
 | `image.tag` | `hlf-k8s` image tag | `latest` |
@@ -86,7 +86,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `nginx-ingress.controller.nginx-ingress.extraArgs` | Additional controller arguments | `enable-ssl-passthrough: ""` |
 | `privateCa.enabled` | if true, use a private CA | `false` |
 | `privateCa.configMap.name` | The name of the ConfigMap containing the private CA certificate | `private-ca` |
-| `privateCa.configMap.fileName : ` | The CA certificate filename within the ConfigMap | `private-ca.crt` |
+| `privateCa.configMap.fileName` | The CA certificate filename within the ConfigMap | `private-ca.crt` |
 
 
 ## Usage
