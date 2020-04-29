@@ -1,6 +1,8 @@
 # HLF k8s
 
-A deployment of [Hyperledger Fabric](https://www.hyperledger.org/projects/fabric) for the [Substra project](https://github.com/SubstraFoundation/substra).
+HLF-k8s is a network of [Hyperledger Fabric](https://hyperledger-fabric.readthedocs.io/en/release-1.4) orderers and peers forming a permissioned blockchain.
+
+It is part of the [Substra project](https://github.com/SubstraFoundation/substra).
 
 ## Prerequisites
 
@@ -8,46 +10,22 @@ A deployment of [Hyperledger Fabric](https://www.hyperledger.org/projects/fabric
 - [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) v1.18
 - [helm](https://github.com/helm/helm) v2.14
 
-## Technical overview
+## Local install
 
-This project runs Hyperledger Fabric v1.4.
+Use [skaffold](https://github.com/GoogleContainerTools/skaffold) v1.7+.
 
-- [skaffold.yaml](./skaffold.yaml). The standard deployment used for local development. See also the [Local deployment](#Local_deployment) section.
-- Kubernetes resources:
-  - orderer
-    - **Certificate authority (CA)** Manage identities for the orderer
-    - **Orderer** The Hyperledger Fabric orderer
-    - **Genesis operator** Create the genesis block required by the orderer
-    - **System channel operator** Add organizations to the system channel
-  - peer
-    - **Certificate authority (CA)** Manage identities for the peer
-    - **Peer** The Hyperledger Fabric peer
-    - **Enrollment operator** Communicate with the CA to register and enroll an admin user and a regular user
-    - **Chaincode operator** Fetch the chaincode source code (see [substra-chaincode](https://github.com/SubstraFoundation/substra-chaincode)) and install it on the peer
-    - **Application channel operator** Create the application channel. Add organizations to the application channel by signing, exhanging and submitting signed channel update proposals. Expose signed proposals on an HTTP endpoint. Also see [Application channel policy](#Application_channel_policy).
-    - **Config operator** Expose the peer's configuration on an HTTP endpoint
-    - **Monitor pod** Periodically poll the the system channel and the application channel, and output the list of organizations that have joined each channel. Look at the logs of this pod to have a high-level view of which organizations have successfully joined each channel.
-
-For more details about certificate authorities, peers, orderers, channels, and channel proposals, please refer to the [Hyperledger Fabric documentation](https://hyperledger-fabric.readthedocs.io/en/release-1.4/).
-
-## Local deployment
-
-To deploy hlf-k8s locally, use [skaffold](https://github.com/GoogleContainerTools/skaffold) v1.7+.
-
-The [skaffold.yaml](./skaffold.yaml) file defines a deployment with:
-
-- 1 orderer `MyOrderer`
-- 2 organizations: `MyOrg1` and `MyOrg2`
-
-Start the network with
+To start hlf-k8s, run:
 
 ```
 skaffold run
 ```
 
-Once the network is started, the two organizations `MyOrg1` and `MyOrg` are added to the system channel, and then to the application channel. See the [Components](#Components) section for more details.
+This will deploy hlf-k8s with:
 
-### Custom chaincode
+- 1 orderer `MyOrderer`
+- 2 organizations: `MyOrg1` and `MyOrg2`
+
+### Install a custom chaincode
 
 By default, the `skaffold run` command will start a network using the default [substra-chaincode](https://github.com/SubstraFoundation/substra-chaincode).
 
@@ -61,10 +39,10 @@ The chaincode path must be accessible from your kubernetes cluster:
 - On Docker for Mac, go to Settings > File Sharing and make sure the chaincode folder is included in the mounted folders
 - On minikube, run `nohup minikube mount <chaincode-absolute-path>:<chaincode-absolute-path> &`
 
-### More resources
+### Production install
 
-- hlf-k8s Helm chart [documentation](./charts/hlf-k8s/README.md)
-- Hyperledger Fabric [documentation](https://hyperledger-fabric.readthedocs.io/en/release-1.4/)
+Please refer to the [helm chart documentation](./charts/hlf-k8s/README.md).
+
 
 ## License
 

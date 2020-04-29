@@ -125,6 +125,8 @@ ca:
 
   persistence:
     enabled: false
+    # size: 20Gi
+    # storageClass: ""4
 
   orderer:
     scheme: http
