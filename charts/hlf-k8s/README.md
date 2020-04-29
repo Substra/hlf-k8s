@@ -20,6 +20,8 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `peer.enabled` | If true, a HLF Peer will be installed | `true` |
 | `peer.peer.mspID` | ID of MSP the Peer belongs to | `Org1MSP` |
 | `peer.peer.gossip.externalEndpoint` | HLF peer gossip external endpoint | `""` |
+| `peer.host` | The Peers's host | `peer-hostname` |
+| `peer.port` | The Peers's port | `7051` |
 | `peer.ingress.enabled` | If true, Ingress will be created for the Peer | `false` |
 | `peer.ingress.annotations` | Peer ingress annotations | (undefined) |
 | `peer.ingress.tls` | Peer ingress TLS configuration | (undefined) |
@@ -66,6 +68,8 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `affinity` | Affinity settings for pod assignment | `{}` |
 | `organization.id` | The organization id | `MyOrganizationMSP` |
 | `organization.name` | The organization name | `MyOrganization` |
+| `orderer.host` | The Orderer's host | `orderer-hostname` |
+| `orderer.port` | The Orderer's port | `7050` |
 | `enrollments.creds` | The users to enroll with the CA | `[]` |
 | `enrollments.csrHost` | The value to pass to `--csr. hosts` when enrolling users to the CA | `service-hostname` |
 | `ca.caName` | Name of CA | `rca` |
