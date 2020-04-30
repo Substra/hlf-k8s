@@ -71,7 +71,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `orderer.host` | The Orderer's host | `orderer-hostname` |
 | `orderer.port` | The Orderer's port | `7050` |
 | `enrollments.creds` | The users to enroll with the CA | `[]` |
-| `enrollments.csrHost` | The value to pass to `--csr. hosts` when enrolling users to the CA | `service-hostname` |
+| `enrollments.csrHost` | The value to pass to `--csr.hosts` when enrolling users to the CA | `service-hostname` |
 | `ca.caName` | Name of CA | `rca` |
 | `ca.scheme` | CA scheme | `http` |
 | `ca.host` | CA host | `ca-hostname` |
