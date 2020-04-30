@@ -23,23 +23,17 @@ metadata:
     app.kubernetes.io/name: {{ template "substra.name" . }}-hook-cleanup
     app.kubernetes.io/part-of: {{ template "substra.name" . }}
   annotations:
-    "helm.sh/hook": pre-delete
+    "helm.sh/hook": post-delete
     "helm.sh/hook-delete-policy": hook-succeeded
+  namespace: kube-system # Since we delete the secrets after 'helm delete',
+                         # we need to use the Tiller SA in the kube-system
+                         # namespace
 spec:
   template:
     spec:
-      dnsPolicy: {{ .Values.dnsPolicy }}
-      {{- if or .Values.image.pullSecretsInline .Values.image.pullSecrets }}
-      imagePullSecrets:
-      {{- range $index, $value := .Values.image.pullSecretsInline }}
-        - name: {{ template "substra.fullname" $ }}-pull-secret-{{ $index }}
-      {{- end }}
-      {{- range .Values.image.pullSecrets }}
-        - name: {{ . }}
-      {{- end }}
-      {{- end }}
       restartPolicy: OnFailure
-      serviceAccountName: {{ template "substra.fullname" . }}
+      serviceAccountName: tiller  # Since we delete the secrets after
+                                  # 'helm delete', we need to use the Tiller SA
       containers:
       - name: fabric-tools
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -48,24 +42,22 @@ spec:
         args:
           - delete
           - secrets
+          - -n
+          - {{ .Release.Namespace }}
           - {{ .Values.secrets.cert }}
           - {{ .Values.secrets.key }}
           - {{ .Values.secrets.caCert }}
           - {{ .Values.secrets.tls }}
           - {{ .Values.secrets.tlsClient }}
           - {{ .Values.secrets.tlsRootCert }}
-          - {{ .Values.secrets.tlsClientRootCerts }}
+          - {{ .Values.secrets.tlsClientRootCert }}
           - {{ .Values.secrets.adminCert }}
           - {{ .Values.secrets.adminKey }}
           - {{ .Values.secrets.ordTlsRootCert }}
-          - {{ .Values.secrets.orgConfig }}
-          - {{ .Values.secrets.orgConfig }}-anchor
           - {{ .Values.secrets.genesis }}
-          - {{ .Values.secrets.adminKey }}
-          {{- range .Values.fetchSecrets }}
-          - {{ .to }}
-          {{- end }}
           - --ignore-not-found=true
+          - --wait=true
+          - -v=4
     {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

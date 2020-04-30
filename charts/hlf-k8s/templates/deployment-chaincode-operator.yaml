@@ -1,0 +1,194 @@
+# Copyright 2018 Owkin, inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+{{- if .Values.peer.enabled }}
+{{- range $index, $value := .Values.chaincodes }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-%s-chaincode-operator-%d" $.Release.Name $.Chart.Name $index | lower | trunc 63 | trimSuffix "-" }}
+  labels:
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    app.kubernetes.io/name: {{ printf "%s-chaincode-operator-%d" $.Chart.Name $index | lower | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/part-of: {{ $.Release.Name | lower | trunc 63 | trimSuffix "-" }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-operator
+        app.kubernetes.io/instance: {{ $.Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-operator
+        app.kubernetes.io/instance: {{ $.Release.Name }}
+    spec:
+      serviceAccountName: {{ template "substra.fullname" $ }}
+      containers:
+        - name: fabric-tools
+          image: {{ $.Values.image.repository }}:{{ $.Values.image.tag }}
+          command: ['bash', '-c']
+          args:
+            - |
+              ## Update CA certs
+              update-ca-certificates
+
+              ## Install chaincode on peer
+              while true; do
+
+                until grep {{ .name }} chaincode.list | grep {{ .version }} > /dev/null; do
+                  printf "[DEBUG] Installing chaincode {{ .name }} {{ .version }} from {{ .src }} ...\n"
+
+                  ## Clean potential remaining artifacts
+                  rm -rf substra-chaincode
+                  mkdir substra-chaincode
+                  rm -rf /opt/gopath/src/github.com/hyperledger
+                  mkdir -p /opt/gopath/src/github.com/hyperledger
+                  rm -rf /opt/gopath/src/chaincode
+
+                  ## Fetch chaincode src
+                  if [[ {{ .src | quote }} == http* ]];
+                  then
+                    curl -L {{ .src }} -o chaincode.tar.gz
+                    tar -C substra-chaincode -xzf chaincode.tar.gz --strip-components=1
+                    mv substra-chaincode/chaincode /opt/gopath/src/chaincode
+                  else
+                    mkdir -p /opt/gopath/src/chaincode
+                    cp -R {{ .src }}/chaincode/* /opt/gopath/src/chaincode
+                  fi
+
+                  ## Install chaincode
+                  peer chaincode install -n {{ .name }} -v {{ .version }} -p chaincode
+
+                  peer chaincode list --installed > chaincode.list
+                  sleep 10
+                done
+
+                sleep 10
+              done
+          resources:
+            {{- toYaml $.Values.resources | nindent 14 }}
+          env:
+          - name: CORE_PEER_MSPCONFIGPATH
+            value: /var/hyperledger/admin_msp
+          - name: GODEBUG
+            value: "netdns=go+1"
+          volumeMounts:
+            - mountPath: /etc/hyperledger/fabric
+              name: fabric-config
+              readOnly: true
+            - mountPath: /var/hyperledger/msp/signcerts
+              name: id-cert
+            - mountPath: /var/hyperledger/msp/keystore
+              name: id-key
+            - mountPath: /var/hyperledger/msp/cacerts
+              name: cacert
+            - mountPath: /var/hyperledger/msp/tlscacerts
+              name: cacert
+            - mountPath: /var/hyperledger/msp/admincerts
+              name: admin-cert
+            - mountPath: /var/hyperledger/tls/server/pair
+              name: tls
+            - mountPath: /var/hyperledger/tls/server/cert
+              name: tls-rootcert
+            - mountPath: /var/hyperledger/tls/client/pair
+              name: tls-client
+            - mountPath: /var/hyperledger/tls/client/cert
+              name: tls-clientrootcert
+            - mountPath: /var/hyperledger/tls/ord/cert
+              name: ord-tls-rootcert
+            - mountPath: /var/hyperledger/admin_msp/signcerts
+              name: admin-cert
+            - mountPath: /var/hyperledger/admin_msp/keystore
+              name: admin-key
+            - mountPath: /var/hyperledger/admin_msp/cacerts
+              name: cacert
+            - mountPath: /var/hyperledger/admin_msp/tlscacerts
+              name: cacert
+            - mountPath: /var/hyperledger/admin_msp/admincerts
+              name: admin-cert
+            - mountPath: /data
+              name: data
+            {{- if $.Values.privateCa.enabled }}
+            - mountPath: /usr/local/share/ca-certificates/{{ $.Values.privateCa.configMap.fileName }}
+              name: private-ca
+              subPath: {{ $.Values.privateCa.configMap.fileName }}
+            {{- end }}
+            {{- if ne "http" (regexFind "^http" .src) }}
+            - mountPath: {{ .src }}
+              name: chaincode-local-src
+            {{- end }}
+      volumes:
+      - name: fabric-config
+        configMap:
+          name: {{ template "substra.fullname" $ }}-fabric
+      - name: id-cert
+        secret:
+          secretName: {{ $.Values.secrets.cert }}
+      - name: id-key
+        secret:
+          secretName: {{ $.Values.secrets.key }}
+      - name: cacert
+        secret:
+          secretName: {{ $.Values.secrets.caCert }}
+      - name: tls
+        secret:
+          secretName: {{ $.Values.secrets.tls }}
+      - name: tls-rootcert
+        secret:
+          secretName: {{ $.Values.secrets.tlsRootCert }}
+      - name: tls-client
+        secret:
+          secretName: {{ $.Values.secrets.tlsClient }}
+      - name: tls-clientrootcert
+        secret:
+          secretName: {{ $.Values.secrets.tlsClientRootCert }}
+      - name: admin-cert
+        secret:
+          secretName: {{ $.Values.secrets.adminCert }}
+      - name: admin-key
+        secret:
+          secretName: {{ $.Values.secrets.adminKey }}
+      - name: ord-tls-rootcert
+        secret:
+          secretName: {{ $.Values.secrets.ordTlsRootCert }}
+      - name: data
+        emptyDir: {}
+      {{- if $.Values.privateCa.enabled }}
+      - name: private-ca
+        configMap:
+          name: {{ $.Values.privateCa.configMap.name }}
+      {{- end }}
+      {{- if ne "http" (regexFind "^http" .src) }}
+      - name: chaincode-local-src
+        hostPath:
+          path: {{ .src }}
+      {{- end }}
+    {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with $.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+{{- end }}
+{{- end }}

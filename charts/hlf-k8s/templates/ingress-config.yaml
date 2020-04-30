@@ -1,0 +1,39 @@
+{{- if .Values.configOperator.ingress.enabled -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "substra.fullname" . }}-config-operator
+  labels:
+    app.kubernetes.io/name: {{ template "substra.fullname" . }}-config-operator
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  {{- with .Values.configOperator.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if .Values.configOperator.ingress.tls }}
+  tls:
+  {{- range .Values.configOperator.ingress.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . | quote }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+{{- end }}
+  rules:
+  {{- range  .Values.configOperator.ingress.hosts  }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+        {{- range .paths }}
+          - path: {{ . }}
+            backend:
+              serviceName: {{ template "substra.fullname" . }}-config-operator
+              servicePort: http
+        {{- end }}
+  {{- end }}
+{{- end }}
+---

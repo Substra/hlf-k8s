@@ -12,42 +12,65 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if .Values.peer.enabled }}
-apiVersion: batch/v1
-kind: Job
+{{- if .Values.orderer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: {{ template "substra.fullname" . }}-prepare-org-config
+  name: {{ template "substra.fullname" . }}-genesis-operator
   labels:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    app.kubernetes.io/name: {{ template "substra.name" . }}-prepare-org-config
+    app.kubernetes.io/name: {{ template "substra.name" . }}-genesis-operator
     app.kubernetes.io/part-of: {{ template "substra.name" . }}
 spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        app.kubernetes.io/name: {{ template "substra.name" . }}-genesis-operator
+        app.kubernetes.io/instance: {{ .Release.Name }}
   template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ template "substra.name" . }}-genesis-operator
+        app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
-      dnsPolicy: {{ .Values.dnsPolicy }}
-      {{- if or .Values.image.pullSecretsInline .Values.image.pullSecrets }}
-      imagePullSecrets:
-      {{- range $index, $value := .Values.image.pullSecretsInline }}
-        - name: {{ template "substra.fullname" $ }}-pull-secret-{{ $index }}
-      {{- end }}
-      {{- range .Values.image.pullSecrets }}
-        - name: {{ . }}
-      {{- end }}
-      {{- end }}
-      restartPolicy: OnFailure
       serviceAccountName: {{ template "substra.fullname" . }}
       containers:
       - name: fabric-tools
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        command: ['prepare-org-config.sh']
+        command: ['sh', '-c']
         args:
-        - {{ .Values.secrets.orgConfig | quote }}
-        - {{ .Values.organization.name | quote }}
-        - {{ .Values.peer.host | quote }}
-        - {{ .Values.peer.port | quote }}
+          - |
+            ## Install requirements : kubectl
+            printf "[DEBUG] Installing requirements\n"
+            until $(curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl); do
+                echo ".";
+                sleep 5;
+            done
+            chmod +x ./kubectl
+            sudo mv ./kubectl /usr/local/bin/kubectl
+
+            while true; do
+
+                ## Generate Genesis block
+                until [ -f "genesis.block" ] ; do
+                    printf "[DEBUG] Generating genesis block\n"
+                    configtxgen -profile GenerateGenesis -channelID {{ .Values.systemChannel.name }} -outputBlock genesis.block --configPath /etc/hyperledger/fabric
+                    sleep 1
+                done
+
+                ## Create genesis block kubernetes secret
+                until kubectl get secret {{ .Values.secrets.genesis }} > /dev/null; do
+                    printf "[DEBUG] Genesis block kubernetes secret not found, creating it now:\n"
+                    kubectl create secret generic {{ .Values.secrets.genesis }} --from-file=genesis.block
+                    sleep 1
+                done
+
+                printf "[DEBUG] All done. Looping...\n"
+                sleep 10
+            done
         env:
         - name: CORE_PEER_MSPCONFIGPATH
           value: /var/hyperledger/admin_msp
@@ -75,8 +98,6 @@ spec:
           name: tls-client
         - mountPath: /var/hyperledger/tls/client/cert
           name: tls-clientrootcert
-        - mountPath: /var/hyperledger/tls/ord/cert
-          name: ord-tls-rootcert
         - mountPath: /var/hyperledger/admin_msp/signcerts
           name: admin-cert
         - mountPath: /var/hyperledger/admin_msp/keystore
@@ -93,34 +114,31 @@ spec:
           name: {{ template "substra.fullname" . }}-fabric
       - name: id-cert
         secret:
-          secretName: {{ .Values.secrets.cert }}
+          secretName: {{ .Values.orderer.secrets.ord.cert }}
       - name: id-key
         secret:
-          secretName: {{ .Values.secrets.key }}
+          secretName: {{ .Values.orderer.secrets.ord.key }}
       - name: cacert
         secret:
-          secretName: {{ .Values.secrets.caCert }}
+          secretName: {{ .Values.orderer.secrets.ord.caCert }}
       - name: tls
         secret:
-          secretName: {{ .Values.secrets.tls }}
+          secretName: {{ .Values.orderer.secrets.ord.tls }}
       - name: tls-rootcert
         secret:
-          secretName: {{ .Values.secrets.tlsRootCert }}
+          secretName: {{ .Values.orderer.secrets.ord.tlsRootCert }}
       - name: tls-client
         secret:
-          secretName: {{ .Values.secrets.tlsClient }}
+          secretName: {{ .Values.orderer.secrets.ord.tlsClient }}
       - name: tls-clientrootcert
         secret:
-          secretName: {{ .Values.secrets.tlsClientRootCerts }}
+          secretName: {{ .Values.orderer.secrets.ord.tlsClientRootCert }}
       - name: admin-cert
         secret:
-          secretName: {{ .Values.secrets.adminCert }}
+          secretName: {{ .Values.orderer.secrets.adminCert }}
       - name: admin-key
         secret:
-          secretName: {{ .Values.secrets.adminKey }}
-      - name: ord-tls-rootcert
-        secret:
-          secretName: {{ .Values.secrets.ordTlsRootCert }}
+          secretName: {{ .Values.orderer.secrets.adminKey }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

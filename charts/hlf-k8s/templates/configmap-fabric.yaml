@@ -45,12 +45,16 @@ data:
       {{- if .Values.peer.enabled }}
       OrgsChannel:
         Application:
+          {{- if .Values.appChannel.policies }}
+          Policies:
+            {{- .Values.appChannel.policies | nindent 12 -}}
+          {{- end }}
           Organizations:
           - *id001
         Consortium: SampleConsortium
       {{- end }}
       {{- if .Values.orderer.enabled }}
-      OrgsOrdererGenesis:
+      GenerateGenesis:
         Consortiums:
           SampleConsortium:
             Organizations: *id001

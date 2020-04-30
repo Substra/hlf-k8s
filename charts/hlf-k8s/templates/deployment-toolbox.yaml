@@ -34,16 +34,6 @@ spec:
         app.kubernetes.io/name: {{ template "substra.fullname" . }}-toolbox
         app.kubernetes.io/instance: {{ $.Release.Name }}
     spec:
-      dnsPolicy: {{ .Values.dnsPolicy }}
-      {{- if or .Values.image.pullSecretsInline .Values.image.pullSecrets }}
-      imagePullSecrets:
-      {{- range $index, $value := .Values.image.pullSecretsInline }}
-        - name: {{ template "substra.fullname" $ }}-pull-secret-{{ $index }}
-      {{- end }}
-      {{- range .Values.image.pullSecrets }}
-        - name: {{ . }}
-      {{- end }}
-      {{- end }}
       serviceAccountName: {{ template "substra.fullname" . }}
       containers:
       - name: fabric-tools
@@ -124,7 +114,7 @@ spec:
           secretName: {{ $.Values.secrets.tlsClient }}
       - name: tls-clientrootcert
         secret:
-          secretName: {{ $.Values.secrets.tlsClientRootCerts }}
+          secretName: {{ $.Values.secrets.tlsClientRootCert }}
       - name: admin-cert
         secret:
           secretName: {{ $.Values.secrets.adminCert }}

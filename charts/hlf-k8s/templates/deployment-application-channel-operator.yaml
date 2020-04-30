@@ -1,0 +1,362 @@
+# Copyright 2018 Owkin, inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+{{- if .Values.peer.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "substra.fullname" . }}-application-channel-operator
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ template "substra.name" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        app.kubernetes.io/name: {{ template "substra.name" . }}-application-channel-operator
+        app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ template "substra.name" . }}-application-channel-operator
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ template "substra.fullname" . }}
+      containers:
+      - name: fabric-tools
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        command: ['sh', '-c']
+        args:
+          - |
+            ## Update CA certs
+            update-ca-certificates
+
+            ## Check connection with the Orderer
+            printf "[DEBUG] Testing the connection with the Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }})\n"
+            until $(nc -z {{ .Values.orderer.host }} {{ .Values.orderer.port }}); do
+              printf "[DEBUG] Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }}) is not reacheable, retry in 5s\n"
+              sleep 5
+            done
+
+            ## Add orgs to the application channel
+            while true; do
+
+              ## Create and join application channel
+              until grep -e "existing.*{{ .Values.appChannel.name }}" -e "FORBIDDEN" channel.created > /dev/null; do
+
+                printf "[DEBUG] Create and join the application channel ({{ .Values.appChannel.name }})\n"
+
+                ## Create channel
+                configtxgen -profile OrgsChannel --outputCreateChannelTx channel.tx -channelID {{ .Values.appChannel.name }} -asOrg {{ .Values.organization.name }}
+                peer channel create -f channel.tx --outputBlock channel.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt 2> channel.created
+
+                ## Create and add anchor
+                configtxgen -profile OrgsChannel --outputAnchorPeersUpdate anchor.tx -channelID {{ .Values.appChannel.name }} -asOrg {{ .Values.organization.name }}
+
+                peer channel update -f anchor.tx -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+
+                sleep 1
+              done
+
+              ## Join Application Channel
+              until grep "{{ .Values.appChannel.name }}" channel.list > /dev/null; do
+
+                printf "[DEBUG] Fetching application channel block\n"
+                peer channel fetch oldest channeljoin.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }}  --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+
+                printf "[DEBUG] Joining channel\n"
+                peer channel join -b channeljoin.block
+
+                ## Fetch channel list
+                peer channel list -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > channel.list
+
+                sleep 1
+              done
+
+
+              ## Add organizations to application channel
+
+              while IFS=" " read -r org configUrl ; do
+
+                ## Delete stale channel configuration files
+                rm -rf \
+                  channel.block \
+                  channel-cfg.block \
+                  channel-cfg.json
+
+                ## Fetch up-to-date channel configuration block
+                until [ -f "channel.block" ] && [ -s "channel.block" ]; do
+                  printf "[DEBUG] Fetching the channel ({{ .Values.appChannel.name }}) configuration block\n"
+                  peer channel fetch config channel.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+                  sleep 3
+                done
+
+                ## Check if update has been already sent
+                printf "[DEBUG] Check if $org is in the application channel \n"
+                configtxlator proto_decode --input channel.block --type common.Block | jq .data.data[0].payload.data.config > channel-$org-hasjoined.json
+                if grep "$org" channel-$org-hasjoined.json > /dev/null; then
+                  printf "[DEBUG] $org is already in the application channel\n"
+                  rm -f /data/proposal-$org.pb
+                  sleep 5
+                  continue
+                else
+                  printf "[DEBUG] $org is not in the application channel\n"
+                  ## Remove all configuration files because of edge cases (network issue, proposal issue).
+                  ## We prefer to delete all and retry all steps to avoid side effect.
+                  rm -f *-$org.*
+                fi
+
+                ## Extract application channel configuration
+                until [ -f "channel-cfg.block" ] && [ -s "channel-cfg.block" ]; do
+                  configtxlator proto_decode --input channel.block --type common.Block | jq .data.data[0].payload.data.config > channel-cfg.json
+                  configtxlator proto_encode --input channel-cfg.json --type common.Config --output channel-cfg.block
+                  sleep 2
+                done
+
+                ## Fetch organization configuration
+                if ! ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
+                  printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
+                  curl --fail -L --output ./configOrg-$org.json $configUrl || continue # continue to next org if curl fails
+                fi
+
+                ## Fetch update proposal from external orgs if exists
+                while IFS=" " read -r orgProposal proposalServerUrl ; do
+
+                  # Don't need to network-fetch proposals made by ourselves
+                  if [ "$orgProposal" = "{{ .Values.organization.name }}" ]; then continue; fi
+
+                  printf "[DEBUG] Fetch the update proposal built by organization ($orgProposal) for organization ($org) from $proposalServerUrl/proposal-$org.pb \n"
+                  curl --fail -L --output ./external-$orgProposal-proposal-$org.pb $proposalServerUrl/proposal-$org.pb
+
+                  ## Compare external proposal file with local one, keep the largest (more signatures) between them as the only difference will be the number of signatures
+                  if [ -s "external-$orgProposal-proposal-$org.pb" ]
+                  then
+                    if [ -s "proposal-$org.pb" ] ; then
+                      if [ $(stat -c %s "external-$orgProposal-proposal-$org.pb") -gt $(stat -c %s "proposal-$org.pb") ] ; then
+                        printf "[DEBUG] Use the $org update proposal from $orgProposal as there are more signatures in it !\n"
+                        cp external-$orgProposal-proposal-$org.pb proposal-$org.pb
+                      fi
+                    else
+                      printf "[DEBUG] Use the $org update proposal from $orgProposal \n"
+                      cp external-$orgProposal-proposal-$org.pb proposal-$org.pb
+                    fi
+                  fi
+
+                done < /proposal/application-proposal-organizations
+
+                ## Create proposal if not fetched
+                until [ -f "proposal-$org.pb" ]; do
+                  printf "[DEBUG] Create application channel update for $org \n"
+
+                  ## Add the Organization in the Applciation group
+                  jq -s '.[0] * {"channel_group":{"groups":{"Application":{"groups":{"'$org'":.[1]}}}}}' channel-cfg.json configOrg-$org.json > new-channel-cfg-$org.json
+                  configtxlator proto_encode --input new-channel-cfg-$org.json --type common.Config --output channelupdate-$org.block
+
+                  ## Compute update between channel old configuration and the updated one
+                  configtxlator compute_update --channel_id {{ .Values.appChannel.name }} --original channel-cfg.block --updated channelupdate-$org.block | configtxlator proto_decode --type common.ConfigUpdate | jq . > compute_update-$org.json
+
+                  ## Create the update proposal
+                  echo '{"payload":{"header":{"channel_header":{"channel_id": "{{ .Values.appChannel.name }}", "type":2}},"data":{"config_update":'$(cat compute_update-$org.json)'}}}' | jq . > proposal-$org.json
+                  configtxlator proto_encode --input proposal-$org.json --type common.Envelope --output proposal-$org.pb
+
+                  sleep 2
+                done
+
+                ## Validate proposal application version
+                PROPOSAL_APP_VERSION=$(cat channel-cfg.json | jq '.channel_group.groups.Application.version')
+                CHANNEL_APP_VERSION=$(configtxlator proto_decode --input proposal-$org.pb --type common.Envelope | jq '.payload.data.config_update.read_set.groups.Application.version')
+                printf "[DEBUG] Proposal application version: $CHANNEL_APP_VERSION. Channel application version: $PROPOSAL_APP_VERSION\n"
+                if [ $CHANNEL_APP_VERSION != $PROPOSAL_APP_VERSION ] ; then
+                  # Proposal update should have a readset application version matching config application version.
+                  # That suggests the proposal update is not up to date with the latest ledger state.
+                  printf "[DEBUG] Application version mismatch. Delete proposal for '$org'.\n"
+                  rm -f /data/proposal-$org.pb proposal-$org.pb
+                  continue
+                fi
+
+                ## Sign update proposal
+                peer channel signconfigtx -f proposal-$org.pb -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+
+                ## Update proposal in /data
+                cp proposal-$org.pb /data/proposal-$org.pb
+                chmod +r /data/proposal-$org.pb
+
+                ## Submit proposal
+                NUM_SIGNATURES=$(configtxlator proto_decode --input proposal-$org.pb --type common.Envelope | jq '.payload.data.signatures | map(.signature_header.creator.mspid) | unique | length')
+                NUM_APPLICATION_ORGS=$(wc -l /proposal/application-proposal-organizations | cut -c 1)
+                printf "[DEBUG] Submit channel update for '$org' with $NUM_SIGNATURES signatures (out of $NUM_APPLICATION_ORGS organizations)\n"
+                peer channel update -f proposal-$org.pb -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+
+                sleep 5
+
+              done < /config/application-organizations
+
+              ## Instantiate chaincode
+              until grep "{{ .Values.appChannel.chaincodeName }}" chaincode.list | grep "{{ .Values.appChannel.chaincodeVersion }}" > /dev/null; do
+
+                printf "[DEBUG] Instantiate chaincode {{ .Values.appChannel.chaincodeName }} {{ .Values.appChannel.chaincodeVersion }} on channel {{ .Values.appChannel.name }} with policy : {{ .Values.appChannel.chaincodePolicy }}\n"
+                peer chaincode instantiate -C {{ .Values.appChannel.name }} -n {{ .Values.appChannel.chaincodeName }} -v {{ .Values.appChannel.chaincodeVersion }} -c '{"Args":["init"]}' -P "{{ .Values.appChannel.chaincodePolicy }}" -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                sleep 5
+
+                peer chaincode -C {{ .Values.appChannel.name }} list --instantiated > chaincode.list
+
+              done
+
+              sleep 10
+            done
+        resources:
+          {{- toYaml .Values.resources | nindent 14 }}
+        env:
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /var/hyperledger/admin_msp
+        - name: GODEBUG
+          value: "netdns=go+1"
+        volumeMounts:
+          - mountPath: /etc/hyperledger/fabric
+            name: fabric-config
+            readOnly: true
+          - mountPath: /config
+            name: application-organizations
+            readOnly: true
+          - mountPath: /proposal
+            name: application-proposal-organizations
+            readOnly: true
+          - mountPath: /var/hyperledger/msp/signcerts
+            name: id-cert
+          - mountPath: /var/hyperledger/msp/keystore
+            name: id-key
+          - mountPath: /var/hyperledger/msp/cacerts
+            name: cacert
+          - mountPath: /var/hyperledger/msp/tlscacerts
+            name: cacert
+          - mountPath: /var/hyperledger/msp/admincerts
+            name: admin-cert
+          - mountPath: /var/hyperledger/tls/server/pair
+            name: tls
+          - mountPath: /var/hyperledger/tls/server/cert
+            name: tls-rootcert
+          - mountPath: /var/hyperledger/tls/client/pair
+            name: tls-client
+          - mountPath: /var/hyperledger/tls/client/cert
+            name: tls-clientrootcert
+          - mountPath: /var/hyperledger/tls/ord/cert
+            name: ord-tls-rootcert
+          - mountPath: /var/hyperledger/admin_msp/signcerts
+            name: admin-cert
+          - mountPath: /var/hyperledger/admin_msp/keystore
+            name: admin-key
+          - mountPath: /var/hyperledger/admin_msp/cacerts
+            name: cacert
+          - mountPath: /var/hyperledger/admin_msp/tlscacerts
+            name: cacert
+          - mountPath: /var/hyperledger/admin_msp/admincerts
+            name: admin-cert
+          - mountPath: /data
+            name: data
+          {{- if .Values.privateCa.enabled }}
+          - mountPath: /usr/local/share/ca-certificates/{{ .Values.privateCa.configMap.fileName }}
+            name: private-ca
+            subPath: {{ .Values.privateCa.configMap.fileName }}
+          {{- end }}
+      - name: nginx
+        image: nginx:1.17.6
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - mountPath: /usr/share/nginx/html/proposal
+            name: data
+      volumes:
+        - name: application-organizations
+          configMap:
+            name: {{ template "substra.fullname" . }}-application-organizations
+        - name: application-proposal-organizations
+          configMap:
+            name: {{ template "substra.fullname" . }}-application-proposal-organizations
+        - name: fabric-config
+          configMap:
+            name: {{ template "substra.fullname" . }}-fabric
+        - name: id-cert
+          secret:
+            secretName: {{ .Values.peer.secrets.peer.cert }}
+        - name: id-key
+          secret:
+            secretName: {{ .Values.peer.secrets.peer.key }}
+        - name: cacert
+          secret:
+            secretName: {{ .Values.peer.secrets.peer.caCert }}
+        - name: tls
+          secret:
+            secretName: {{ .Values.peer.secrets.peer.tls }}
+        - name: tls-rootcert
+          secret:
+            secretName: {{ .Values.peer.secrets.peer.tlsRootCert }}
+        - name: tls-client
+          secret:
+            secretName: {{ .Values.peer.secrets.peer.tlsClient }}
+        - name: tls-clientrootcert
+          secret:
+            secretName: {{ .Values.peer.secrets.peer.tlsClientRootCert }}
+        - name: admin-cert
+          secret:
+            secretName: {{ .Values.peer.secrets.adminCert }}
+        - name: admin-key
+          secret:
+            secretName: {{ .Values.peer.secrets.adminKey }}
+        - name: ord-tls-rootcert
+          secret:
+            secretName: {{ .Values.secrets.ordTlsRootCert }}
+        - name: data
+          emptyDir: {}
+        {{- if .Values.privateCa.enabled }}
+        - name: private-ca
+          configMap:
+            name: {{ .Values.privateCa.configMap.name }}
+        {{- end }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "substra.fullname" . }}-application-channel-operator
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ template "substra.name" . }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app.kubernetes.io/name: {{ template "substra.name" . }}-application-channel-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+{{- end }}

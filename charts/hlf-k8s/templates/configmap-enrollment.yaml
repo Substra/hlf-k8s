@@ -12,19 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- range $index, $value := .Values.image.pullSecretsInline }}
----
 apiVersion: v1
-data:
-  .dockerconfigjson: {{ $value }}
-kind: Secret
+kind: ConfigMap
 metadata:
-  name: {{ template "substra.fullname" $ }}-pull-secret-{{ $index }}
-  labels:
-    app.kubernetes.io/managed-by: {{ $.Release.Service }}
-    app.kubernetes.io/instance: {{ $.Release.Name }}
-    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
-    app.kubernetes.io/name: {{ template "substra.fullname" $ }}-pull-secret-{{ $index }}
-    app.kubernetes.io/part-of: {{ template "substra.name" $ }}
-type: kubernetes.io/dockerconfigjson
-{{- end }}
+  name: {{ template "substra.fullname" . }}-enrollment
+data:
+  enrollments: |
+    {{- range .Values.enrollments.creds }}
+      {{ .name }} {{ .secret }} {{ .options }}
+    {{- end }}

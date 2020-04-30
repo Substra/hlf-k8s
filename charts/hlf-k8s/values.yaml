@@ -16,10 +16,6 @@ image:
   repository: substrafoundation/hlf-k8s
   tag: latest
   pullPolicy: IfNotPresent
-  pullSecrets: []
-  pullSecretsInline: []
-
-dnsPolicy: ClusterFirst
 
 nginx-ingress:
   enabled: false
@@ -33,8 +29,70 @@ tolerations: []
 
 affinity: {}
 
-systemChannel: systemchannel
-appChannel: mychannel
+systemChannel:
+  name: systemchannel
+  organizations:
+    ## The organizations to add to the system channel
+    #   - { org: MyPeer1, configUrl: peer-1-org-config-operator.org-1/config/configOrg.json }
+    #   - { org: MyPeer2, configUrl: peer-2-org-config-operator.org-2/config/configOrg.json }
+
+appChannel:
+  name: mychannel
+  ## The organizations to add to the application channel (see README)
+  # organizations:
+  #   - { org: Org1, configUrl: peer-1-org-config-operator.org-1/config/configOrgWithAnchors.json }
+  #   - { org: Org2, configUrl: peer-2-org-config-operator.org-2/config/configOrgWithAnchors.json }
+  ## The organizations to fetch signed proposals from (see README)
+  # proposalOrganizations:
+  #   - { org: Org1, proposalServerUrl: peer-1-org-application-channel-operator.org-1/proposal/ }
+  #   - { org: Org2, proposalServerUrl: peer-2-org-application-channel-operator.org-2/proposal/ }
+  # chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
+  # chaincodeName: mycc
+  # chaincodeVersion: "1.0"
+  # policies: |-
+  #   Readers:
+  #       Type: ImplicitMeta
+  #       Rule: "ANY Readers"
+  #   Writers:
+  #       Type: ImplicitMeta
+  #       Rule: "ANY Writers"
+  #   Admins:
+  #       Type: ImplicitMeta
+  #       Rule: "ANY Admins"
+
+
+configOperator:
+  ingress:
+    enabled: false
+    # annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   cert-manager.io/cluster-issuer: letsencrypt-prod
+    #   cert-manager.io/http01-edit-in-place: "true"
+    #   nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+    #   nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    # tls:
+    #   - secretName: config-server-tls-cert
+    #     hosts:
+    #       - peer-1-peer-config-operator.org-1
+    # hosts:
+    #   - { host: peer-1-peer-config-operator.org-1, paths: ["/"] }
+
+applicationChannelOperator:
+  ingress:
+    enabled: false
+    # annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   cert-manager.io/cluster-issuer: letsencrypt-prod
+    #   cert-manager.io/http01-edit-in-place: "true"
+    #   nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+    #   nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    # tls:
+    #   - secretName: config-server-tls-cert
+    #     hosts:
+    #       - peer-1-peer-application-channel-operator.org-1
+    # hosts:
+    #   - { host: peer-1-peer-application-channel-operator.org-1, paths: ["/"] }
+
 
 organization:
   id: MyOrganizationMSP
@@ -42,6 +100,9 @@ organization:
 
 ca:
   enabled: true
+  scheme: http
+  host: ca-hostname
+  port: 7054
   image:
     tag: 1.4.2
   caName: rca
@@ -64,6 +125,13 @@ ca:
 
   persistence:
     enabled: false
+    # size: 20Gi
+    # storageClass: ""4
+
+  orderer:
+    scheme: http
+    host: orderer-ca-hostname
+    port: 7054
 
 peer:
   peer:
@@ -87,27 +155,27 @@ peer:
     ## These secrets should contain the Orderer crypto materials and credentials
     peer:
       ## Certificate, saved under key 'cert.pem'
-      cert: hlf-idcert
+      cert: hlf-msp-cert-user
       ## Key, saved under 'key.pem'
-      key: hlf-idkey
+      key: hlf-msp-key-user
       ## CA Cert, saved under 'cacert.pem'
       caCert: hlf-cacert
       ## Intermediate CA Cert (optional), saved under 'intermediatecacert.pem'
       # intCaCert: hlf--peer1-caintcert
       ## TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
-      tls: hlf-tls
+      tls: hlf-tls-admin
       ## TLS root CA certificate saved under key 'cert.pem'
-      tlsRootCert: hlf-tlsrootcert
+      tlsRootCert: hlf-cacert
       ## TLS client root CA certificates saved under any names (as there may be multiple)
-      tlsClient: hlf-client-tls
+      tlsClient: hlf-tls-user
       ## TLS client root CA certificates saved under any names (as there may be multiple)
-      tlsClientRootCert: hlf-client-tlsrootcert
+      tlsClientRootCert: hlf-cacert
     ## This should contain the Certificate of the Peer Organisation admin
     ## This is necessary to successfully run the peer
-    adminCert: hlf-admincert
+    adminCert: hlf-msp-cert-admin
     ## This should contain the Private Key of the Peer Organisation admin
     ## This is necessary to successfully join a channel
-    adminKey: hlf-adminkey
+    adminKey: hlf-msp-key-admin
     ## This should include the Orderer TLS 'cacert.pem'
     ordTlsRootCert: ord-tls-rootcert
 
@@ -127,56 +195,45 @@ orderer:
         enabled: "true"
       client:
         enabled: "true"
+  monitor:
+    enabled: false
   secrets:
     ## These secrets should contain the Orderer crypto materials and credentials
     ord:
       ## Certificate, saved under key 'cert.pem'
-      cert: hlf-idcert
+      cert: hlf-msp-cert-user
       ## Key, saved under 'key.pem'
-      key: hlf-idkey
+      key: hlf-msp-key-user
       ## CA Cert, saved under 'cacert.pem'
       caCert: hlf-cacert
       ## TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
-      tls: hlf-tls
+      tls: hlf-tls-admin
       ## TLS root CA certificate saved under key 'cert.pem'
-      tlsRootCert: hlf-tlsrootcert
+      tlsRootCert: hlf-cacert
       ## TLS client root CA certificates saved under any names (as there may be multiple)
-      tlsClientRootCert: hlf-client-tlsrootcert
+      tlsClient: hlf-tls-user
+      ## TLS client root CA certificates saved under any names (as there may be multiple)
+      tlsClientRootCert: hlf-cacert
     ## This should contain "genesis" block derived from a configtx.yaml
     ## configtxgen -profile OrdererGenesis -outputBlock genesis.block
     genesis: hlf-genesis
     ## This should contain the Certificate of the Orderer Organisation admin
     ## This is necessary to successfully run the orderer
-    adminCert: hlf-admincert
-
-fetchSecrets: []
-  # -
-  #   from: from-secret
-  #   to: to-secret
-  #   filename: secret-data-filename
-  #   namespace: default
-
-channels: []
-  # -
-  #   name: mychannel
-  #   create: true
-  #   join: true
-  #   extraOrgs:
-  #     - { name: MyPeer2, secret: peer-2-org-config-anchor }
+    adminCert: hlf-msp-cert-admin
+    ## This is necessary to successfully join a channel
+    adminKey: hlf-msp-key-admin
 
 chaincodes: []
   # -
   #   name: mycc
   #   version: "1.0"
   ##  The chaincode source code. It can be either:
-  ##  - The absolute path to the source code on your local machine. (Note for minikube users: 
+  ##  - The absolute path to the source code on your local machine. (Note for minikube users:
   ##    this path must be mounted in minikube, see https://stackoverflow.com/a/53251666/1370722)
-  ##  - The URL of a tar gzipped archive of the chaincode source code, accessible from the 
+  ##  - The URL of a tar gzipped archive of the chaincode source code, accessible from the
   ##    internet. /!\ The archive name cannot contain the `/` character.
   #   src: /home/johndoe/code/susbtra-chaincode
   #   src: https://github.com/SubstraFoundation/substra-chaincode/archive/0.0.2.tar.gz
-  #   instantiate: false
-  #   policy: OR('Org1MSP.member')"
 
 users:
   admin:
@@ -186,37 +243,49 @@ users:
       username: user
       password: pwd
 
-systemOrganizations: []
-# Here is an exemple of structure:
-#   - { name: MyPeer1, secret: peer-1-org-config }
-#   - { name: MyPeer2, secret: peer-2-org-config }
-
 # Secrets names
 secrets:
   # Certificate, saved under key 'cert.pem'
-  cert: hlf-idcert
+  cert: hlf-msp-cert-user
   # Key, saved under 'key.pem'
-  key: hlf-idkey
+  key: hlf-msp-key-user
   # CA Cert, saved under 'cacert.pem'
   caCert: hlf-cacert
   # TLS secret, saved under keys 'tls.crt' and 'tls.key' (to conform with K8S nomenclature)
-  tls: hlf-tls
+  tls: hlf-tls-admin
   # TLS root CA certificate saved under key 'cert.pem'
-  tlsRootCert: hlf-tlsrootcert
+  tlsRootCert: hlf-cacert
   # TLS client root CA certificates saved under any names (as there may be multiple)
-  tlsClient: hlf-client-tls
+  tlsClient: hlf-tls-user
   # TLS client root CA certificates saved under any names (as there may be multiple)
-  tlsClientRootCerts: hlf-client-tlsrootcert
+  tlsClientRootCert: hlf-cacert
   # This should contain "genesis" block derived from a configtx.yaml
   # configtxgen -profile OrdererGenesis -outputBlock genesis.block
   genesis: hlf-genesis
   # This should contain the Certificate of the Peer Organisation admin
   # This is necessary to successfully run the peer
-  adminCert: hlf-admincert
+  adminCert: hlf-msp-cert-admin
   # This should contain the Private Key of the Peer Organisation admin
   # This is necessary to successfully join a channel
-  adminKey: hlf-adminkey
+  adminKey: hlf-msp-key-admin
   # This should include the Orderer TLS 'cacert.pem'
   ordTlsRootCert: ord-tls-rootcert
-  # This will include the organization config json file (peer only)
-  orgConfig: org-config
+
+
+privateCa:
+  enabled: false
+  configMap:
+    name: private-ca
+#    data: nil
+    fileName: private-ca.crt
+
+
+enrollments:
+  creds: []
+  ## Orderer
+  # - { name: admin, secret: adminpwd, options: "--id.attrs admin=true:ecert"}
+  # - { name: user, secret: pwd, options: "--id.type orderer"}
+  ## Peer
+  # - { name: admin, secret: adminpwd, options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"}
+  # - { name: user, secret: pwd, options: "--id.type peer"}
+  csrHost: service-hostname
