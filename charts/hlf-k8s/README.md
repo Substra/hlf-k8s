@@ -35,7 +35,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `chaincodes[].src` | The URL to a chaincode archive (.tar.gz) | (undefined) |
 | `chaincodes[].hostPath` | A host path containing the chaincode source code | (undefined) |
 | `chaincodes[].configMap.name` | The name of a ConfigMap containing the chaincode source code (tar.gz) | (undefined) |
-| `chaincodes[].configMap.fileName` | The name of the archive within the source code | (undefined) |
+| `chaincodes[].configMap.fileName` | The name of the archive within the ConfigMap | (undefined) |
 | `appChannel.name` | The name of the application channel | `mychannel` |
 | `appChannel.organizations` | The organizations to add to the application channel. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | `[]` |
 | `appChannel.proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
