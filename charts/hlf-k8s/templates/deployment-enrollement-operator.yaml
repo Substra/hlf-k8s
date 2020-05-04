@@ -43,13 +43,6 @@ spec:
               ## Update CA certs
               update-ca-certificates
 
-              ## Install requirements : kubectl
-              printf "[DEBUG] Installing requirements\n"
-              until $(curl -SL https://github.com/hyperledger/fabric-ca/releases/download/v1.4.4/hyperledger-fabric-ca-linux-amd64-1.4.4.tar.gz | tar xz); do echo ".";sleep 5;done
-              until $(curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl); do echo ".";sleep 5;done
-              chmod +x ./kubectl
-              sudo mv ./kubectl /usr/local/bin/kubectl
-
               ## Check connection with the Certificate Authority
               printf "[DEBUG] Testing the connection with this node's Certificate Authority ({{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }})\n"
               until fabric-ca-client getcainfo -u {{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }}; do
