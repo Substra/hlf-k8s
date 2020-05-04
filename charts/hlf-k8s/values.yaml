@@ -227,13 +227,15 @@ chaincodes: []
   # -
   #   name: mycc
   #   version: "1.0"
-  ##  The chaincode source code. It can be either:
-  ##  - The absolute path to the source code on your local machine. (Note for minikube users:
-  ##    this path must be mounted in minikube, see https://stackoverflow.com/a/53251666/1370722)
-  ##  - The URL of a tar gzipped archive of the chaincode source code, accessible from the
-  ##    internet. /!\ The archive name cannot contain the `/` character.
-  #   src: /home/johndoe/code/susbtra-chaincode
+  ## The chaincode source code can be provided one of 3 ways:
+  ## 1. Archive URL (Note: the archive name cannot contain the `/` character)
   #   src: https://github.com/SubstraFoundation/substra-chaincode/archive/0.0.2.tar.gz
+  ## 2. A host path
+  #   hostPath: /home/johndoe/code/susbtra-chaincode
+  ## 3. A ConfigMap
+  #   configMap:
+  #     name: hlf-chaincode
+  #     fileName: chaincode.tar.gz
 
 users:
   admin:

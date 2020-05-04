@@ -91,8 +91,6 @@ deploy:
           chaincodes[0].instantiate: true
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
-          # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
-          #       This path must be accessible to kubernetes. See README for details.
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           appChannel.name: mychannel
           appChannel.organizations[0].org: MyOrg1
@@ -145,8 +143,6 @@ deploy:
           peer.peer.mspID: MyOrg2MSP
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
-          # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
-          #       This path folder must be accessible to kubernetes. See README for details.
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           appChannel.name: mychannel
           appChannel.organizations[0].org: MyOrg1
@@ -199,8 +195,6 @@ deploy:
           peer.peer.mspID: MyOrg3MSP
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
-          # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
-          #       This path folder must be accessible to kubernetes. See README for details.
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           appChannel.name: mychannel
           appChannel.organizations[0].org: MyOrg1
@@ -252,8 +246,6 @@ deploy:
           peer.peer.mspID: MyOrg4MSP
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
-          # Note: Instead of an URL, you can use an absolute path, e.g. /home/johndoe/code/substra-chaincode
-          #       This path folder must be accessible to kubernetes. See README for details.
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
           appChannel.name: mychannel
           appChannel.organizations[0].org: MyOrg1

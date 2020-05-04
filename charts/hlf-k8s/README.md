@@ -30,6 +30,12 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `peer.persistence.size` | Size of data volume | (undefined) |
 | `peer.persistence.storageClass` | Storage class of backing PVC | (undefined) |
 | `chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
+| `chaincodes[].name` | The name of the chaincode | (undefined) |
+| `chaincodes[].version` | The chaincode version | (undefined) |
+| `chaincodes[].src` | The URL to a chaincode archive (.tar.gz) | (undefined) |
+| `chaincodes[].hostPath` | A host path containing the chaincode source code | (undefined) |
+| `chaincodes[].configMap.name` | The name of a ConfigMap containing the chaincode source code (tar.gz) | (undefined) |
+| `chaincodes[].configMap.fileName` | The name of the archive within the ConfigMap | (undefined) |
 | `appChannel.name` | The name of the application channel | `mychannel` |
 | `appChannel.organizations` | The organizations to add to the application channel. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | `[]` |
 | `appChannel.proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
@@ -108,6 +114,8 @@ chaincodes:
     # Chaincode source code archive URL
     src: https://github.com/SubstraFoundation/substra-chaincode/archive/0.0.2.tar.gz
 ```
+
+You can also provide the chaincode source code using a ConfigMap or a host path (see: [Configuration](#Configuration))
 
 ### Add an organization to the system channel
 

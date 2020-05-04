@@ -61,15 +61,17 @@ spec:
                   rm -rf /opt/gopath/src/chaincode
 
                   ## Fetch chaincode src
-                  if [[ {{ .src | quote }} == http* ]];
-                  then
-                    curl -L {{ .src }} -o chaincode.tar.gz
-                    tar -C substra-chaincode -xzf chaincode.tar.gz --strip-components=1
-                    mv substra-chaincode/chaincode /opt/gopath/src/chaincode
-                  else
-                    mkdir -p /opt/gopath/src/chaincode
-                    cp -R {{ .src }}/chaincode/* /opt/gopath/src/chaincode
-                  fi
+            {{- if .configMap }}
+                  tar -C substra-chaincode -xzf /chaincode/{{ .configMap.fileName }} --strip-components=1
+                  mv substra-chaincode/chaincode /opt/gopath/src/chaincode
+            {{- else if .hostPath }}
+                  mkdir -p /opt/gopath/src/chaincode
+                  cp -LR /chaincode/* /opt/gopath/src/chaincode
+            {{- else }}
+                  curl -L {{ .src }} -o chaincode.tar.gz
+                  tar -C substra-chaincode -xzf chaincode.tar.gz --strip-components=1
+                  mv substra-chaincode/chaincode /opt/gopath/src/chaincode
+            {{- end }}
 
                   ## Install chaincode
                   peer chaincode install -n {{ .name }} -v {{ .version }} -p chaincode
@@ -128,9 +130,10 @@ spec:
               name: private-ca
               subPath: {{ $.Values.privateCa.configMap.fileName }}
             {{- end }}
-            {{- if ne "http" (regexFind "^http" .src) }}
-            - mountPath: {{ .src }}
-              name: chaincode-local-src
+            {{- if or .hostPath .configMap }}
+            - mountPath: /chaincode
+              name: chaincode
+              readOnly: true
             {{- end }}
       volumes:
       - name: fabric-config
@@ -173,10 +176,15 @@ spec:
         configMap:
           name: {{ $.Values.privateCa.configMap.name }}
       {{- end }}
-      {{- if ne "http" (regexFind "^http" .src) }}
-      - name: chaincode-local-src
+      {{- if .hostPath }}
+      - name: chaincode
         hostPath:
-          path: {{ .src }}
+          path: {{ .hostPath }}
+      {{- end }}
+      {{- if .configMap }}
+      - name: chaincode
+        configMap:
+          name: {{ .configMap.name }}
       {{- end }}
     {{- with $.Values.nodeSelector }}
       nodeSelector:
