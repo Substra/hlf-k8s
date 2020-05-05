@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if .Values.peer.enabled }}
+{{- if and (.Values.peer.enabled) (.Values.hooks.uninstallChaincode.enabled) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
