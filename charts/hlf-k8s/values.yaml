@@ -299,4 +299,4 @@ hooks:
     enabled: false
 
 toolbox:
-  enable: false
+  enabled: false
