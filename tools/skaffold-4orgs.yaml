@@ -70,6 +70,7 @@ deploy:
           enrollments.creds[1].secret: pwd
           enrollments.creds[1].options: "--id.type orderer"
           enrollments.csrHost: network-orderer.orderer
+          toolbox.enabled: true
 
       - name: network-org-1-peer-1
         chartPath: charts/hlf-k8s
@@ -122,6 +123,7 @@ deploy:
           enrollments.creds[1].secret: pwd,
           enrollments.creds[1].options: "--id.type peer"
           enrollments.csrHost: network-org-1-peer-1.org-1
+          toolbox.enabled: true
 
 
       - name: network-org-2-peer-1
@@ -174,6 +176,7 @@ deploy:
           enrollments.creds[1].secret: pwd,
           enrollments.creds[1].options: "--id.type peer"
           enrollments.csrHost: network-org-2-peer-1.org-2
+          toolbox.enabled: true
 
 
       - name: network-org-3-peer-1
@@ -226,6 +229,7 @@ deploy:
           enrollments.creds[1].secret: pwd,
           enrollments.creds[1].options: "--id.type peer"
           enrollments.csrHost: network-org-3-peer-1.org-3
+          toolbox.enabled: true
 
       - name: network-org-4-peer-1
         chartPath: charts/hlf-k8s
@@ -277,3 +281,4 @@ deploy:
           enrollments.creds[1].secret: pwd,
           enrollments.creds[1].options: "--id.type peer"
           enrollments.csrHost: network-org-4-peer-1.org-4
+          toolbox.enabled: true

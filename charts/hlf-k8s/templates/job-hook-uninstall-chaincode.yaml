@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if .Values.peer.enabled }}
+{{- if and (.Values.peer.enabled) (.Values.hooks.uninstallChaincode.enabled) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ template "substra.fullname" . }}-hook-desinstall-chaincode
+  name: {{ template "substra.fullname" . }}-hook-uninstall-chaincode
   labels:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    app.kubernetes.io/name: {{ template "substra.name" . }}-hook-desinstall-chaincode
+    app.kubernetes.io/name: {{ template "substra.name" . }}-hook-uninstall-chaincode
     app.kubernetes.io/part-of: {{ template "substra.name" . }}
   annotations:
     "helm.sh/hook": pre-delete
