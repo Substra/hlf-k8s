@@ -51,7 +51,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.annotations` | Application channel operator ingress annotations | (undefined) |
 | `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.tls` | Application channel operator ingress TLS configuration | (undefined) |
 | `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.hosts` | Application channel operator ingress hosts | (undefined) |
-| `hooks.uninstallChaincode.enabled` | If true, the chaincode will be automatically uninstalled when the chart is uninstalled | `false` |
+| `hooks.uninstallChaincode.enabled` | If true, the chaincode will be automatically uninstalled when the chart is uninstalled | `true` |
 | **Orderer** |  |  |
 | `orderer.enabled` | If true, a HLF Orderer will be installed | `false` |
 | `orderer.host` | The hostname for the Orderer | `orderer-hostname` |
@@ -94,7 +94,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `privateCa.enabled` | if true, use a private CA | `false` |
 | `privateCa.configMap.name` | The name of the ConfigMap containing the private CA certificate | `private-ca` |
 | `privateCa.configMap.fileName` | The CA certificate filename within the ConfigMap | `private-ca.crt` |
-| `hooks.deleteSecrets.enabled` | If true, the secrets created by the chart will be automatically deleted when the chart is uninstalled | `false` |
+| `hooks.deleteSecrets.enabled` | If true, the secrets created by the chart will be automatically deleted when the chart is uninstalled | `true` |
 | `toolbox.enabled` | If true, a "toolbox" pod will be created with pre-installed utilities and certificates | `false` |
 
 

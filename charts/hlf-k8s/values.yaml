@@ -294,9 +294,9 @@ enrollments:
 
 hooks:
   deleteSecrets:
-    enabled: false
+    enabled: true
   uninstallChaincode:
-    enabled: false
+    enabled: true
 
 toolbox:
   enabled: false
