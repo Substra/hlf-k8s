@@ -43,15 +43,6 @@ spec:
         command: ['sh', '-c']
         args:
           - |
-            ## Install requirements : kubectl
-            printf "[DEBUG] Installing requirements\n"
-            until $(curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl); do
-                echo ".";
-                sleep 5;
-            done
-            chmod +x ./kubectl
-            sudo mv ./kubectl /usr/local/bin/kubectl
-
             while true; do
 
                 ## Generate Genesis block
