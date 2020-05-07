@@ -104,13 +104,13 @@ ca:
   host: ca-hostname
   port: 7054
   image:
-    tag: 1.4.2
+    tag: 1.4.6
   caName: rca
   adminUsername: caAdmin
   adminPassword: caPassword
 
   config:
-    hlfToolsVersion: 1.4.2
+    hlfToolsVersion: 1.4.6
     csr:
       ca:
         pathlength: 1
@@ -147,7 +147,7 @@ peer:
   host: peer-hostname
   port: 7051
   image:
-    tag: 1.4.2
+    tag: 1.4.6
   persistence:
     enabled: false
 
@@ -184,7 +184,7 @@ orderer:
   host: orderer-hostname
   port: 7050
   image:
-    tag: 1.4.2
+    tag: 1.4.6
   persistence:
     enabled: false
   ord:

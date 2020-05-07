@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-FROM hyperledger/fabric-tools:1.4.3
+FROM hyperledger/fabric-tools:1.4.6
 
 RUN echo "deb http://cn.archive.ubuntu.com/ubuntu bionic main multiverse restricted universe" >> /etc/apt/sources.list
 RUN echo "deb http://cn.archive.ubuntu.com/ubuntu bionic-updates main multiverse restricted universe" >> /etc/apt/sources.list

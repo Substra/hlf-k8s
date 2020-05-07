@@ -15,7 +15,7 @@
 import os
 import yaml
 
-HLF_VERSION = '1.4.3'
+HLF_VERSION = '1.4.6'
 
 fabric_base_directory = '/etc/hyperledger/fabric'
 
