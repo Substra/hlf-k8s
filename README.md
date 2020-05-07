@@ -29,10 +29,10 @@ This will deploy hlf-k8s with:
 
 By default, the `skaffold run` command will start a network using the default [substra-chaincode](https://github.com/SubstraFoundation/substra-chaincode).
 
-To use a custom chaincode locally, change the `chaincodes.src` values in [`skaffold.yaml`](./skaffold.yaml) to point to your local clone of substra-chaincode, e.g.
+To use a custom chaincode locally, replace the `chaincodes.src` fields to `chaincodes.hostPath` in [`skaffold.yaml`](./skaffold.yaml) to point to your local clone of substra-chaincode, e.g.
 
-- `deploy.helm.realease.name[network-peer-1].setValues.chaincodes[0].src: /home/johndoe/code/substra-chaincode`
-- `deploy.helm.realease.name[network-peer-2].setValues.chaincodes[0].src: /home/johndoe/code/substra-chaincode`
+- `deploy.helm.realease.name[network-peer-1].setValues.chaincodes[0].hostPath: /home/johndoe/code/substra-chaincode`
+- `deploy.helm.realease.name[network-peer-2].setValues.chaincodes[0].hostPath: /home/johndoe/code/substra-chaincode`
 
 The chaincode path must be accessible from your kubernetes cluster:
 
