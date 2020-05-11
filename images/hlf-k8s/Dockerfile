@@ -1,11 +1,11 @@
-FROM hyperledger/fabric-tools:1.4.3
+FROM hyperledger/fabric-tools:1.4.6
 
 # Install curl and netcat
 RUN apt-get update && \
   apt-get install -y curl netcat apt-transport-https vim
 
 # Install fabric-ca-client
-RUN curl -SL https://github.com/hyperledger/fabric-ca/releases/download/v1.4.4/hyperledger-fabric-ca-linux-amd64-1.4.4.tar.gz | tar xz --strip-components=1 && \
+RUN curl -SL https://github.com/hyperledger/fabric-ca/releases/download/v1.4.6/hyperledger-fabric-ca-linux-amd64-1.4.6.tar.gz | tar xz --strip-components=1 && \
   mv ./fabric-ca-client /bin
 
 # Install kubectl
