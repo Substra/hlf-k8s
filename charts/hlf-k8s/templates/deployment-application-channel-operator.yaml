@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if .Values.peer.enabled }}
+{{- if index .Values "hlf-peer" "enabled" }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -46,9 +46,9 @@ spec:
             update-ca-certificates
 
             ## Check connection with the Orderer
-            printf "[DEBUG] Testing the connection with the Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }})\n"
-            until $(nc -z {{ .Values.orderer.host }} {{ .Values.orderer.port }}); do
-              printf "[DEBUG] Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }}) is not reacheable, retry in 5s\n"
+            printf "[DEBUG] Testing the connection with the Orderer ({{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }})\n"
+            until $(nc -z {{ index .Values "hlf-ord" "host" }} {{ index .Values "hlf-ord" "port" }}); do
+              printf "[DEBUG] Orderer ({{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}) is not reacheable, retry in 5s\n"
               sleep 5
             done
 
@@ -62,12 +62,12 @@ spec:
 
                 ## Create channel
                 configtxgen -profile OrgsChannel --outputCreateChannelTx channel.tx -channelID {{ .Values.appChannel.name }} -asOrg {{ .Values.organization.name }}
-                peer channel create -f channel.tx --outputBlock channel.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt 2> channel.created
+                peer channel create -f channel.tx --outputBlock channel.block -c {{ .Values.appChannel.name }} -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt 2> channel.created
 
                 ## Create and add anchor
                 configtxgen -profile OrgsChannel --outputAnchorPeersUpdate anchor.tx -channelID {{ .Values.appChannel.name }} -asOrg {{ .Values.organization.name }}
 
-                peer channel update -f anchor.tx -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer channel update -f anchor.tx -c {{ .Values.appChannel.name }} -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
 
                 sleep 1
               done
@@ -76,13 +76,13 @@ spec:
               until grep "{{ .Values.appChannel.name }}" channel.list > /dev/null; do
 
                 printf "[DEBUG] Fetching application channel block\n"
-                peer channel fetch oldest channeljoin.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }}  --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer channel fetch oldest channeljoin.block -c {{ .Values.appChannel.name }} -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}  --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
 
                 printf "[DEBUG] Joining channel\n"
                 peer channel join -b channeljoin.block
 
                 ## Fetch channel list
-                peer channel list -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > channel.list
+                peer channel list -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > channel.list
 
                 sleep 1
               done
@@ -101,7 +101,7 @@ spec:
                 ## Fetch up-to-date channel configuration block
                 until [ -f "channel.block" ] && [ -s "channel.block" ]; do
                   printf "[DEBUG] Fetching the channel ({{ .Values.appChannel.name }}) configuration block\n"
-                  peer channel fetch config channel.block -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+                  peer channel fetch config channel.block -c {{ .Values.appChannel.name }} -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
                   sleep 3
                 done
 
@@ -189,7 +189,7 @@ spec:
                 fi
 
                 ## Sign update proposal
-                peer channel signconfigtx -f proposal-$org.pb -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer channel signconfigtx -f proposal-$org.pb -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
 
                 ## Update proposal in /data
                 cp proposal-$org.pb /data/proposal-$org.pb
@@ -199,7 +199,7 @@ spec:
                 NUM_SIGNATURES=$(configtxlator proto_decode --input proposal-$org.pb --type common.Envelope | jq '.payload.data.signatures | map(.signature_header.creator.mspid) | unique | length')
                 NUM_APPLICATION_ORGS=$(wc -l /proposal/application-proposal-organizations | cut -c 1)
                 printf "[DEBUG] Submit channel update for '$org' with $NUM_SIGNATURES signatures (out of $NUM_APPLICATION_ORGS organizations)\n"
-                peer channel update -f proposal-$org.pb -c {{ .Values.appChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer channel update -f proposal-$org.pb -c {{ .Values.appChannel.name }} -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
 
                 sleep 5
 
@@ -209,7 +209,7 @@ spec:
               until grep "{{ .Values.appChannel.chaincodeName }}" chaincode.list | grep "{{ .Values.appChannel.chaincodeVersion }}" > /dev/null; do
 
                 printf "[DEBUG] Instantiate chaincode {{ .Values.appChannel.chaincodeName }} {{ .Values.appChannel.chaincodeVersion }} on channel {{ .Values.appChannel.name }} with policy : {{ .Values.appChannel.chaincodePolicy }}\n"
-                peer chaincode instantiate -C {{ .Values.appChannel.name }} -n {{ .Values.appChannel.chaincodeName }} -v {{ .Values.appChannel.chaincodeVersion }} -c '{"Args":["init"]}' -P "{{ .Values.appChannel.chaincodePolicy }}" -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer chaincode instantiate -C {{ .Values.appChannel.name }} -n {{ .Values.appChannel.chaincodeName }} -v {{ .Values.appChannel.chaincodeVersion }} -c '{"Args":["init"]}' -P "{{ .Values.appChannel.chaincodePolicy }}" -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
                 sleep 5
 
                 peer chaincode -C {{ .Values.appChannel.name }} list --instantiated > chaincode.list
@@ -291,31 +291,31 @@ spec:
             name: {{ template "substra.fullname" . }}-fabric
         - name: id-cert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.cert }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "cert" }}
         - name: id-key
           secret:
-            secretName: {{ .Values.peer.secrets.peer.key }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "key" }}
         - name: cacert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.caCert }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "caCert" }}
         - name: tls
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tls }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tls" }}
         - name: tls-rootcert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tlsRootCert }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tlsRootCert" }}
         - name: tls-client
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tlsClient }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tlsClient" }}
         - name: tls-clientrootcert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tlsClientRootCert }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tlsClientRootCert" }}
         - name: admin-cert
           secret:
-            secretName: {{ .Values.peer.secrets.adminCert }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "adminCert" }}
         - name: admin-key
           secret:
-            secretName: {{ .Values.peer.secrets.adminKey }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "adminKey" }}
         - name: ord-tls-rootcert
           secret:
             secretName: {{ .Values.secrets.ordTlsRootCert }}

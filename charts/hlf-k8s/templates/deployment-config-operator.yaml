@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if .Values.peer.enabled }}
+{{- if index .Values "hlf-peer" "enabled" }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -52,7 +52,7 @@ spec:
 
                 until [ -f "/data/configOrgWithAnchors.json" ]; do
                   printf "[DEBUG] Create the org config anchor file\n"
-                  jq -s '.[0] * {"values":{"AnchorPeers":{"mod_policy":"Admins", "value":{"anchor_peers":[{"host":"{{ .Values.peer.host }}", "port":"{{ .Values.peer.port }}"}]}, "version": "0"}}}' /data/configOrg.json > /data/configOrgWithAnchors.json
+                  jq -s '.[0] * {"values":{"AnchorPeers":{"mod_policy":"Admins", "value":{"anchor_peers":[{"host":"{{ index .Values "hlf-peer" "host" }}", "port":"{{ index .Values "hlf-peer" "port" }}"}]}, "version": "0"}}}' /data/configOrg.json > /data/configOrgWithAnchors.json
                   sleep 1
                 done
 

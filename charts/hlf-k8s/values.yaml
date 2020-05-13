@@ -98,7 +98,7 @@ organization:
   id: MyOrganizationMSP
   name: MyOrganization
 
-ca:
+hlf-ca:
   enabled: true
   scheme: http
   host: ca-hostname
@@ -133,7 +133,7 @@ ca:
     host: orderer-ca-hostname
     port: 7054
 
-peer:
+hlf-peer:
   peer:
     gossip:
       bootstrap: "127.0.0.1:7051"
@@ -179,7 +179,7 @@ peer:
     ## This should include the Orderer TLS 'cacert.pem'
     ordTlsRootCert: ord-tls-rootcert
 
-orderer:
+hlf-ord:
   enabled: false
   host: orderer-hostname
   port: 7050

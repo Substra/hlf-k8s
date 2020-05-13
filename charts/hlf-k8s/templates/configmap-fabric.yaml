@@ -33,16 +33,16 @@ data:
       Organizations: null
     Organizations:
     - &id001
-      {{- if .Values.peer.enabled }}
+      {{- if index .Values "hlf-peer" "enabled" }}
       AnchorPeers:
-      - Host: {{ .Values.peer.host }}
-        Port: {{ .Values.peer.port }}
+      - Host: {{ index .Values "hlf-peer" "host" }}
+        Port: {{ index .Values "hlf-peer" "port" }}
       {{- end }}
       ID: {{ .Values.organization.id }}
       MSPDir: /var/hyperledger/admin_msp
       Name: {{ .Values.organization.name }}
     Profiles:
-      {{- if .Values.peer.enabled }}
+      {{- if index .Values "hlf-peer" "enabled" }}
       OrgsChannel:
         Application:
           {{- if .Values.appChannel.policies }}
@@ -53,14 +53,14 @@ data:
           - *id001
         Consortium: SampleConsortium
       {{- end }}
-      {{- if .Values.orderer.enabled }}
+      {{- if index .Values "hlf-ord" "enabled" }}
       GenerateGenesis:
         Consortiums:
           SampleConsortium:
             Organizations: *id001
         Orderer:
           Addresses:
-          - {{ .Values.orderer.host }}:{{ .Values.orderer.port }}
+          - {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}
           BatchSize:
             AbsoluteMaxBytes: 99 MB
             MaxMessageCount: 1
@@ -87,10 +87,10 @@ data:
             KeyStore: null
           Hash: SHA2
           Security: 256
-      {{- if .Values.orderer.enabled }}
-      address: {{ .Values.orderer.host }}:{{ .Values.orderer.port }}
+      {{- if index .Values "hlf-ord" "enabled" }}
+      address: {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}
       {{- else }}
-      address: {{ .Values.peer.host }}:{{ .Values.peer.port }}
+      address: {{ index .Values "hlf-peer" "host" }}:{{ index .Values "hlf-peer" "port" }}
       {{- end }}
       addressAutoDetect: false
       adminService: null
@@ -123,10 +123,10 @@ data:
           membershipSampleInterval: 1s
           startupGracePeriod: 15s
         endpoint: null
-        {{- if .Values.orderer.enabled }}
-        externalEndpoint: {{ .Values.orderer.host }}:{{ .Values.orderer.port }}
+        {{- if index .Values "hlf-ord" "enabled" }}
+        externalEndpoint: {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}
         {{- else }}
-        externalEndpoint: {{ .Values.peer.host }}:{{ .Values.peer.port }}
+        externalEndpoint: {{ index .Values "hlf-peer" "host" }}:{{ index .Values "hlf-peer" "port" }}
         {{- end }}
         maxBlockCountToStore: 100
         maxPropagationBurstLatency: 10ms

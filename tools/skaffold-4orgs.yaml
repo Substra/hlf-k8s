@@ -44,14 +44,14 @@ deploy:
           image: substrafoundation/hlf-k8s
         setValues:
           nginx-ingress.enabled: true
-          peer.enabled: false
-          ca.caName: rcaOrderer
-          ca.host: network-orderer-ca.orderer
-          ca.orderer.host: network-orderer-ca.orderer
+          hlf-peer.enabled: false
+          hlf-ca.caName: rcaOrderer
+          hlf-ca.host: network-orderer-hlf-ca.orderer
+          hlf-ca.orderer.host: network-orderer-hlf-ca.orderer
           organization.id: MyOrdererMSP
           organization.name: MyOrderer
-          orderer.enabled: true
-          orderer.monitor.enabled: true
+          hlf-ord.enabled: true
+          hlf-ord.monitor.enabled: true
           # Add Org to system channel to allows them to adminstrate application channels
           systemChannel.organizations[0].org: MyOrg1
           systemChannel.organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrg.json
@@ -61,15 +61,15 @@ deploy:
           systemChannel.organizations[2].configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrg.json
           systemChannel.organizations[3].org: MyOrg4
           systemChannel.organizations[3].configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrg.json
-          orderer.host: network-orderer.orderer
-          orderer.ord.mspID: MyOrdererMSP
+          hlf-ord.host: network-orderer-hlf-ord.orderer
+          hlf-ord.ord.mspID: MyOrdererMSP
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs admin=true:ecert"
           enrollments.creds[1].name: user
           enrollments.creds[1].secret: pwd
           enrollments.creds[1].options: "--id.type orderer"
-          enrollments.csrHost: network-orderer.orderer
+          enrollments.csrHost: network-orderer-hlf-ord.orderer
           toolbox.enabled: true
 
       - name: network-org-1-peer-1
@@ -82,13 +82,13 @@ deploy:
         setValues:
           nginx-ingress.enabled: true
           nginx-ingress.controller.scope.enabled: true
-          ca.caName: rcaOrg1
-          ca.host: network-org-1-peer-1-ca.org-1
-          ca.orderer.host: network-orderer-ca.orderer
-          peer.host: network-org-1-peer-1.org-1
+          hlf-ca.caName: rcaOrg1
+          hlf-ca.host: network-org-1-peer-1-hlf-ca.org-1
+          hlf-ca.orderer.host: network-orderer-hlf-ca.orderer
+          hlf-peer.host: network-org-1-peer-1-hlf-peer.org-1
           organization.id: MyOrg1MSP
           organization.name: MyOrg1
-          peer.peer.mspID: MyOrg1MSP
+          hlf-peer.peer.mspID: MyOrg1MSP
           chaincodes[0].instantiate: true
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
@@ -114,15 +114,15 @@ deploy:
           appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member'\,'MyOrg3MSP.member'\,'MyOrg4MSP.member')
           appChannel.chaincodeName: mycc
           appChannel.chaincodeVersion: "1.0"
-          orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-org-1-peer-1.org-1:7051
+          hlf-ord.host: network-orderer-hlf-ord.orderer
+          hlf-peer.peer.gossip.externalEndpoint: network-org-1-peer-1-hlf-peer.org-1:7051
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
           enrollments.creds[1].name: user,
           enrollments.creds[1].secret: pwd,
           enrollments.creds[1].options: "--id.type peer"
-          enrollments.csrHost: network-org-1-peer-1.org-1
+          enrollments.csrHost: network-org-1-peer-1-hlf-peer.org-1
           toolbox.enabled: true
 
 
@@ -136,13 +136,13 @@ deploy:
         setValues:
           nginx-ingress.enabled: true
           nginx-ingress.controller.scope.enabled: true
-          ca.caName: rcaOrg2
-          ca.host: network-org-2-peer-1-ca.org-2
-          ca.orderer.host: network-orderer-ca.orderer
-          peer.host: network-org-2-peer-1.org-2
+          hlf-ca.caName: rcaOrg2
+          hlf-ca.host: network-org-2-peer-1-hlf-ca.org-2
+          hlf-ca.orderer.host: network-orderer-hlf-ca.orderer
+          hlf-peer.host: network-org-2-peer-1-hlf-peer.org-2
           organization.id: MyOrg2MSP
           organization.name: MyOrg2
-          peer.peer.mspID: MyOrg2MSP
+          hlf-peer.peer.mspID: MyOrg2MSP
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
@@ -167,15 +167,15 @@ deploy:
           appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member'\,'MyOrg3MSP.member'\,'MyOrg4MSP.member')
           appChannel.chaincodeName: mycc
           appChannel.chaincodeVersion: "1.0"
-          orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-org-2-peer-1.org-2:7051
+          hlf-ord.host: network-orderer-hlf-ord.orderer
+          hlf-peer.peer.gossip.externalEndpoint: network-org-2-peer-1-hlf-peer.org-2:7051
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
           enrollments.creds[1].name: user,
           enrollments.creds[1].secret: pwd,
           enrollments.creds[1].options: "--id.type peer"
-          enrollments.csrHost: network-org-2-peer-1.org-2
+          enrollments.csrHost: network-org-2-peer-1-hlf-peer.org-2
           toolbox.enabled: true
 
 
@@ -189,13 +189,13 @@ deploy:
         setValues:
           nginx-ingress.enabled: true
           nginx-ingress.controller.scope.enabled: true
-          ca.caName: rcaOrg3
-          ca.host: network-org-3-peer-1-ca.org-3
-          ca.orderer.host: network-orderer-ca.orderer
-          peer.host: network-org-3-peer-1.org-3
+          hlf-ca.caName: rcaOrg3
+          hlf-ca.host: network-org-3-peer-1-hlf-ca.org-3
+          hlf-ca.orderer.host: network-orderer-hlf-ca.orderer
+          hlf-peer.host: network-org-3-peer-1-hlf-peer.org-3
           organization.id: MyOrg3MSP
           organization.name: MyOrg3
-          peer.peer.mspID: MyOrg3MSP
+          hlf-peer.peer.mspID: MyOrg3MSP
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
@@ -220,15 +220,15 @@ deploy:
           appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member'\,'MyOrg3MSP.member'\,'MyOrg4MSP.member')
           appChannel.chaincodeName: mycc
           appChannel.chaincodeVersion: "1.0"
-          orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-org-3-peer-1.org-3:7051
+          hlf-ord.host: network-orderer-hlf-ord.orderer
+          hlf-peer.peer.gossip.externalEndpoint: network-org-3-peer-1-hlf-peer.org-3:7051
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
           enrollments.creds[1].name: user,
           enrollments.creds[1].secret: pwd,
           enrollments.creds[1].options: "--id.type peer"
-          enrollments.csrHost: network-org-3-peer-1.org-3
+          enrollments.csrHost: network-org-3-peer-1-hlf-peer.org-3
           toolbox.enabled: true
 
       - name: network-org-4-peer-1
@@ -241,13 +241,13 @@ deploy:
         setValues:
           nginx-ingress.enabled: true
           nginx-ingress.controller.scope.enabled: true
-          ca.caName: rcaOrg4
-          ca.host: network-org-4-peer-1-ca.org-4
-          ca.orderer.host: network-orderer-ca.orderer
-          peer.host: network-org-4-peer-1.org-4
+          hlf-ca.caName: rcaOrg4
+          hlf-ca.host: network-org-4-peer-1-hlf-ca.org-4
+          hlf-ca.orderer.host: network-orderer-hlf-ca.orderer
+          hlf-peer.host: network-org-4-peer-1-hlf-peer.org-4
           organization.id: MyOrg4MSP
           organization.name: MyOrg4
-          peer.peer.mspID: MyOrg4MSP
+          hlf-peer.peer.mspID: MyOrg4MSP
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
@@ -272,13 +272,13 @@ deploy:
           appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member'\,'MyOrg3MSP.member'\,'MyOrg4MSP.member')
           appChannel.chaincodeName: mycc
           appChannel.chaincodeVersion: "1.0"
-          orderer.host: network-orderer.orderer
-          peer.peer.gossip.externalEndpoint: network-org-4-peer-1.org-4:7051
+          hlf-ord.host: network-orderer-hlf-ord.orderer
+          hlf-peer.peer.gossip.externalEndpoint: network-org-4-peer-1-hlf-peer.org-4:7051
           enrollments.creds[0].name: admin
           enrollments.creds[0].secret: adminpwd
           enrollments.creds[0].options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
           enrollments.creds[1].name: user,
           enrollments.creds[1].secret: pwd,
           enrollments.creds[1].options: "--id.type peer"
-          enrollments.csrHost: network-org-4-peer-1.org-4
+          enrollments.csrHost: network-org-4-peer-1-hlf-peer.org-4
           toolbox.enabled: true

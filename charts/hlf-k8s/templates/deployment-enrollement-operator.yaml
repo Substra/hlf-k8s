@@ -44,17 +44,17 @@ spec:
               update-ca-certificates
 
               ## Check connection with the Certificate Authority
-              printf "[DEBUG] Testing the connection with this node's Certificate Authority ({{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }})\n"
-              until fabric-ca-client getcainfo -u {{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }}; do
-                printf "[DEBUG] Certificate Authority ({{ .Values.ca.scheme }}://{{ .Values.ca.host }}:{{ .Values.ca.port }}) server is not reacheable, retry in 5s\n"
+              printf "[DEBUG] Testing the connection with this node's Certificate Authority ({{ index .Values "hlf-ca" "scheme" }}://{{ index .Values "hlf-ca" "host" }}:{{ index .Values "hlf-ca" "port" }})\n"
+              until fabric-ca-client getcainfo -u {{ index .Values "hlf-ca" "scheme" }}://{{ index .Values "hlf-ca" "host" }}:{{ index .Values "hlf-ca" "port" }}; do
+                printf "[DEBUG] Certificate Authority ({{ index .Values "hlf-ca" "scheme" }}://{{ index .Values "hlf-ca" "host" }}:{{ index .Values "hlf-ca" "port" }}) server is not reacheable, retry in 5s\n"
                 sleep 5
               done
 
               ## Enroll CA administrator
               printf "[DEBUG] Testing enrollment of CA admin\n"
-              until fabric-ca-client identity list -u {{ .Values.ca.scheme }}://{{ .Values.ca.adminUsername }}:{{ .Values.ca.adminPassword }}@{{ .Values.ca.host }}:{{ .Values.ca.port }} --id {{ .Values.ca.adminUsername }}; do
+              until fabric-ca-client identity list -u {{ index .Values "hlf-ca" "scheme" }}://{{ index .Values "hlf-ca" "adminUsername" }}:{{ index .Values "hlf-ca" "adminPassword" }}@{{ index .Values "hlf-ca" "host" }}:{{ index .Values "hlf-ca" "port" }} --id {{ index .Values "hlf-ca" "adminUsername" }}; do
                 printf "[DEBUG] Certificate Authority admin is not enrolled, enrolling it now:\n"
-                fabric-ca-client enroll -d -u {{ .Values.ca.scheme }}://{{ .Values.ca.adminUsername }}:{{ .Values.ca.adminPassword }}@{{ .Values.ca.host }}:{{ .Values.ca.port }} -M /var/hyperledger/fabric-ca/msp
+                fabric-ca-client enroll -d -u {{ index .Values "hlf-ca" "scheme" }}://{{ index .Values "hlf-ca" "adminUsername" }}:{{ index .Values "hlf-ca" "adminPassword" }}@{{ index .Values "hlf-ca" "host" }}:{{ index .Values "hlf-ca" "port" }} -M /var/hyperledger/fabric-ca/msp
                 sleep 1
               done
 
@@ -67,9 +67,9 @@ spec:
               done
 
               ## Check connection with the Orderer Certificate Authority
-              printf "[DEBUG] Testing the connection with the Orderer Certificate Authority ({{ .Values.ca.orderer.scheme }}://{{ .Values.ca.orderer.host }}:{{ .Values.ca.orderer.port}})\n"
-              until fabric-ca-client getcainfo -u {{ .Values.ca.orderer.scheme }}://{{ .Values.ca.orderer.host }}:{{ .Values.ca.orderer.port }} -H /tmp/orderer; do
-                printf "[DEBUG] Orderer Certificate Authority ({{ .Values.ca.orderer.scheme }}://{{ .Values.ca.orderer.host }}:{{ .Values.ca.orderer.port}}) server is not reacheable, retry in 5s\n"
+              printf "[DEBUG] Testing the connection with the Orderer Certificate Authority ({{ index .Values "hlf-ca" "orderer" "scheme" }}://{{ index .Values "hlf-ca" "orderer" "host" }}:{{ index .Values "hlf-ca" "orderer" "port"}})\n"
+              until fabric-ca-client getcainfo -u {{ index .Values "hlf-ca" "orderer" "scheme" }}://{{ index .Values "hlf-ca" "orderer" "host" }}:{{ index .Values "hlf-ca" "orderer" "port" }} -H /tmp/orderer; do
+                printf "[DEBUG] Orderer Certificate Authority ({{ index .Values "hlf-ca" "orderer" "scheme" }}://{{ index .Values "hlf-ca" "orderer" "host" }}:{{ index .Values "hlf-ca" "orderer" "port"}}) server is not reacheable, retry in 5s\n"
                 sleep 5
               done
 
@@ -88,23 +88,23 @@ spec:
                   printf "[DEBUG] Checking enrollment of CA user $name\n"
 
                   ## Register user
-                  until fabric-ca-client identity list -u {{ .Values.ca.scheme }}://{{ .Values.ca.adminUsername }}:{{ .Values.ca.adminPassword }}@{{ .Values.ca.host }}:{{ .Values.ca.port }} --id $name; do
+                  until fabric-ca-client identity list -u {{ index .Values "hlf-ca" "scheme" }}://{{ index .Values "hlf-ca" "adminUsername" }}:{{ index .Values "hlf-ca" "adminPassword" }}@{{ index .Values "hlf-ca" "host" }}:{{ index .Values "hlf-ca" "port" }} --id $name; do
                     printf "[DEBUG] User $name is not registered, registering the user now:\n"
-                    fabric-ca-client register -d -u {{ .Values.ca.scheme }}://{{ .Values.ca.adminUsername }}:{{ .Values.ca.adminPassword }}@{{ .Values.ca.host }}:{{ .Values.ca.port }} --id.name $name --id.secret $secret $options
+                    fabric-ca-client register -d -u {{ index .Values "hlf-ca" "scheme" }}://{{ index .Values "hlf-ca" "adminUsername" }}:{{ index .Values "hlf-ca" "adminPassword" }}@{{ index .Values "hlf-ca" "host" }}:{{ index .Values "hlf-ca" "port" }} --id.name $name --id.secret $secret $options
                     sleep 1
                   done
 
                   ## Enroll user (MSP)
                   until [ -d "/data/$name/msp" ]; do
                     printf "[DEBUG] MSP certificate not found: enrolling user '$name' now:\n"
-                    fabric-ca-client enroll -d -u {{ .Values.ca.scheme }}://$name:$secret@{{ .Values.ca.host }}:{{ .Values.ca.port }} -M /data/$name/msp
+                    fabric-ca-client enroll -d -u {{ index .Values "hlf-ca" "scheme" }}://$name:$secret@{{ index .Values "hlf-ca" "host" }}:{{ index .Values "hlf-ca" "port" }} -M /data/$name/msp
                     sleep 1
                   done
 
                   ## Enroll user (TLS)
                   until [ -d "/data/$name/tls" ]; do
                     printf "[DEBUG] TLS certificate not found: enrolling user '$name' with TLS profile now:\n"
-                    fabric-ca-client enroll -d --enrollment.profile tls -u {{ .Values.ca.scheme }}://$name:$secret@{{ .Values.ca.host }}:{{ .Values.ca.port }} -M /data/$name/tls --csr.hosts {{ .Values.enrollments.csrHost }}
+                    fabric-ca-client enroll -d --enrollment.profile tls -u {{ index .Values "hlf-ca" "scheme" }}://$name:$secret@{{ index .Values "hlf-ca" "host" }}:{{ index .Values "hlf-ca" "port" }} -M /data/$name/tls --csr.hosts {{ .Values.enrollments.csrHost }}
                     sleep 1
                   done
 
