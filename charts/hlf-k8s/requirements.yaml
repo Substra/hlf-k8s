@@ -16,18 +16,15 @@ dependencies:
   - name: hlf-ca
     repository: https://kubernetes-charts.storage.googleapis.com/
     version: 1.2.0
-    alias: ca
-    condition: ca.enabled
+    condition: hlf-ca.enabled
   - name: hlf-ord
     repository: https://kubernetes-charts.storage.googleapis.com/
     version: 1.3.0
-    condition: orderer.enabled
-    alias: orderer
+    condition: hlf-ord.enabled
   - name: hlf-peer
     repository: https://kubernetes-charts.storage.googleapis.com/
     version: 1.3.0
-    condition: peer.enabled
-    alias: peer
+    condition: hlf-peer.enabled
   - name: nginx-ingress
     repository: https://kubernetes-charts.storage.googleapis.com/
     version: ~1.29.2

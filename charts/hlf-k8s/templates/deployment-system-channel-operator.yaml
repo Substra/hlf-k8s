@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if .Values.orderer.enabled }}
+{{- if index .Values "hlf-ord" "enabled" }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -46,9 +46,9 @@ spec:
             update-ca-certificates
 
             ## Check connection with the Orderer
-            printf "[DEBUG] Testing the connection with the Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }})\n"
-            until $(nc -z {{ .Values.orderer.host }} {{ .Values.orderer.port }}); do
-              printf "[DEBUG] Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }}) is not reacheable, retry in 5s\n"
+            printf "[DEBUG] Testing the connection with the Orderer ({{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }})\n"
+            until $(nc -z {{ index .Values "hlf-ord" "host" }} {{ index .Values "hlf-ord" "port" }}); do
+              printf "[DEBUG] Orderer ({{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}) is not reacheable, retry in 5s\n"
               sleep 5
             done
 
@@ -68,7 +68,7 @@ spec:
                 ## Fetch system channel configuration block
                 until [ -f "channel.block" ] && [ -s "channel.block" ]; do
                   printf "[DEBUG] Fetching the system channel ({{ .Values.systemChannel.name }}) configuration block\n"
-                  peer channel fetch config channel.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+                  peer channel fetch config channel.block -c {{ .Values.systemChannel.name }} -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
                   sleep 3
                 done
 
@@ -123,12 +123,12 @@ spec:
                 until $(grep "$org" channelconfignew-$org.json > /dev/null 2> /dev/null); do
 
                   printf "[DEBUG] Send system channel update proposal for $org\n"
-                  peer channel update -f proposal-$org.pb -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                  peer channel update -f proposal-$org.pb -c {{ .Values.systemChannel.name }} -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
 
                   sleep 2
 
                   printf "[DEBUG] Fetch system channel configuration to check the update for $org\n"
-                  peer channel fetch config channelnew-$org.block -c {{ .Values.systemChannel.name }} -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+                  peer channel fetch config channelnew-$org.block -c {{ .Values.systemChannel.name }} -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
                   configtxlator proto_decode --input channelnew-$org.block --type common.Block | jq .data.data[0].payload.data.config > channelconfignew-$org.json
 
                   sleep 5
@@ -194,31 +194,31 @@ spec:
             name: {{ template "substra.fullname" . }}-fabric
         - name: id-cert
           secret:
-            secretName: {{ .Values.orderer.secrets.ord.cert }}
+            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "cert" }}
         - name: id-key
           secret:
-            secretName: {{ .Values.orderer.secrets.ord.key }}
+            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "key" }}
         - name: cacert
           secret:
-            secretName: {{ .Values.orderer.secrets.ord.caCert }}
+            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "caCert" }}
         - name: tls
           secret:
-            secretName: {{ .Values.orderer.secrets.ord.tls }}
+            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tls" }}
         - name: tls-rootcert
           secret:
-            secretName: {{ .Values.orderer.secrets.ord.tlsRootCert }}
+            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tlsRootCert" }}
         - name: tls-client
           secret:
-            secretName: {{ .Values.orderer.secrets.ord.tlsClient }}
+            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tlsClient" }}
         - name: tls-clientrootcert
           secret:
-            secretName: {{ .Values.orderer.secrets.ord.tlsClientRootCert }}
+            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tlsClientRootCert" }}
         - name: admin-cert
           secret:
-            secretName: {{ .Values.orderer.secrets.adminCert }}
+            secretName: {{ index .Values "hlf-ord" "secrets" "adminCert" }}
         - name: admin-key
           secret:
-            secretName: {{ .Values.orderer.secrets.adminKey }}
+            secretName: {{ index .Values "hlf-ord" "secrets" "adminKey" }}
         {{- if .Values.privateCa.enabled }}
         - name: private-ca
           configMap:

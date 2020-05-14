@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if .Values.orderer.enabled }}
+{{- if index .Values "hlf-ord" "enabled" }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -105,31 +105,31 @@ spec:
           name: {{ template "substra.fullname" . }}-fabric
       - name: id-cert
         secret:
-          secretName: {{ .Values.orderer.secrets.ord.cert }}
+          secretName: {{ index .Values "hlf-ord" "secrets" "ord" "cert" }}
       - name: id-key
         secret:
-          secretName: {{ .Values.orderer.secrets.ord.key }}
+          secretName: {{ index .Values "hlf-ord" "secrets" "ord" "key" }}
       - name: cacert
         secret:
-          secretName: {{ .Values.orderer.secrets.ord.caCert }}
+          secretName: {{ index .Values "hlf-ord" "secrets" "ord" "caCert" }}
       - name: tls
         secret:
-          secretName: {{ .Values.orderer.secrets.ord.tls }}
+          secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tls" }}
       - name: tls-rootcert
         secret:
-          secretName: {{ .Values.orderer.secrets.ord.tlsRootCert }}
+          secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tlsRootCert" }}
       - name: tls-client
         secret:
-          secretName: {{ .Values.orderer.secrets.ord.tlsClient }}
+          secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tlsClient" }}
       - name: tls-clientrootcert
         secret:
-          secretName: {{ .Values.orderer.secrets.ord.tlsClientRootCert }}
+          secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tlsClientRootCert" }}
       - name: admin-cert
         secret:
-          secretName: {{ .Values.orderer.secrets.adminCert }}
+          secretName: {{ index .Values "hlf-ord" "secrets" "adminCert" }}
       - name: admin-key
         secret:
-          secretName: {{ .Values.orderer.secrets.adminKey }}
+          secretName: {{ index .Values "hlf-ord" "secrets" "adminKey" }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

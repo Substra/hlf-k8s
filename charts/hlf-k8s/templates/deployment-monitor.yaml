@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if and .Values.orderer.enabled .Values.orderer.monitor.enabled }}
+{{- if and (index .Values "hlf-ord" "enabled") (index .Values "hlf-ord" "monitor" "enabled") }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -46,9 +46,9 @@ spec:
             update-ca-certificates
 
             ## Check connection with the Orderer
-            printf "[DEBUG] Testing the connection with the Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }})\n"
-            until $(nc -z {{ .Values.orderer.host }} {{ .Values.orderer.port }}); do
-              printf "[DEBUG] Orderer ({{ .Values.orderer.host }}:{{ .Values.orderer.port }}) is not reacheable, retry in 3s\n"
+            printf "[DEBUG] Testing the connection with the Orderer ({{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }})\n"
+            until $(nc -z {{ index .Values "hlf-ord" "host" }} {{ index .Values "hlf-ord" "port" }}); do
+              printf "[DEBUG] Orderer ({{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}) is not reacheable, retry in 3s\n"
               sleep 3
             done
 
@@ -58,7 +58,7 @@ spec:
 
               peer channel fetch config systemChannel.block \
                 -c {{ .Values.systemChannel.name }} \
-                -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} \
+                -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} \
                 --tls \
                 --clientauth \
                 --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
@@ -73,7 +73,7 @@ spec:
 
               peer channel fetch config applicationChannel.block \
                 -c {{ .Values.appChannel.name }} \
-                -o {{ .Values.orderer.host }}:{{ .Values.orderer.port }} \
+                -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} \
                 --tls \
                 --clientauth \
                 --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
@@ -137,31 +137,31 @@ spec:
             name: {{ template "substra.fullname" . }}-fabric
         - name: id-cert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.cert }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "cert" }}
         - name: id-key
           secret:
-            secretName: {{ .Values.peer.secrets.peer.key }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "key" }}
         - name: cacert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.caCert }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "caCert" }}
         - name: tls
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tls }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tls" }}
         - name: tls-rootcert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tlsRootCert }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tlsRootCert" }}
         - name: tls-client
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tlsClient }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tlsClient" }}
         - name: tls-clientrootcert
           secret:
-            secretName: {{ .Values.peer.secrets.peer.tlsClientRootCert }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tlsClientRootCert" }}
         - name: admin-cert
           secret:
-            secretName: {{ .Values.peer.secrets.adminCert }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "adminCert" }}
         - name: admin-key
           secret:
-            secretName: {{ .Values.peer.secrets.adminKey }}
+            secretName: {{ index .Values "hlf-peer" "secrets" "adminKey" }}
         - name: ord-tls-rootcert
           secret:
             secretName: {{ .Values.secrets.ordTlsRootCert }}

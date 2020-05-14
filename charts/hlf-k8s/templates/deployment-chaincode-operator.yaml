@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if .Values.peer.enabled }}
+{{- if index .Values "hlf-peer" "enabled" }}
 {{- range $index, $value := .Values.chaincodes }}
 ---
 apiVersion: apps/v1

@@ -17,18 +17,18 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | Parameter                          | Description                                     | Default                                                    |
 | ---------------------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
 | **Peer** |  |  |
-| `peer.enabled` | If true, a HLF Peer will be installed | `true` |
-| `peer.peer.mspID` | ID of MSP the Peer belongs to | `Org1MSP` |
-| `peer.peer.gossip.externalEndpoint` | HLF peer gossip external endpoint | `""` |
-| `peer.host` | The Peers's host | `peer-hostname` |
-| `peer.port` | The Peers's port | `7051` |
-| `peer.ingress.enabled` | If true, Ingress will be created for the Peer | `false` |
-| `peer.ingress.annotations` | Peer ingress annotations | (undefined) |
-| `peer.ingress.tls` | Peer ingress TLS configuration | (undefined) |
-| `peer.ingress.hosts` | Peer ingress hosts | (undefined) |
-| `peer.persistence.enabled` | If true, enable persistence for the Peer | `false` |
-| `peer.persistence.size` | Size of data volume | (undefined) |
-| `peer.persistence.storageClass` | Storage class of backing PVC | (undefined) |
+| `hlf-peer.enabled` | If true, a HLF Peer will be installed | `true` |
+| `hlf-peer.peer.mspID` | ID of MSP the Peer belongs to | `Org1MSP` |
+| `hlf-peer.peer.gossip.externalEndpoint` | HLF peer gossip external endpoint | `""` |
+| `hlf-peer.host` | The Peers's host | `peer-hostname` |
+| `hlf-peer.port` | The Peers's port | `7051` |
+| `hlf-peer.ingress.enabled` | If true, Ingress will be created for the Peer | `false` |
+| `hlf-peer.ingress.annotations` | Peer ingress annotations | (undefined) |
+| `hlf-peer.ingress.tls` | Peer ingress TLS configuration | (undefined) |
+| `hlf-peer.ingress.hosts` | Peer ingress hosts | (undefined) |
+| `hlf-peer.persistence.enabled` | If true, enable persistence for the Peer | `false` |
+| `hlf-peer.persistence.size` | Size of data volume | (undefined) |
+| `hlf-peer.persistence.storageClass` | Storage class of backing PVC | (undefined) |
 | `chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
 | `chaincodes[].name` | The name of the chaincode | (undefined) |
 | `chaincodes[].version` | The chaincode version | (undefined) |
@@ -53,17 +53,17 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.hosts` | Application channel operator ingress hosts | (undefined) |
 | `hooks.uninstallChaincode.enabled` | If true, the chaincode will be automatically uninstalled when the chart is uninstalled | `true` |
 | **Orderer** |  |  |
-| `orderer.enabled` | If true, a HLF Orderer will be installed | `false` |
-| `orderer.host` | The hostname for the Orderer | `orderer-hostname` |
-| `orderer.ord.mspID` | ID of MSP the Orderer belongs to | `MyOrdererMSP` |
-| `orderer.monitor.enabled` | If true, create a monitor pod (see [Monitor pod](#monitor-pod)) | `false` |
-| `orderer.ingress.enabled` | If true, Ingress will be created for the Orderer | (undefined) |
-| `orderer.ingress.annotations` | Orderer ingress annotations | (undefined) |
-| `orderer.ingress.tls` | Orderer ingress TLS configuration | (undefined) |
-| `orderer.ingress.hosts` | Orderer ingress hosts | (undefined) |
-| `orderer.persistence.enabled` | If true, enable persistence for the Orderer | `false` |
-| `orderer.persistence.size` | Size of data volume | (undefined) |
-| `orderer.persistence.storageClass` | Storage class of backing PVC | (undefined) |
+| `hlf-ord.enabled` | If true, a HLF Orderer will be installed | `false` |
+| `hlf-ord.host` | The hostname for the Orderer | `orderer-hostname` |
+| `hlf-ord.ord.mspID` | ID of MSP the Orderer belongs to | `MyOrdererMSP` |
+| `hlf-ord.monitor.enabled` | If true, create a monitor pod (see [Monitor pod](#monitor-pod)) | `false` |
+| `hlf-ord.ingress.enabled` | If true, Ingress will be created for the Orderer | (undefined) |
+| `hlf-ord.ingress.annotations` | Orderer ingress annotations | (undefined) |
+| `hlf-ord.ingress.tls` | Orderer ingress TLS configuration | (undefined) |
+| `hlf-ord.ingress.hosts` | Orderer ingress hosts | (undefined) |
+| `hlf-ord.persistence.enabled` | If true, enable persistence for the Orderer | `false` |
+| `hlf-ord.persistence.size` | Size of data volume | (undefined) |
+| `hlf-ord.persistence.storageClass` | Storage class of backing PVC | (undefined) |
 | `systemChannel.name` | The name of the system channel | `systemchannel` |
 | `systemChannel.organizations` | The organizations to add to the system channel. See [Add an organization to the system channel](#add-an-organization-to-the-system-channel). | `[]` |
 | **Common / Other** |  |  |
@@ -75,20 +75,20 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `affinity` | Affinity settings for pod assignment | `{}` |
 | `organization.id` | The organization id | `MyOrganizationMSP` |
 | `organization.name` | The organization name | `MyOrganization` |
-| `orderer.host` | The Orderer's host | `orderer-hostname` |
-| `orderer.port` | The Orderer's port | `7050` |
+| `hlf-ord.host` | The Orderer's host | `orderer-hostname` |
+| `hlf-ord.port` | The Orderer's port | `7050` |
 | `enrollments.creds` | The users to enroll with the CA | `[]` |
 | `enrollments.csrHost` | The value to pass to `--csr.hosts` when enrolling users to the CA | `service-hostname` |
-| `ca.caName` | Name of CA | `rca` |
-| `ca.scheme` | CA scheme | `http` |
-| `ca.host` | CA host | `ca-hostname` |
-| `ca.port` | CA port | `7054` |
-| `ca.orderer.scheme` | Orderer's CA scheme | `http` |
-| `ca.orderer.host` | Orderer's CA host | `orderer-ca-hostname` |
-| `ca.orderer.port` | Orderer's CA port | `7054` |
-| `ca.persistence.enabled` | If true, enable persistence for the CA | `false` |
-| `ca.persistence.size` | Size of data volume | (undefined) |
-| `ca.persistence.storageClass` | Storage class of backing PVC | (undefined) |
+| `hlf-ca.caName` | Name of CA | `rca` |
+| `hlf-ca.scheme` | CA scheme | `http` |
+| `hlf-ca.host` | CA host | `ca-hostname` |
+| `hlf-ca.port` | CA port | `7054` |
+| `hlf-ca.orderer.scheme` | Orderer's CA scheme | `http` |
+| `hlf-ca.orderer.host` | Orderer's CA host | `orderer-ca-hostname` |
+| `hlf-ca.orderer.port` | Orderer's CA port | `7054` |
+| `hlf-ca.persistence.enabled` | If true, enable persistence for the CA | `false` |
+| `hlf-ca.persistence.size` | Size of data volume | (undefined) |
+| `hlf-ca.persistence.storageClass` | Storage class of backing PVC | (undefined) |
 | `nginx-ingress.enabled` | If true, an nginx Ingress controller will be created | `false` |
 | `nginx-ingress.controller.nginx-ingress.extraArgs` | Additional controller arguments | `enable-ssl-passthrough: ""` |
 | `privateCa.enabled` | if true, use a private CA | `false` |
@@ -127,7 +127,7 @@ Adding an organization to the system channel allows it to adminstrate applicatio
 To add organizations to the system channel, enable the orderer and set the `systemChannel.organizations` value:
 
 ```yaml
-orderer:
+hlf-ord:
    enabled: true
 systemChannel:
    organizations:
@@ -149,7 +149,7 @@ This is done by configuring peers like so:
 
 
 ```yaml
-peer:
+hlf-peer:
    enabled: true
 
 # Add `MyOrg1` and `MyOrg2` to the application channel
