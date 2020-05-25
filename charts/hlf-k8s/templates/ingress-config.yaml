@@ -31,7 +31,7 @@ spec:
         {{- range .paths }}
           - path: {{ . }}
             backend:
-              serviceName: {{ template "substra.fullname" . }}-config-operator
+              serviceName: {{ template "substra.fullname" $ }}-config-operator
               servicePort: http
         {{- end }}
   {{- end }}
