@@ -108,7 +108,7 @@ spec:
                 ## Check if update has been already sent
                 printf "[DEBUG] Check if $org is in the application channel \n"
                 configtxlator proto_decode --input channel.block --type common.Block | jq .data.data[0].payload.data.config > channel-$org-hasjoined.json
-                if grep "$org" channel-$org-hasjoined.json > /dev/null; then
+                if grep "${org}MSP" channel-$org-hasjoined.json > /dev/null; then
                   printf "[DEBUG] $org is already in the application channel\n"
                   rm -f /data/proposal-$org.pb
                   sleep 5
