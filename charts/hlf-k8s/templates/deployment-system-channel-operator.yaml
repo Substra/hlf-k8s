@@ -57,7 +57,7 @@ spec:
 
               printf "[DEBUG] Creating updates for system channel ({{ .Values.systemChannel.name }})\n"
 
-              while IFS=" " read -r org configUrl ; do
+              while IFS=" " read -r org mspid configUrl ; do
 
                 ## Delete stale channel configuration files
                 rm -rf \
@@ -75,7 +75,7 @@ spec:
                 ## Check if update has been already sent
                 printf "[DEBUG] Check whether '$org' is in the system channel:\n"
                 configtxlator proto_decode --input channel-$org-hasjoined.block --type common.Block | jq .data.data[0].payload.data.config > channel-$org-hasjoined.json
-                if grep "$org" channel-$org-hasjoined.json > /dev/null; then
+                if grep "$mspid" channel-$org-hasjoined.json > /dev/null; then
                   printf "[DEBUG] $org is already in the system channel\n"
                   sleep 5
                   continue
