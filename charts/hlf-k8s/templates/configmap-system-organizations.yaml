@@ -21,7 +21,7 @@ metadata:
 data:
   system-organizations: |
     {{- range .Values.systemChannel.organizations }}
-      {{ .org }} {{ .configUrl }}
+      {{ .org }} {{ .mspid}} {{ .configUrl }}
     {{- end }}
 ---
 {{- end }}

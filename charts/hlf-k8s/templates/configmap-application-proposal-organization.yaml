@@ -20,6 +20,6 @@ metadata:
 data:
   application-proposal-organizations: |
     {{- range .Values.appChannel.proposalOrganizations }}
-      {{ .org }} {{ .proposalServerUrl }}
+      {{ .org }} {{ .mspid }} {{ .proposalServerUrl }}
     {{- end }}
 {{- end }}

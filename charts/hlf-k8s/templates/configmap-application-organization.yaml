@@ -20,6 +20,6 @@ metadata:
 data:
   application-organizations: |
     {{- range .Values.appChannel.organizations }}
-      {{ .org }} {{ .configUrl }}
+      {{ .org }} {{ .mspid }} {{ .configUrl }}
     {{- end }}
 {{- end }}
