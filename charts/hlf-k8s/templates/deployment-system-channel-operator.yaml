@@ -97,7 +97,7 @@ spec:
                 ## Fetch organization configuration
                 until [ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]; do
                   printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
-                  curl -L --output ./configOrg-$org.json $configUrl
+                  curl --fail -L --output ./configOrg-$org.json $configUrl
                   sleep 3
                 done
 
