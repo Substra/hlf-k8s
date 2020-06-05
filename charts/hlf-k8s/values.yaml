@@ -20,6 +20,8 @@ image:
 nginx-ingress:
   enabled: false
   controller:
+    config:
+        server-tokens: "false"
     extraArgs:
       enable-ssl-passthrough: ""
 
