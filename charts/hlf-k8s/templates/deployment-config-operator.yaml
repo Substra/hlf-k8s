@@ -154,6 +154,10 @@ spec:
           configMap:
             name: {{ .Values.privateCa.configMap.name }}
         {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
 ---
 apiVersion: v1
 kind: Service
