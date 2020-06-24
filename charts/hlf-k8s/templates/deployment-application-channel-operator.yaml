@@ -73,6 +73,10 @@ spec:
               done
 
               ## Join Application Channel
+              ## Fetch channel list
+
+              peer channel list -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > channel.list
+
               until grep "{{ .Values.appChannel.name }}" channel.list > /dev/null; do
 
                 printf "[DEBUG] Fetching application channel block\n"
@@ -206,6 +210,8 @@ spec:
               done < /config/application-organizations
 
               ## Instantiate chaincode
+              peer chaincode -C {{ .Values.appChannel.name }} list --instantiated > chaincode.list
+
               until grep "{{ .Values.appChannel.chaincodeName }}" chaincode.list | grep "{{ .Values.appChannel.chaincodeVersion }}" > /dev/null; do
 
                 printf "[DEBUG] Instantiate chaincode {{ .Values.appChannel.chaincodeName }} {{ .Values.appChannel.chaincodeVersion }} on channel {{ .Values.appChannel.name }} with policy : {{ .Values.appChannel.chaincodePolicy }}\n"
