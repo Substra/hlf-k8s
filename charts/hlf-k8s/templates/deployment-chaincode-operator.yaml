@@ -50,6 +50,8 @@ spec:
               ## Install chaincode on peer
               while true; do
 
+                peer chaincode list --installed > chaincode.list
+
                 until grep {{ .name }} chaincode.list | grep {{ .version }} > /dev/null; do
                   printf "[DEBUG] Installing chaincode {{ .name }} {{ .version }} from {{ .src }} ...\n"
 
