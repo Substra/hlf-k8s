@@ -63,9 +63,9 @@ data:
           - {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}
           BatchSize:
             AbsoluteMaxBytes: 99 MB
-            MaxMessageCount: 1
+            MaxMessageCount: 10
             PreferredMaxBytes: 512 KB
-          BatchTimeout: 2s
+          BatchTimeout: 500ms
           OrdererType: solo
           Organizations:
           - *id001
