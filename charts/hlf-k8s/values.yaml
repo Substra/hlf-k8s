@@ -152,7 +152,8 @@ hlf-peer:
     tag: 1.4.6
   persistence:
     enabled: false
-
+  discover-monitor:
+    enabled: false
   secrets:
     ## These secrets should contain the Orderer crypto materials and credentials
     peer:
