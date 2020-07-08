@@ -19,6 +19,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | **Peer** |  |  |
 | `hlf-peer.enabled` | If true, a HLF Peer will be installed | `true` |
 | `hlf-peer.peer.mspID` | ID of MSP the Peer belongs to | `Org1MSP` |
+| `hlf-peer.discover-monitor.enabled` | If true, create a discover monitor pod (see [Discover monitor pod](#discover-monitor-pod)) | `false` |
 | `hlf-peer.peer.gossip.externalEndpoint` | HLF peer gossip external endpoint | `""` |
 | `hlf-peer.host` | The Peers's host | `peer-hostname` |
 | `hlf-peer.port` | The Peers's port | `7051` |
@@ -235,6 +236,20 @@ To enable it, on the orderer:
 
 ```
 monitor:
+   enabled: true
+```
+
+
+### Discover monitor pod
+
+The discover monitor pod periodically displays the list of organizations that are connected to the application channel with the hlf [service discovery](https://hyperledger-fabric.readthedocs.io/en/release-1.4/discovery-cli.html).
+
+It is a convenience feature which facilitates troubleshooting.
+
+To enable it, on the peer:
+
+```
+discover-monitor:
    enabled: true
 ```
 
