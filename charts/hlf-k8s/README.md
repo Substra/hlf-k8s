@@ -162,7 +162,7 @@ hlf-peer:
 
 # Add `MyOrg1` and `MyOrg2` to the application channel
 appChannels:
-- name: mychannel
+- channelName: mychannel
   organizations:
   - org: MyOrg1
     configUrl: peer.org-1.com/config/configOrgWithAnchors.json
@@ -206,7 +206,7 @@ Orderer configuration:
 
 ```yaml
 appChannels:
-- name: mychannel
+- channelName: mychannel
   policies: |
      Readers:
            Type: ImplicitMeta
@@ -225,7 +225,7 @@ Peer configuration (any peer):
 
 ```yaml
 appChannels:
-- name: mychannel
+- channelName: mychannel
   organizations:
   - org: MyOrg1
     configUrl: peer.org-1.com/config/configOrgWithAnchors.json
