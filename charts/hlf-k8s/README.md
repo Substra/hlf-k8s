@@ -239,6 +239,7 @@ monitor:
    enabled: true
 ```
 
+Check the pod's logs to get the list of organizations currently present in each channel.
 
 ### Discover monitor pod
 
@@ -253,7 +254,7 @@ discover-monitor:
    enabled: true
 ```
 
-Check the pod's logs to get the list of organizations currently present in each channel.
+Check the pod's logs to get the list of organizations currently connected in the application channel.
 
 
 ## Additional resources
