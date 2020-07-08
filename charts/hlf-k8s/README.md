@@ -10,6 +10,13 @@ Hlf-k8s runs Hyperledger Fabric v1.4.
 
 - Kubernetes 1.14+
 
+## Changelog
+
+### 1.5.0
+
+- `appChannel` changed to `appChannels` (list)
+- `appChannel.name` changed to `appChannels[].channelName`
+
 ## Configuration
 
 The following table lists the configurable parameters of the hlf-k8s chart and default values.
