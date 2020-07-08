@@ -46,6 +46,7 @@ deploy:
           organization.name: MyOrderer
           hlf-ord.enabled: true
           hlf-ord.monitor.enabled: true
+          appChannels[0].channelName: mychannel
           # Add Org to system channel to allows them to adminstrate application channels
           systemChannel.organizations[0].org: MyOrg1
           systemChannel.organizations[0].mspid: MyOrg1MSP
@@ -86,14 +87,14 @@ deploy:
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
-          appChannel.name: mychannel
-          appChannel.organizations[0].org: MyOrg1
-          appChannel.organizations[0].mspid: MyOrg1MSP
-          appChannel.organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json
-          appChannel.organizations[1].org: MyOrg2
-          appChannel.organizations[1].mspid: MyOrg2MSP
-          appChannel.organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json
-          appChannel.policies: |
+          appChannels[0].channelName: mychannel
+          appChannels[0].organizations[0].org: MyOrg1
+          appChannels[0].organizations[0].mspid: MyOrg1MSP
+          appChannels[0].organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json
+          appChannels[0].organizations[1].org: MyOrg2
+          appChannels[0].organizations[1].mspid: MyOrg2MSP
+          appChannels[0].organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json
+          appChannels[0].policies: |
             Readers:
                 Type: ImplicitMeta
                 Rule: "ANY Readers"
@@ -103,9 +104,9 @@ deploy:
             Admins:
                 Type: ImplicitMeta
                 Rule: "ANY Admins"
-          appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
-          appChannel.chaincodeName: mycc
-          appChannel.chaincodeVersion: "1.0"
+          appChannels[0].chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
+          appChannels[0].chaincodeName: mycc
+          appChannels[0].chaincodeVersion: "1.0"
           hlf-ord.host: network-orderer-hlf-ord.orderer
           hlf-peer.peer.gossip.externalEndpoint: network-org-1-peer-1-hlf-peer.org-1:7051
           enrollments.creds[0].name: admin
@@ -138,10 +139,10 @@ deploy:
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
-          appChannel.name: mychannel
-          appChannel.chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
-          appChannel.chaincodeName: mycc
-          appChannel.chaincodeVersion: "1.0"
+          appChannels[0].channelName: mychannel
+          appChannels[0].chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
+          appChannels[0].chaincodeName: mycc
+          appChannels[0].chaincodeVersion: "1.0"
           hlf-ord.host: network-orderer-hlf-ord.orderer
           hlf-peer.peer.gossip.externalEndpoint: network-org-2-peer-1-hlf-peer.org-2:7051
           enrollments.creds[0].name: admin

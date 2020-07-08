@@ -43,15 +43,17 @@ data:
       Name: {{ .Values.organization.name }}
     Profiles:
       {{- if index .Values "hlf-peer" "enabled" }}
-      OrgsChannel:
+      {{- range .Values.appChannels }}
+      OrgsChannel-{{ .channelName }}:
         Application:
-          {{- if .Values.appChannel.policies }}
+          {{- if .policies }}
           Policies:
-            {{- .Values.appChannel.policies | nindent 12 -}}
+            {{- .policies | nindent 12 -}}
           {{- end }}
           Organizations:
           - *id001
         Consortium: SampleConsortium
+      {{- end }}
       {{- end }}
       {{- if index .Values "hlf-ord" "enabled" }}
       GenerateGenesis:

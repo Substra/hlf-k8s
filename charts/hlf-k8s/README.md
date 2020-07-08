@@ -36,13 +36,14 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `chaincodes[].hostPath` | A host path containing the chaincode source code | (undefined) |
 | `chaincodes[].configMap.name` | The name of a ConfigMap containing the chaincode source code (tar.gz) | (undefined) |
 | `chaincodes[].configMap.fileName` | The name of the archive within the ConfigMap | (undefined) |
-| `appChannel.name` | The name of the application channel | `mychannel` |
-| `appChannel.organizations` | The organizations to add to the application channel. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | `[]` |
-| `appChannel.proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
-| `appChannel.chaincodePolicy` | The chaincode policy | `OR(`<br>`'Org1MSP.member',`<br>`  'Org2MSP.member')` |
-| `appChannel.chaincodeName` | The chaincode name | (undefined) |
-| `appChannel.chaincodeVersion` | The chaincode version | (undefined) |
-| `appChannel.policies` | This value, if set, will override the default HLF application channel policy. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | (undefined) |
+| `appChannels` | The application channels to create | `[{channelName: mychannel}]` |
+| `appChannels[].channelName` | The name of the application channel. Must be alphanumerical (9 characters max.) | (undefined) |
+| `appChannels[].organizations` | The organizations to add to the application channel. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | `[]` |
+| `appChannels[].proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
+| `appChannels[].chaincodePolicy` | The chaincode policy | (undefined) |
+| `appChannels[].chaincodeName` | The chaincode name | (undefined) |
+| `appChannels[].chaincodeVersion` | The chaincode version | (undefined) |
+| `appChannels[].policies` | This value, if set, will override the default HLF application channel policy. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | (undefined) |
 | `configOperator.ingress.enabled` | If true, Ingress will be created for the config operator. | `false` |
 | `configOperator.ingress.annotations` | Config operator ingress annotations | (undefined) |
 | `configOperator.ingress.tls` | Config operator ingress TLS configuration | (undefined) |
@@ -153,33 +154,34 @@ hlf-peer:
    enabled: true
 
 # Add `MyOrg1` and `MyOrg2` to the application channel
-appChannel:
-   organizations:
-      - org: MyOrg1
-        configUrl: peer.org-1.com/config/configOrgWithAnchors.json
-      - org: MyOrg2
-        configUrl: peer.org-2.com/config/configOrgWithAnchors.json
-      [...]
-   proposalOrganizations:
-      - org: MyOrg1
-      proposalServerUrl: peer.org-1.com/proposal/
-      - org: MyOrg2
-      proposalServerUrl: peer.org-2.com/proposal/
-      [...]
+appChannels:
+- name: mychannel
+  organizations:
+  - org: MyOrg1
+    configUrl: peer.org-1.com/config/configOrgWithAnchors.json
+  - org: MyOrg2
+    configUrl: peer.org-2.com/config/configOrgWithAnchors.json
+    [...]
+  proposalOrganizations:
+  - org: MyOrg1
+    proposalServerUrl: peer.org-1.com/proposal/
+  - org: MyOrg2
+    proposalServerUrl: peer.org-2.com/proposal/
+    [...]
 
 # Expose this peer's /config route
 configOperator:
   ingress:
     enabled: true
     hosts:
-      - { host: peer.org-1, paths: ["/config"] }
+    - { host: peer.org-1, paths: ["/config"] }
 
 # Expose this peer's /proposal route
 applicationChannelOperator:
   ingress:
     enabled: true
     hosts:
-      - { host: peer.org-1, paths: ["/proposal"] }
+    - { host: peer.org-1, paths: ["/proposal"] }
 
 ```
 
@@ -196,17 +198,18 @@ For instance, you can configure the application channel with an `ANY` policy.
 Orderer configuration:
 
 ```yaml
-appChannel:
-   policies: |
-      Readers:
-            Type: ImplicitMeta
-            Rule: "ANY Readers"
-      Writers:
-            Type: ImplicitMeta
-            Rule: "ANY Writers"
-      Admins:
-            Type: ImplicitMeta
-            Rule: "ANY Admins"
+appChannels:
+- name: mychannel
+  policies: |
+     Readers:
+           Type: ImplicitMeta
+           Rule: "ANY Readers"
+     Writers:
+           Type: ImplicitMeta
+           Rule: "ANY Writers"
+     Admins:
+           Type: ImplicitMeta
+           Rule: "ANY Admins"
 ```
 
 With this configuration, any peer is allowed to add _all_ the organizations to the application channel, without requiring approval for the other peers.
@@ -214,12 +217,13 @@ With this configuration, any peer is allowed to add _all_ the organizations to t
 Peer configuration (any peer):
 
 ```yaml
-appChannel:
-   organizations:
-      - org: MyOrg1
-        configUrl: peer.org-1.com/config/configOrgWithAnchors.json
-      - org: MyOrg2
-        configUrl: peer.org-2.com/config/configOrgWithAnchors.json
+appChannels:
+- name: mychannel
+  organizations:
+  - org: MyOrg1
+    configUrl: peer.org-1.com/config/configOrgWithAnchors.json
+  - org: MyOrg2
+    configUrl: peer.org-2.com/config/configOrgWithAnchors.json
 ```
 
 On each peer, expose the `config` route using `configOperator.ingress`.

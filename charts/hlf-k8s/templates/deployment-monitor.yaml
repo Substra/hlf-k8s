@@ -12,33 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if and (index .Values "hlf-ord" "enabled") (index .Values "hlf-ord" "monitor" "enabled") }}
+{{- range .Values.appChannels }}
+{{- if and (index $.Values "hlf-ord" "enabled") (index $.Values "hlf-ord" "monitor" "enabled") }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "substra.fullname" . }}-monitor
+  name: {{ template "substra.fullname" $ }}-monitor-{{ .channelName }}
   labels:
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    app.kubernetes.io/name: {{ template "substra.name" . }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    app.kubernetes.io/name: {{ template "substra.name" $ }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-        app.kubernetes.io/name: {{ template "substra.name" . }}-monitor
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-monitor-{{ .channelName }}
+        app.kubernetes.io/instance: {{ $.Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ template "substra.name" . }}-monitor
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-monitor-{{ .channelName }}
+        app.kubernetes.io/instance: {{ $.Release.Name }}
     spec:
-      serviceAccountName: {{ template "substra.fullname" . }}
+      serviceAccountName: {{ template "substra.fullname" $ }}
       containers:
       - name: fabric-tools
-        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        image: {{ $.Values.image.repository }}:{{ $.Values.image.tag }}
         command: ['sh', '-c']
         args:
           - |
@@ -46,19 +47,19 @@ spec:
             update-ca-certificates
 
             ## Check connection with the Orderer
-            printf "[DEBUG] Testing the connection with the Orderer ({{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }})\n"
-            until $(nc -z {{ index .Values "hlf-ord" "host" }} {{ index .Values "hlf-ord" "port" }}); do
-              printf "[DEBUG] Orderer ({{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}) is not reacheable, retry in 3s\n"
+            printf "[DEBUG] Testing the connection with the Orderer ({{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }})\n"
+            until $(nc -z {{ index $.Values "hlf-ord" "host" }} {{ index $.Values "hlf-ord" "port" }}); do
+              printf "[DEBUG] Orderer ({{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }}) is not reacheable, retry in 3s\n"
               sleep 3
             done
 
             while true; do
 
-              printf "[DEBUG] System channel: {{ .Values.systemChannel.name }}\n"
+              printf "[DEBUG] System channel: {{ $.Values.systemChannel.name }}\n"
 
               peer channel fetch config systemChannel.block \
-                -c {{ .Values.systemChannel.name }} \
-                -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} \
+                -c {{ $.Values.systemChannel.name }} \
+                -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} \
                 --tls \
                 --clientauth \
                 --cafile /var/hyperledger/tls/server/cert/cacert.pem \
@@ -68,12 +69,11 @@ spec:
 
               configtxlator proto_decode --input systemChannel.block --type common.Block | jq '.data.data[0].payload.data.config.channel_group.groups.Consortiums.groups.SampleConsortium.groups | keys'
 
-
-              printf "[DEBUG] Application channel: {{ .Values.appChannel.name }}\n"
+              printf "[DEBUG] Application channel: {{ .channelName }}\n"
 
               peer channel fetch config applicationChannel.block \
-                -c {{ .Values.appChannel.name }} \
-                -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} \
+                -c {{ .channelName }} \
+                -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} \
                 --tls \
                 --clientauth \
                 --cafile /var/hyperledger/tls/server/cert/cacert.pem \
@@ -86,7 +86,7 @@ spec:
               sleep 10
             done
         resources:
-          {{- toYaml .Values.resources | nindent 14 }}
+          {{- toYaml $.Values.resources | nindent 14 }}
         env:
         - name: CORE_PEER_MSPCONFIGPATH
           value: /var/hyperledger/admin_msp
@@ -125,59 +125,59 @@ spec:
             name: cacert
           - mountPath: /var/hyperledger/admin_msp/admincerts
             name: admin-cert
-          {{- if .Values.privateCa.enabled }}
-          - mountPath: /usr/local/share/ca-certificates/{{ .Values.privateCa.configMap.fileName }}
+          {{- if $.Values.privateCa.enabled }}
+          - mountPath: /usr/local/share/ca-certificates/{{ $.Values.privateCa.configMap.fileName }}
             name: private-ca
-            subPath: {{ .Values.privateCa.configMap.fileName }}
+            subPath: {{ $.Values.privateCa.configMap.fileName }}
           {{- end }}
       volumes:
         - name: system-organizations
           configMap:
-            name: {{ template "substra.fullname" . }}-system-organizations
+            name: {{ template "substra.fullname" $ }}-system-organizations
         - name: fabric-config
           configMap:
-            name: {{ template "substra.fullname" . }}-fabric
+            name: {{ template "substra.fullname" $ }}-fabric
         - name: id-cert
           secret:
-            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "cert" }}
+            secretName: {{ index $.Values "hlf-ord" "secrets" "ord" "cert" }}
         - name: id-key
           secret:
-            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "key" }}
+            secretName: {{ index $.Values "hlf-ord" "secrets" "ord" "key" }}
         - name: cacert
           secret:
-            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "caCert" }}
+            secretName: {{ index $.Values "hlf-ord" "secrets" "ord" "caCert" }}
         - name: tls
           secret:
-            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tls" }}
+            secretName: {{ index $.Values "hlf-ord" "secrets" "ord" "tls" }}
         - name: tls-rootcert
           secret:
-            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tlsRootCert" }}
+            secretName: {{ index $.Values "hlf-ord" "secrets" "ord" "tlsRootCert" }}
         - name: tls-client
           secret:
-            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tlsClient" }}
+            secretName: {{ index $.Values "hlf-ord" "secrets" "ord" "tlsClient" }}
         - name: tls-clientrootcert
           secret:
-            secretName: {{ index .Values "hlf-ord" "secrets" "ord" "tlsClientRootCert" }}
+            secretName: {{ index $.Values "hlf-ord" "secrets" "ord" "tlsClientRootCert" }}
         - name: admin-cert
           secret:
-            secretName: {{ index .Values "hlf-ord" "secrets" "adminCert" }}
+            secretName: {{ index $.Values "hlf-ord" "secrets" "adminCert" }}
         - name: admin-key
           secret:
-            secretName: {{ index .Values "hlf-ord" "secrets" "adminKey" }}
-        {{- if .Values.privateCa.enabled }}
+            secretName: {{ index $.Values "hlf-ord" "secrets" "adminKey" }}
+        {{- if $.Values.privateCa.enabled }}
         - name: private-ca
           configMap:
-            name: {{ .Values.privateCa.configMap.name }}
+            name: {{ $.Values.privateCa.configMap.name }}
         {{- end }}
-    {{- with .Values.nodeSelector }}
+    {{- with $.Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-    {{- with .Values.affinity }}
+    {{- with $.Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-    {{- with .Values.tolerations }}
+    {{- with $.Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
@@ -185,33 +185,33 @@ spec:
 {{- end }}
 
 
-{{- if and (index .Values "hlf-peer" "enabled") (index .Values "hlf-peer" "discover-monitor" "enabled") }}
+{{- if and (index $.Values "hlf-peer" "enabled") (index $.Values "hlf-peer" "discover-monitor" "enabled") }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "substra.fullname" . }}-discover-monitor
+  name: {{ template "substra.fullname" $ }}-discover-monitor-{{ .channelName }}
   labels:
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    app.kubernetes.io/name: {{ template "substra.name" . }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    app.kubernetes.io/name: {{ template "substra.name" $ }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-        app.kubernetes.io/name: {{ template "substra.name" . }}-discover-monitor
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-discover-monitor-{{ .channelName }}
+        app.kubernetes.io/instance: {{ $.Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ template "substra.name" . }}-discover-monitor
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-discover-monitor-{{ .channelName }}
+        app.kubernetes.io/instance: {{ $.Release.Name }}
     spec:
-      serviceAccountName: {{ template "substra.fullname" . }}
+      serviceAccountName: {{ template "substra.fullname" $ }}
       containers:
       - name: fabric-tools
-        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        image: {{ $.Values.image.repository }}:{{ $.Values.image.tag }}
         command: ['sh', '-c']
         args:
           - |
@@ -219,15 +219,12 @@ spec:
             update-ca-certificates
 
             while true; do
-
-              printf "[DEBUG] Discover application channel: {{ .Values.appChannel.name }}\n"
-
-              discover --configFile /etc/hyperledger/fabric/discoverConfig.yaml peers --channel mychannel --server {{ index .Values "hlf-peer" "host" }}:{{ index .Values "hlf-peer" "port" }}
-
+              printf "[DEBUG] Discover application channel: {{ .channelName }}\n"
+              discover --configFile /etc/hyperledger/fabric/discoverConfig.yaml peers --channel {{ .channelName }} --server {{ index $.Values "hlf-peer" "host" }}:{{ index $.Values "hlf-peer" "port" }}
               sleep 10
             done
         resources:
-          {{- toYaml .Values.resources | nindent 14 }}
+          {{- toYaml $.Values.resources | nindent 14 }}
         env:
         - name: CORE_PEER_MSPCONFIGPATH
           value: /var/hyperledger/admin_msp
@@ -267,63 +264,64 @@ spec:
             name: admin-cert
           - mountPath: /data
             name: data
-          {{- if .Values.privateCa.enabled }}
-          - mountPath: /usr/local/share/ca-certificates/{{ .Values.privateCa.configMap.fileName }}
+          {{- if $.Values.privateCa.enabled }}
+          - mountPath: /usr/local/share/ca-certificates/{{ $.Values.privateCa.configMap.fileName }}
             name: private-ca
-            subPath: {{ .Values.privateCa.configMap.fileName }}
+            subPath: {{ $.Values.privateCa.configMap.fileName }}
           {{- end }}
       volumes:
         - name: fabric-config
           configMap:
-            name: {{ template "substra.fullname" . }}-fabric
+            name: {{ template "substra.fullname" $ }}-fabric
         - name: id-cert
           secret:
-            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "cert" }}
+            secretName: {{ index $.Values "hlf-peer" "secrets" "peer" "cert" }}
         - name: id-key
           secret:
-            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "key" }}
+            secretName: {{ index $.Values "hlf-peer" "secrets" "peer" "key" }}
         - name: cacert
           secret:
-            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "caCert" }}
+            secretName: {{ index $.Values "hlf-peer" "secrets" "peer" "caCert" }}
         - name: tls
           secret:
-            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tls" }}
+            secretName: {{ index $.Values "hlf-peer" "secrets" "peer" "tls" }}
         - name: tls-rootcert
           secret:
-            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tlsRootCert" }}
+            secretName: {{ index $.Values "hlf-peer" "secrets" "peer" "tlsRootCert" }}
         - name: tls-client
           secret:
-            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tlsClient" }}
+            secretName: {{ index $.Values "hlf-peer" "secrets" "peer" "tlsClient" }}
         - name: tls-clientrootcert
           secret:
-            secretName: {{ index .Values "hlf-peer" "secrets" "peer" "tlsClientRootCert" }}
+            secretName: {{ index $.Values "hlf-peer" "secrets" "peer" "tlsClientRootCert" }}
         - name: admin-cert
           secret:
-            secretName: {{ index .Values "hlf-peer" "secrets" "adminCert" }}
+            secretName: {{ index $.Values "hlf-peer" "secrets" "adminCert" }}
         - name: admin-key
           secret:
-            secretName: {{ index .Values "hlf-peer" "secrets" "adminKey" }}
+            secretName: {{ index $.Values "hlf-peer" "secrets" "adminKey" }}
         - name: ord-tls-rootcert
           secret:
-            secretName: {{ .Values.secrets.ordTlsRootCert }}
+            secretName: {{ $.Values.secrets.ordTlsRootCert }}
         - name: data
           emptyDir: {}
-        {{- if .Values.privateCa.enabled }}
+        {{- if $.Values.privateCa.enabled }}
         - name: private-ca
           configMap:
-            name: {{ .Values.privateCa.configMap.name }}
+            name: {{ $.Values.privateCa.configMap.name }}
         {{- end }}
-    {{- with .Values.nodeSelector }}
+    {{- with $.Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-    {{- with .Values.affinity }}
+    {{- with $.Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-    {{- with .Values.tolerations }}
+    {{- with $.Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
 ---
+{{- end }}
 {{- end }}
