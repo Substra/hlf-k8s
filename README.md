@@ -39,10 +39,9 @@ The chaincode path must be accessible from your kubernetes cluster:
 - On Docker for Mac, go to Settings > File Sharing and make sure the chaincode folder is included in the mounted folders
 - On minikube, run `nohup minikube mount <chaincode-absolute-path>:<chaincode-absolute-path> &`
 
-### Production install
+### Production install / Changelog
 
 Please refer to the [helm chart documentation](./charts/hlf-k8s/README.md).
-
 
 ## License
 
