@@ -12,10 +12,7 @@ Hlf-k8s runs Hyperledger Fabric v1.4.
 
 ## Changelog
 
-### 1.5.0
-
-- `appChannel` changed to `appChannels` (list)
-- `appChannel.name` changed to `appChannels[].channelName`
+See [CHANGELOG.md](./CHANGELOG.md)
 
 ## Configuration
 
