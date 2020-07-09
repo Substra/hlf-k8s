@@ -228,7 +228,7 @@ On each peer, expose the `config` route using `configOperator.ingress`.
 
 ### Monitor pod
 
-The monitor pod periodically polls and displays the list of organizations that have joined the system channel and the application channel.
+The monitor pod periodically polls and displays the list of organizations that have been added to the system channel and the application channel.
 
 It is a convenience feature which facilitates troubleshooting.
 
@@ -243,7 +243,7 @@ Check the pod's logs to get the list of organizations currently present in each 
 
 ### Discover monitor pod
 
-The discover monitor pod periodically displays the list of organizations that are connected to the application channel with the hlf [service discovery](https://hyperledger-fabric.readthedocs.io/en/release-1.4/discovery-cli.html).
+The discover monitor pod periodically displays the list of organizations that have joined and are connected to the application channel with the hlf [service discovery](https://hyperledger-fabric.readthedocs.io/en/release-1.4/discovery-cli.html)
 
 It is a convenience feature which facilitates troubleshooting.
 
@@ -254,7 +254,7 @@ discover-monitor:
    enabled: true
 ```
 
-Check the pod's logs to get the list of organizations currently connected in the application channel.
+Check the pod's logs to get the list of organizations currently visible (joined and connected) in the application channel.
 
 
 ## Additional resources
