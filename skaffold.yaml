@@ -83,7 +83,6 @@ deploy:
           organization.name: MyOrg1
           hlf-peer.peer.mspID: MyOrg1MSP
           hlf-peer.discover-monitor.enabled: true
-          chaincodes[0].instantiate: true
           chaincodes[0].name: mycc
           chaincodes[0].version: "1.0"
           chaincodes[0].src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
