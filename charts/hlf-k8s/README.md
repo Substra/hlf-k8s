@@ -48,14 +48,14 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `appChannels[].chaincodeName` | The chaincode name | (undefined) |
 | `appChannels[].chaincodeVersion` | The chaincode version | (undefined) |
 | `appChannels[].policies` | This value, if set, will override the default HLF application channel policy. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | (undefined) |
+| `appChannels[].ingress.enabled` | If true, Ingress will be created for this application channel operator. | `false` |
+| `appChannels[].ingress.annotations` | Application channel operator ingress annotations | (undefined) |
+| `appChannels[].ingress.tls` | Application channel operator ingress TLS configuration | (undefined) |
+| `appChannels[].ingress.hosts` | Application channel operator ingress hosts | (undefined) |
 | `configOperator.ingress.enabled` | If true, Ingress will be created for the config operator. | `false` |
 | `configOperator.ingress.annotations` | Config operator ingress annotations | (undefined) |
 | `configOperator.ingress.tls` | Config operator ingress TLS configuration | (undefined) |
 | `configOperator.ingress.hosts` | Config operator ingress hosts | (undefined) |
-| `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.enabled` | If true, Ingress will be created for the application channel operator. | `false` |
-| `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.annotations` | Application channel operator ingress annotations | (undefined) |
-| `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.tls` | Application channel operator ingress TLS configuration | (undefined) |
-| `applicationChannelOperator.ingress`<br>&nbsp;&nbsp;&nbsp;&nbsp;`.hosts` | Application channel operator ingress hosts | (undefined) |
 | `hooks.uninstallChaincode.enabled` | If true, the chaincode will be automatically uninstalled when the chart is uninstalled | `true` |
 | **Orderer** |  |  |
 | `hlf-ord.enabled` | If true, a HLF Orderer will be installed | `false` |
@@ -168,10 +168,15 @@ appChannels:
     [...]
   proposalOrganizations:
   - org: MyOrg1
-    proposalServerUrl: peer.org-1.com/proposal/
+    proposalServerUrl: peer.org-1.com/mychannel/proposal/
   - org: MyOrg2
-    proposalServerUrl: peer.org-2.com/proposal/
+    proposalServerUrl: peer.org-2.com/mychannel/proposal/
     [...]
+  # Expose this peer's /mychannel/proposal route
+  ingress:
+    enabled: true
+    hosts:
+    - { host: peer.org-1, paths: ["/mychannel/proposal"] }
 
 # Expose this peer's /config route
 configOperator:
@@ -179,14 +184,6 @@ configOperator:
     enabled: true
     hosts:
     - { host: peer.org-1, paths: ["/config"] }
-
-# Expose this peer's /proposal route
-applicationChannelOperator:
-  ingress:
-    enabled: true
-    hosts:
-    - { host: peer.org-1, paths: ["/proposal"] }
-
 ```
 
 A majority of peers need to be configured with the above
