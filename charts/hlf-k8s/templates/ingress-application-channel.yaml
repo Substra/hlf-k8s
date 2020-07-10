@@ -1,4 +1,5 @@
 {{- range $channel := .Values.appChannels }}
+{{- if .ingress }}
 {{- if .ingress.enabled }}
 ---
 apiVersion: extensions/v1beta1
@@ -37,5 +38,6 @@ spec:
               servicePort: http
         {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
