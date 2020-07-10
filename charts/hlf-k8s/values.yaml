@@ -38,16 +38,19 @@ systemChannel:
     #   - { org: Org1, mspid: Org1MSP, configUrl: peer-1-org-config-operator.org-1/config/configOrg.json }
     #   - { org: Org2, mspid: Org2MSP, configUrl: peer-2-org-config-operator.org-2/config/configOrg.json }
 
-appChannel:
-  name: mychannel
+appChannels:
+- channelName: mychannel
+
   ## The organizations to add to the application channel (see README)
-  # organizations:
-  #   - { org: Org1, mspid: Org1MSP, configUrl: peer-1-org-config-operator.org-1/config/configOrgWithAnchors.json }
-  #   - { org: Org2, mspid: Org2MSP, configUrl: peer-2-org-config-operator.org-2/config/configOrgWithAnchors.json }
+  organizations: []
+  # - { org: Org1, mspid: Org1MSP, configUrl: peer-1-org-config-operator.org-1/config/configOrgWithAnchors.json }
+  # - { org: Org2, mspid: Org2MSP, configUrl: peer-2-org-config-operator.org-2/config/configOrgWithAnchors.json }
+
   ## The organizations to fetch signed proposals from (see README)
-  # proposalOrganizations:
-  #   - { org: Org1, mspid: Org1MSP, proposalServerUrl: peer-1-org-application-channel-operator.org-1/proposal/ }
-  #   - { org: Org2, mspid: Org2MSP, proposalServerUrl: peer-2-org-application-channel-operator.org-2/proposal/ }
+  proposalOrganizations: []
+  # - { org: Org1, mspid: Org1MSP, proposalServerUrl: peer-1-org-appchannel-operator.org-1/proposal/ }
+  # - { org: Org2, mspid: Org2MSP, proposalServerUrl: peer-2-org-appchannel-operator.org-2/proposal/ }
+
   # chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
   # chaincodeName: mycc
   # chaincodeVersion: "1.0"
@@ -62,6 +65,20 @@ appChannel:
   #       Type: ImplicitMeta
   #       Rule: "ANY Admins"
 
+  ingress:
+    enabled: false
+    # annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   cert-manager.io/cluster-issuer: letsencrypt-prod
+    #   cert-manager.io/http01-edit-in-place: "true"
+    #   nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+    #   nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    # tls:
+    #   - secretName: config-server-tls-cert
+    #     hosts:
+    #       - peer-1-peer-appchannel-operator.org-1
+    # hosts:
+    #   - { host: peer-1-peer-appchannel-operator.org-1, paths: ["/mychannel/proposals"] }
 
 configOperator:
   ingress:
@@ -78,22 +95,6 @@ configOperator:
     #       - peer-1-peer-config-operator.org-1
     # hosts:
     #   - { host: peer-1-peer-config-operator.org-1, paths: ["/"] }
-
-applicationChannelOperator:
-  ingress:
-    enabled: false
-    # annotations:
-    #   kubernetes.io/ingress.class: nginx
-    #   cert-manager.io/cluster-issuer: letsencrypt-prod
-    #   cert-manager.io/http01-edit-in-place: "true"
-    #   nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
-    #   nginx.ingress.kubernetes.io/proxy-body-size: 100m
-    # tls:
-    #   - secretName: config-server-tls-cert
-    #     hosts:
-    #       - peer-1-peer-application-channel-operator.org-1
-    # hosts:
-    #   - { host: peer-1-peer-application-channel-operator.org-1, paths: ["/"] }
 
 
 organization:

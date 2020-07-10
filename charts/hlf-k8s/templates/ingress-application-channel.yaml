@@ -1,21 +1,24 @@
-{{- if .Values.applicationChannelOperator.ingress.enabled -}}
+{{- range $channel := .Values.appChannels }}
+{{- if .ingress }}
+{{- if .ingress.enabled }}
+---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: {{ template "substra.fullname" . }}-application-channel-operator
+  name: {{ template "substra.fullname" $ }}-appchannel-operator-{{ $channel.channelName }}
   labels:
-    app.kubernetes.io/name: {{ template "substra.fullname" . }}-application-channel-operator
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-  {{- with .Values.applicationChannelOperator.ingress.annotations }}
+    app.kubernetes.io/name: {{ template "substra.fullname" $ }}-appchannel-operator-{{ $channel.channelName }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+  {{- with .ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-{{- if .Values.applicationChannelOperator.ingress.tls }}
+{{- if .ingress.tls }}
   tls:
-  {{- range .Values.applicationChannelOperator.ingress.tls }}
+  {{- range .ingress.tls }}
     - hosts:
       {{- range .hosts }}
         - {{ . | quote }}
@@ -24,16 +27,17 @@ spec:
   {{- end }}
 {{- end }}
   rules:
-  {{- range  .Values.applicationChannelOperator.ingress.hosts  }}
+  {{- range .ingress.hosts  }}
     - host: {{ .host | quote }}
       http:
         paths:
         {{- range .paths }}
           - path: {{ . }}
             backend:
-              serviceName: {{ template "substra.fullname" $ }}-application-channel-operator
+              serviceName: {{ template "substra.fullname" $ }}-appchannel-operator-{{ $channel.channelName }}
               servicePort: http
         {{- end }}
   {{- end }}
 {{- end }}
----
+{{- end }}
+{{- end }}

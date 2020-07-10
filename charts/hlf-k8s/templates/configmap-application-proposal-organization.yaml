@@ -13,13 +13,16 @@
 # limitations under the License.
 
 {{- if index .Values "hlf-peer" "enabled" }}
+{{- range .Values.appChannels }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "substra.fullname" . }}-application-proposal-organizations
+  name: {{ template "substra.fullname" $ }}-application-proposal-organizations-{{ .channelName }}
 data:
   application-proposal-organizations: |
-    {{- range .Values.appChannel.proposalOrganizations }}
+    {{- range .proposalOrganizations }}
       {{ .org }} {{ .mspid }} {{ .proposalServerUrl }}
     {{- end }}
+{{- end }}
 {{- end }}
