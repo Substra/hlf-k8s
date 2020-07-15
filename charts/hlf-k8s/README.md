@@ -230,10 +230,10 @@ On each peer, expose the `config` route using `configOperator.ingress`.
 
 Two types of monitoring pods are offered to facilitate troubleshooting. They periodically poll and display information about the system and application channels. Check the pod's log to see the relevant information.
 
-- **monitor pod** lists 
-  - the orgs that are part of the system channel.
-  - the orgs that **have been added** to an application channel. 
-- **discover-monitor pod** lists the orgs that **have been added to, and have joined** a channel
+- **monitor pod** shows the orgs that **have been added** to an application channel (by a member of the system channel). 
+- **discover-monitor pod** shows the orgs that **have have joined** a channel **and are online**
+
+Note that the monitor pod also shows the orgs that are part of the **system channel**.
 
 To enable the **monitor pod**, on the orderer:
 
