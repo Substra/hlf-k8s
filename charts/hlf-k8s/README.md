@@ -233,7 +233,7 @@ Two types of monitoring pods are offered to facilitate troubleshooting. They per
 - **monitor pod** lists 
   - the orgs that are part of the system channel.
   - the orgs that **have been added** to an application channel. 
-- **discover-monitor pod** lists the orgs that **have been added to, and have connected joined** a channel
+- **discover-monitor pod** lists the orgs that **have been added to, and have joined** a channel
 
 To enable the **monitor pod**, on the orderer:
 
