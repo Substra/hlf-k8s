@@ -57,7 +57,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-ord.enabled` | If true, a HLF Orderer will be installed | `false` |
 | `hlf-ord.host` | The hostname for the Orderer | `orderer-hostname` |
 | `hlf-ord.ord.mspID` | ID of MSP the Orderer belongs to | `MyOrdererMSP` |
-| `hlf-ord.monitor.enabled` | If true, create a monitor pod (see [Monitoring pods](#monitoring-pod)) | `false` |
+| `hlf-ord.monitor.enabled` | If true, create a monitor pod (see [Monitoring pods](#monitoring-pods)) | `false` |
 | `hlf-ord.ingress.enabled` | If true, Ingress will be created for the Orderer | (undefined) |
 | `hlf-ord.ingress.annotations` | Orderer ingress annotations | (undefined) |
 | `hlf-ord.ingress.tls` | Orderer ingress TLS configuration | (undefined) |
