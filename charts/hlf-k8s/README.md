@@ -19,7 +19,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | **Peer** |  |  |
 | `hlf-peer.enabled` | If true, a HLF Peer will be installed | `true` |
 | `hlf-peer.peer.mspID` | ID of MSP the Peer belongs to | `Org1MSP` |
-| `hlf-peer.discover-monitor.enabled` | If true, create a discover monitor pod (see [Discover monitor pod](#discover-monitor-pod)) | `false` |
+| `hlf-peer.discover-monitor.enabled` | If true, create a discover monitor pod (see [Monitoring pods](#monitoring-pods)) | `false` |
 | `hlf-peer.peer.gossip.externalEndpoint` | HLF peer gossip external endpoint | `""` |
 | `hlf-peer.host` | The Peers's host | `peer-hostname` |
 | `hlf-peer.port` | The Peers's port | `7051` |
@@ -57,7 +57,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-ord.enabled` | If true, a HLF Orderer will be installed | `false` |
 | `hlf-ord.host` | The hostname for the Orderer | `orderer-hostname` |
 | `hlf-ord.ord.mspID` | ID of MSP the Orderer belongs to | `MyOrdererMSP` |
-| `hlf-ord.monitor.enabled` | If true, create a monitor pod (see [Monitor pod](#monitor-pod)) | `false` |
+| `hlf-ord.monitor.enabled` | If true, create a monitor pod (see [Monitoring pods](#monitoring-pod)) | `false` |
 | `hlf-ord.ingress.enabled` | If true, Ingress will be created for the Orderer | (undefined) |
 | `hlf-ord.ingress.annotations` | Orderer ingress annotations | (undefined) |
 | `hlf-ord.ingress.tls` | Orderer ingress TLS configuration | (undefined) |
@@ -226,35 +226,26 @@ appChannel:
 On each peer, expose the `config` route using `configOperator.ingress`.
 
 
-### Monitor pod
+### Monitoring pods
 
-The monitor pod periodically polls and displays the list of organizations that have been added to the system channel and the application channel.
+Two types of monitoring pods are offered to facilitate troubleshooting. They periodically poll and display information about the system and application channels. Check the pod's log to see the relevant information.
 
-It is a convenience feature which facilitates troubleshooting.
+- **monitor pod** lists the orgs that **have been added** to a channel
+- **discover-monitor pod** lists the orgs that **have been added to, and subsequently joined** a channel
 
-To enable it, on the orderer:
+To enable the **monitor pod**, on the orderer:
 
 ```
 monitor:
    enabled: true
 ```
 
-Check the pod's logs to get the list of organizations currently present in each channel.
-
-### Discover monitor pod
-
-The discover monitor pod periodically displays the list of organizations that have joined and are connected to the application channel with the hlf [service discovery](https://hyperledger-fabric.readthedocs.io/en/release-1.4/discovery-cli.html)
-
-It is a convenience feature which facilitates troubleshooting.
-
-To enable it, on the peer:
+To enable the **discover monitor pod**, on the peer:
 
 ```
 discover-monitor:
    enabled: true
 ```
-
-Check the pod's logs to get the list of organizations currently visible (joined and connected) in the application channel.
 
 
 ## Additional resources
