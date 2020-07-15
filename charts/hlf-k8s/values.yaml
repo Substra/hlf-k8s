@@ -144,6 +144,10 @@ hlf-peer:
         enabled: "true"
       client:
         enabled: "true"
+    chaincode:
+      builder: hyperledger/fabric-ccenv:1.4.6
+      runtime:
+        golang: hyperledger/fabric-baseos:0.4.16
 
   enabled: true
   host: peer-hostname

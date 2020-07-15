@@ -71,6 +71,10 @@ data:
           - *id001
       {{- end }}
   core.yaml: |
+    chaincode:
+      builder: {{ index .Values "hlf-peer" "peer" "chaincode" "builder" }}
+      golang:
+          runtime: {{index .Values "hlf-peer" "peer" "chaincode" "runtime" "golang"}}
     peer:
       BCCSP:
         Default: SW
