@@ -23,6 +23,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | **Peer** |  |  |
 | `hlf-peer.enabled` | If true, a HLF Peer will be installed | `true` |
 | `hlf-peer.peer.mspID` | ID of MSP the Peer belongs to | `Org1MSP` |
+| `hlf-peer.discover-monitor.enabled` | If true, create a discover monitor pod (see [Monitoring pods](#monitoring-pods)) | `false` |
 | `hlf-peer.peer.gossip.externalEndpoint` | HLF peer gossip external endpoint | `""` |
 | `hlf-peer.host` | The Peers's host | `peer-hostname` |
 | `hlf-peer.port` | The Peers's port | `7051` |
@@ -61,7 +62,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-ord.enabled` | If true, a HLF Orderer will be installed | `false` |
 | `hlf-ord.host` | The hostname for the Orderer | `orderer-hostname` |
 | `hlf-ord.ord.mspID` | ID of MSP the Orderer belongs to | `MyOrdererMSP` |
-| `hlf-ord.monitor.enabled` | If true, create a monitor pod (see [Monitor pod](#monitor-pod)) | `false` |
+| `hlf-ord.monitor.enabled` | If true, create a monitor pod (see [Monitoring pods](#monitoring-pods)) | `false` |
 | `hlf-ord.ingress.enabled` | If true, Ingress will be created for the Orderer | (undefined) |
 | `hlf-ord.ingress.annotations` | Orderer ingress annotations | (undefined) |
 | `hlf-ord.ingress.tls` | Orderer ingress TLS configuration | (undefined) |
@@ -230,20 +231,28 @@ appChannels:
 On each peer, expose the `config` route using `configOperator.ingress`.
 
 
-### Monitor pod
+### Monitoring pods
 
-The monitor pod periodically polls and displays the list of organizations that have joined the system channel and the application channel.
+Two types of monitoring pods are offered to facilitate troubleshooting. They periodically poll and display information about the system and application channels. Check the pod's log to see the relevant information.
 
-It is a convenience feature which facilitates troubleshooting.
+- **monitor pod** shows the orgs that **have been added** to an application channel (by a member of the system channel). 
+- **discover-monitor pod** shows the orgs that **have have joined** a channel **and are online**
 
-To enable it, on the orderer:
+Note that the monitor pod also shows the orgs that are part of the **system channel**.
+
+To enable the **monitor pod**, on the orderer:
 
 ```
 monitor:
    enabled: true
 ```
 
-Check the pod's logs to get the list of organizations currently present in each channel.
+To enable the **discover monitor pod**, on the peer:
+
+```
+discover-monitor:
+   enabled: true
+```
 
 
 ## Additional resources
