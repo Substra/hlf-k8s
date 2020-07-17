@@ -9,9 +9,17 @@ addons:
     - name: helm
       confinement: classic
       channel: 3.2/stable
+  apt:
+    packages:
+      - python3-pip
+      - python3-setuptools
+
+install:
+  - pip3 install yamllint
 
 script:
   - helm lint charts/hlf-k8s
+  - 'yamllint -d "{extends: default, rules: {line-length: disable}}" $(git ls-files "skaffold.yaml" "k8s/*.yaml" "tools/*.yaml")'
 
 after_script:
   - 'if ! git diff --quiet --exit-code $TRAVIS_COMMIT_RANGE charts; then CHART_CHANGED="true"; else CHART_CHANGED="false"; fi'
