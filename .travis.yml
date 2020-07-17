@@ -8,10 +8,7 @@ addons:
   snaps:
     - name: helm
       confinement: classic
-      channel: 2.16/stable
-
-before_script:
-  - helm init --client-only
+      channel: 3.2/stable
 
 script:
   - helm lint charts/hlf-k8s
