@@ -101,6 +101,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `privateCa.configMap.name` | The name of the ConfigMap containing the private CA certificate | `private-ca` |
 | `privateCa.configMap.fileName` | The CA certificate filename within the ConfigMap | `private-ca.crt` |
 | `hooks.deleteSecrets.enabled` | If true, the secrets created by the chart will be automatically deleted when the chart is uninstalled | `true` |
+| `hooks.serviceAccount` | `serviceAccount` used for the post-delete hooks, must be able to delete secrets | `tiller` | 
 | `toolbox.enabled` | If true, a "toolbox" pod will be created with pre-installed utilities and certificates | `false` |
 
 
