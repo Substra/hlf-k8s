@@ -17,7 +17,7 @@
 #   This is An hlf-k8s deployment with 4 organizations using the "ANY"
 #   application channel policy. A chosen node (here MyOrg1) is responsible
 #   for adding all the other nodes to the application channel.
-
+---
 apiVersion: skaffold/v1beta13
 kind: Config
 build:
@@ -240,8 +240,8 @@ deploy:
       install: ["--create-namespace"]
   kubectl:
     manifests:
-    - k8s/serviceAccount-orderer.yaml
-    - k8s/serviceAccount-org-1.yaml
-    - k8s/serviceAccount-org-2.yaml
-    - tools/k8s/serviceAccount-org-3.yaml
-    - tools/k8s/serviceAccount-org-4.yaml
+      - k8s/serviceAccount-orderer.yaml
+      - k8s/serviceAccount-org-1.yaml
+      - k8s/serviceAccount-org-2.yaml
+      - tools/k8s/serviceAccount-org-3.yaml
+      - tools/k8s/serviceAccount-org-4.yaml
