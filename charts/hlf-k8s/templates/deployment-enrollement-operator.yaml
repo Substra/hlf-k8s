@@ -104,7 +104,7 @@ spec:
                   ## Enroll user (TLS)
                   until [ -d "/data/$name/tls" ]; do
                     printf "[DEBUG] TLS certificate not found: enrolling user '$name' with TLS profile now:\n"
-                    fabric-ca-client enroll -d --enrollment.profile tls -u {{ index .Values "hlf-ca" "scheme" }}://$name:$secret@{{ index .Values "hlf-ca" "host" }}:{{ index .Values "hlf-ca" "port" }} -M /data/$name/tls --csr.hosts {{ .Values.enrollments.csrHost }}
+                    fabric-ca-client enroll -d --enrollment.profile tls -u {{ index .Values "hlf-ca" "scheme" }}://$name:$secret@{{ index .Values "hlf-ca" "host" }}:{{ index .Values "hlf-ca" "port" }} -M /data/$name/tls --csr.hosts "localhost,127.0.0.1,{{ .Values.enrollments.csrHost }}"
                     sleep 1
                   done
 
