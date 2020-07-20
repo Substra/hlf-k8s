@@ -72,7 +72,7 @@ deploy:
           enrollments.creds[1].options: "--id.type orderer"
           enrollments.csrHost: network-orderer-hlf-ord.orderer
           toolbox.enabled: true
-          hooks.serviceAccount: substra-delete-hook
+          hooks.serviceAccount.name: substra-delete-hook
 
       - name: network-org-1-peer-1
         chartPath: charts/hlf-k8s
@@ -127,7 +127,7 @@ deploy:
           enrollments.creds[1].options: "--id.type peer"
           enrollments.csrHost: network-org-1-peer-1-hlf-peer.org-1
           toolbox.enabled: true
-          hooks.serviceAccount: substra-delete-hook
+          hooks.serviceAccount.name: substra-delete-hook
 
       - name: network-org-2-peer-1
         chartPath: charts/hlf-k8s
@@ -182,8 +182,7 @@ deploy:
           enrollments.creds[1].options: "--id.type peer"
           enrollments.csrHost: network-org-2-peer-1-hlf-peer.org-2
           toolbox.enabled: true
-          hooks.serviceAccount: substra-delete-hook
-
+          hooks.serviceAccount.name: substra-delete-hook
 
       - name: network-org-3-peer-1
         chartPath: charts/hlf-k8s
@@ -237,7 +236,7 @@ deploy:
           enrollments.creds[1].options: "--id.type peer"
           enrollments.csrHost: network-org-3-peer-1-hlf-peer.org-3
           toolbox.enabled: true
-          hooks.serviceAccount: substra-delete-hook
+          hooks.serviceAccount.name: substra-delete-hook
     flags:
       install: ["--create-namespace"]
   kubectl:

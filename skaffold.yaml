@@ -65,7 +65,7 @@ deploy:
           enrollments.creds[1].options: "--id.type orderer"
           enrollments.csrHost: network-orderer-hlf-ord.orderer
           toolbox.enabled: true
-          hooks.serviceAccount: substra-delete-hook
+          hooks.serviceAccount.name: substra-delete-hook
           
       - name: network-org-1-peer-1
         chartPath: charts/hlf-k8s
@@ -138,7 +138,7 @@ deploy:
           enrollments.creds[1].options: "--id.type peer"
           enrollments.csrHost: network-org-1-peer-1-hlf-peer.org-1
           toolbox.enabled: true
-          hooks.serviceAccount: substra-delete-hook
+          hooks.serviceAccount.name: substra-delete-hook
 
       - name: network-org-2-peer-1
         chartPath: charts/hlf-k8s
@@ -178,9 +178,12 @@ deploy:
           enrollments.creds[1].options: "--id.type peer"
           enrollments.csrHost: network-org-2-peer-1-hlf-peer.org-2
           toolbox.enabled: true
-          hooks.serviceAccount: substra-delete-hook
+          hooks.serviceAccount.name: substra-delete-hook
     flags:
       install: ["--create-namespace"]
+  # We create the serviceAccounts with the kubectl deployer to ensure the serviceAccounts will stay present for the Helm deletion hooks
+  # By design Skaffold create and delete ressources in a fixed order (Helm > kubectl > kustomize)
+  # Ref: https://github.com/GoogleContainerTools/skaffold/blob/master/pkg/skaffold/runner/new.go#L194-L215 (func getDeployer)
   kubectl:
     manifests:
     - k8s/serviceAccount-orderer.yaml
