@@ -47,6 +47,7 @@ deploy:
           hlf-ord.enabled: true
           hlf-ord.monitor.enabled: true
           appChannels[0].channelName: mychannel
+          appChannels[1].channelName: yourchannel
           # Add Org to system channel to allows them to adminstrate application channels
           systemChannel.organizations[0].org: MyOrg1
           systemChannel.organizations[0].mspid: MyOrg1MSP
@@ -106,6 +107,26 @@ deploy:
           appChannels[0].chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
           appChannels[0].chaincodeName: mycc
           appChannels[0].chaincodeVersion: "1.0"
+          appChannels[1].channelName: yourchannel
+          appChannels[1].organizations[0].org: MyOrg1
+          appChannels[1].organizations[0].mspid: MyOrg1MSP
+          appChannels[1].organizations[0].configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json
+          appChannels[1].organizations[1].org: MyOrg2
+          appChannels[1].organizations[1].mspid: MyOrg2MSP
+          appChannels[1].organizations[1].configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json
+          appChannels[1].policies: |
+            Readers:
+                Type: ImplicitMeta
+                Rule: "ANY Readers"
+            Writers:
+                Type: ImplicitMeta
+                Rule: "ANY Writers"
+            Admins:
+                Type: ImplicitMeta
+                Rule: "ANY Admins"
+          appChannels[1].chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
+          appChannels[1].chaincodeName: mycc
+          appChannels[1].chaincodeVersion: "1.0"
           hlf-ord.host: network-orderer-hlf-ord.orderer
           hlf-peer.peer.gossip.externalEndpoint: network-org-1-peer-1-hlf-peer.org-1:7051
           enrollments.creds[0].name: admin
@@ -142,6 +163,10 @@ deploy:
           appChannels[0].chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
           appChannels[0].chaincodeName: mycc
           appChannels[0].chaincodeVersion: "1.0"
+          appChannels[1].channelName: yourchannel
+          appChannels[1].chaincodePolicy: OR('MyOrg1MSP.member'\,'MyOrg2MSP.member')
+          appChannels[1].chaincodeName: mycc
+          appChannels[1].chaincodeVersion: "1.0"
           hlf-ord.host: network-orderer-hlf-ord.orderer
           hlf-peer.peer.gossip.externalEndpoint: network-org-2-peer-1-hlf-peer.org-2:7051
           enrollments.creds[0].name: admin
