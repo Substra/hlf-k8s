@@ -305,8 +305,6 @@ hooks:
   # Service account used for the hooks, must not be part of the release and have the rights to delete secrets
   serviceAccount:
     name: ""
-    # Note that this will set the namespace of the deleteSecret hook as serviceAccounts are namespaced resources
-    # If empty the namespace will be set to the release namespace during render
     namespace: ""
   deleteSecrets:
     enabled: true

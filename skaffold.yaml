@@ -183,7 +183,7 @@ deploy:
       install: ["--create-namespace"]
   # We create the serviceAccounts with the kubectl deployer to ensure the serviceAccounts will stay present for the Helm deletion hooks
   # By design Skaffold create and delete ressources in a fixed order (Helm > kubectl > kustomize)
-  # Ref: https://github.com/GoogleContainerTools/skaffold/blob/master/pkg/skaffold/runner/new.go#L194-L215 (func getDeployer)
+  # Ref: https://github.com/GoogleContainerTools/skaffold/blob/dedd545/pkg/skaffold/runner/new.go#L191-L214 (func getDeployer)
   kubectl:
     manifests:
       - k8s/serviceAccount-orderer.yaml
