@@ -190,6 +190,8 @@ hlf-ord:
   enabled: false
   host: orderer-hostname
   port: 7050
+  maxMessageCount: 10
+  batchTimeout: 500ms
   image:
     tag: 1.4.6
   persistence:
