@@ -302,6 +302,10 @@ enrollments:
   csrHost: service-hostname
 
 hooks:
+  # Service account used for the hooks, must not be part of the release and have the rights to delete secrets
+  serviceAccount:
+    name: ""
+    namespace: ""
   deleteSecrets:
     enabled: true
   uninstallChaincode:
