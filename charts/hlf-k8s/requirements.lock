@@ -7,9 +7,9 @@ dependencies:
   version: 1.3.0
 - name: hlf-peer
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.4.0
+  version: 1.6.0
 - name: nginx-ingress
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 1.29.7
-digest: sha256:512fc635fab0269766b882227468aa72d4d9db4f15fc332ac363fb3f063f0440
-generated: "2020-07-14T10:14:45.130621606-04:00"
+digest: sha256:e1d3c673683ff51a4f8c5eefe9c9b805209b3c03c41c04da898152a223f32599
+generated: "2020-09-10T11:30:01.902229+02:00"
