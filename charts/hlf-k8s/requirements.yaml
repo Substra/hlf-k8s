@@ -23,7 +23,7 @@ dependencies:
     condition: hlf-ord.enabled
   - name: hlf-peer
     repository: https://kubernetes-charts.storage.googleapis.com/
-    version: 1.4.0
+    version: 1.6.0
     condition: hlf-peer.enabled
   - name: nginx-ingress
     repository: https://kubernetes-charts.storage.googleapis.com/
