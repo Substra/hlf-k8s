@@ -4,12 +4,12 @@ dependencies:
   version: 1.2.0
 - name: hlf-ord
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.3.0
+  version: 1.4.1
 - name: hlf-peer
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.6.0
+  version: 1.6.1
 - name: nginx-ingress
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 1.29.7
-digest: sha256:e1d3c673683ff51a4f8c5eefe9c9b805209b3c03c41c04da898152a223f32599
-generated: "2020-09-10T11:30:01.902229+02:00"
+digest: sha256:1add98c07ce6a01ed23ec08da8e627e36fd5dbe2d0cdc424f72eb3c3fa5e228c
+generated: "2020-09-14T10:57:42.221305+02:00"
