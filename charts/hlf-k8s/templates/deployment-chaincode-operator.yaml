@@ -50,36 +50,54 @@ spec:
               ## Install chaincode on peer
               while true; do
 
-                peer chaincode list --installed > chaincode.list
+                peer lifecycle chaincode queryinstalled > chaincode.list
 
-                until grep {{ .name }} chaincode.list | grep {{ .version }} > /dev/null; do
-                  printf "[DEBUG] Installing chaincode {{ .name }} {{ .version }} from {{ .src }} ...\n"
+                until grep {{ .name }} chaincode.list > /dev/null; do
+                  printf "[DEBUG] Installing chaincode {{ .name }} {{ .version }}\n"
 
                   ## Clean potential remaining artifacts
-                  rm -rf substra-chaincode
-                  mkdir substra-chaincode
-                  rm -rf /opt/gopath/src/github.com/hyperledger
-                  mkdir -p /opt/gopath/src/github.com/hyperledger
-                  rm -rf /opt/gopath/src/chaincode
+                  rm -f code.tar.gz chaincode.tgz connection.json metadata.json
 
-                  ## Fetch chaincode src
-            {{- if .configMap }}
-                  tar -C substra-chaincode -xzf /chaincode/{{ .configMap.fileName }} --strip-components=1
-                  mv substra-chaincode/chaincode /opt/gopath/src/chaincode
-            {{- else if .hostPath }}
-                  mkdir -p /opt/gopath/src/chaincode
-                  cp -LR /chaincode/chaincode/* /opt/gopath/src/chaincode
-            {{- else }}
-                  curl -L {{ .src }} -o chaincode.tar.gz
-                  tar -C substra-chaincode -xzf chaincode.tar.gz --strip-components=1
-                  mv substra-chaincode/chaincode /opt/gopath/src/chaincode
-            {{- end }}
+                  echo '{
+                  "address": "{{ .address }}:{{ .port }}",
+                  "dial_timeout": "10s",
+                  "tls_required": false,
+                  "client_auth_required": false,
+                  "client_key": "-----BEGIN EC PRIVATE KEY----- ... -----END EC PRIVATE KEY-----",
+                  "client_cert": "-----BEGIN CERTIFICATE----- ... -----END CERTIFICATE-----",
+                  "root_cert": "-----BEGIN CERTIFICATE---- ... -----END CERTIFICATE-----"
+                  }' > connection.json
+
+                  tar cfz code.tar.gz connection.json
+
+                  echo '{"path":"", "type":"external", "label":"{{ .name }}"}' > metadata.json
+                  tar cfz chaincode.tgz code.tar.gz metadata.json
 
                   ## Install chaincode
-                  peer chaincode install -n {{ .name }} -v {{ .version }} -p chaincode
+                  peer lifecycle chaincode install chaincode.tgz
 
-                  peer chaincode list --installed > chaincode.list
+                  peer lifecycle chaincode queryinstalled > chaincode.list
                   sleep 10
+                done
+
+                CHAINCODE_CCID=$(peer lifecycle chaincode queryinstalled 2>&1 | grep {{ .name }} | awk 'NR==1{print substr($3, 1, length($3)-1)}')
+
+                until kubectl get secret chaincode-ccid-{{ .name }} > /dev/null; do
+                    kubectl create secret generic chaincode-ccid-{{ .name }} --from-literal=chaincode.ccid=$CHAINCODE_CCID
+                done
+
+                # Approve chaincode
+
+                touch chaincode.approve
+
+                until grep "${CHAINCODE_CCID}" chaincode.approve > /dev/null; do
+
+                    printf "[DEBUG] Approve chaincode {{ .name }} {{ .version }}\n"
+
+                    peer lifecycle chaincode approveformyorg  --signature-policy "{{ .chaincodePolicy}}" --channelID {{ .channelName }} --name {{ .name }}  --version {{ .version }} --package-id $CHAINCODE_CCID --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+
+                    peer lifecycle chaincode queryapproved --channelID {{ .channelName }} --name {{ .name }} --sequence 1 -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.approve 2>&1
+
                 done
 
                 sleep 10

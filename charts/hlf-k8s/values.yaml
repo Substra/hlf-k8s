@@ -17,6 +17,11 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+imageCA:
+  repository: substrafoundation/hlf-k8s
+  tag: latest
+  pullPolicy: IfNotPresent
+
 nginx-ingress:
   enabled: false
   controller:
@@ -37,6 +42,17 @@ systemChannel:
     ## The organizations to add to the system channel
     #   - { org: Org1, mspid: Org1MSP, configUrl: peer-1-org-config-operator.org-1/config/configOrg.json }
     #   - { org: Org2, mspid: Org2MSP, configUrl: peer-2-org-config-operator.org-2/config/configOrg.json }
+  policies: |-
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
+
 
 appChannels:
 - channelName: mychannel
@@ -54,7 +70,7 @@ appChannels:
   # chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
   # chaincodeName: mycc
   # chaincodeVersion: "1.0"
-  # policies: |-
+  # channelPolicies: |-
   #   Readers:
   #       Type: ImplicitMeta
   #       Rule: "ANY Readers"
@@ -64,6 +80,22 @@ appChannels:
   #   Admins:
   #       Type: ImplicitMeta
   #       Rule: "ANY Admins"
+  # appPolicies: |-
+  #   LifecycleEndorsement:
+  #         Type: ImplicitMeta
+  #         Rule: "ANY Endorsement"
+  #     Endorsement:
+  #         Type: ImplicitMeta
+  #         Rule: "MAJORITY Endorsement"
+  #     Readers:
+  #         Type: ImplicitMeta
+  #         Rule: "ANY Readers"
+  #     Writers:
+  #         Type: ImplicitMeta
+  #         Rule: "ANY Writers"
+  #     Admins:
+  #         Type: ImplicitMeta
+  #         Rule: "MAJORITY Admins"
 
   ingress:
     enabled: false
@@ -107,13 +139,13 @@ hlf-ca:
   host: ca-hostname
   port: 7054
   image:
-    tag: 1.4.6
+    tag: 1.4.9
   caName: rca
   adminUsername: caAdmin
   adminPassword: caPassword
 
   config:
-    hlfToolsVersion: 1.4.6
+    hlfToolsVersion: 1.4.9
     csr:
       ca:
         pathlength: 1
@@ -137,6 +169,9 @@ hlf-ca:
     port: 7054
 
 hlf-peer:
+  docker:
+    enabled:
+      false
   peer:
     gossip:
       bootstrap: "127.0.0.1:7051"
@@ -146,14 +181,15 @@ hlf-peer:
       client:
         enabled: "true"
     chaincode:
-      builder: hyperledger/fabric-ccenv:1.4.6
+      builder: hyperledger/fabric-ccenv:2.2.0
       runtime:
-        golang: hyperledger/fabric-baseos:0.4.16
+        golang: hyperledger/fabric-baseos:2.2.0
   enabled: true
   host: peer-hostname
   port: 7051
   image:
-    tag: 1.4.6
+    repository: substrafoundation/fabric-peer
+    tag: latest
   persistence:
     enabled: false
   discover-monitor:
@@ -186,6 +222,22 @@ hlf-peer:
     ## This should include the Orderer TLS 'cacert.pem'
     ordTlsRootCert: ord-tls-rootcert
 
+  databaseType: CouchDB # goleveldb
+  couchdbInstance: cdb-peer
+
+
+hlf-couchdb:
+  enabled: true
+  service:
+    port: 5984
+  image:
+    tag: 0.4.21
+  persistence:
+    size: 10Gi
+  couchdbUsername: couchdb
+  couchdbPassword: couchdbpwd
+
+
 hlf-ord:
   enabled: false
   host: orderer-hostname
@@ -193,11 +245,11 @@ hlf-ord:
   maxMessageCount: 10
   batchTimeout: 500ms
   image:
-    tag: 1.4.6
+    tag: 2.2.0
   persistence:
     enabled: false
   ord:
-    type: solo
+    type: etcdraft
     mspID: MyOrdererMSP
     tls:
       server:
@@ -232,19 +284,28 @@ hlf-ord:
     ## This is necessary to successfully join a channel
     adminKey: hlf-msp-key-admin
 
+  policies: |
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
+    BlockValidation:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+
 chaincodes: []
   # -
   #   name: mycc
   #   version: "1.0"
-  ## The chaincode source code can be provided one of 3 ways:
-  ## 1. Archive URL (Note: the archive name cannot contain the `/` character)
-  #   src: https://github.com/SubstraFoundation/substra-chaincode/archive/0.0.2.tar.gz
-  ## 2. A host path
-  #   hostPath: /home/johndoe/code/susbtra-chaincode
-  ## 3. A ConfigMap
-  #   configMap:
-  #     name: hlf-chaincode
-  #     fileName: chaincode.tar.gz
+  #   address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
+  #   port: "7052"
+  #   channelName : "mychannel"
+  #   chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
 
 users:
   admin:

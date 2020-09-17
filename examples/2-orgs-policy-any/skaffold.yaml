@@ -20,10 +20,16 @@ build:
       context: ../../
       docker:
         dockerfile: images/hlf-k8s/Dockerfile
-      sync:
-        manual:
-          - src: ./bin/*
-            dest: /usr/local/bin/
+
+    - image: substrafoundation/hlf-k8s-ca
+      context: ../../
+      docker:
+        dockerfile: images/hlf-k8s-ca/Dockerfile
+
+    - image: substrafoundation/fabric-peer
+      context: ../../
+      docker:
+        dockerfile: images/fabric-peer/Dockerfile
 
 deploy:
   statusCheckDeadlineSeconds: 300

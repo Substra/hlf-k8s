@@ -29,26 +29,87 @@ data:
       identitypath: /var/hyperledger/msp/signcerts/cert.pem
       keypath: /var/hyperledger/msp/keystore/key.pem
   configtx.yaml: |
-    Application:
-      Organizations: null
     Organizations:
     - &id001
+      Name: {{ .Values.organization.name }}
+      ID: {{ .Values.organization.id }}
+      MSPDir: /var/hyperledger/admin_msp
+
+      Policies: &id002
+        Readers:
+            Type: Signature
+            Rule: "OR('{{ .Values.organization.id }}.member')"
+        Writers:
+            Type: Signature
+            Rule: "OR('{{ .Values.organization.id }}.member')"
+        Admins:
+            Type: Signature
+            Rule: "OR('{{ .Values.organization.id }}.admin')"
+        Endorsement:
+            Type: Signature
+            Rule: "OR('{{ .Values.organization.id }}.member')"
+
       {{- if index .Values "hlf-peer" "enabled" }}
       AnchorPeers:
       - Host: {{ index .Values "hlf-peer" "host" }}
         Port: {{ index .Values "hlf-peer" "port" }}
       {{- end }}
-      ID: {{ .Values.organization.id }}
-      MSPDir: /var/hyperledger/admin_msp
-      Name: {{ .Values.organization.name }}
+
+      {{- if index .Values "hlf-ord" "enabled" }}
+      OrdererEndpoints:
+      - "{{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}"
+      {{- end }}
+
+    Capabilities:
+        Channel: &ChannelCapabilities
+            V2_0: true
+
+        Orderer: &OrdererCapabilities
+            V2_0: true
+
+        Application: &ApplicationCapabilities
+            V2_0: true
+
+    Application: &ApplicationDefaults
+
+      Organizations: null
+
+      Policies: &ApplicationDefaultPolicies
+          LifecycleEndorsement:
+              Type: ImplicitMeta
+              Rule: "ANY Endorsement"
+          Endorsement:
+              Type: ImplicitMeta
+              Rule: "MAJORITY Endorsement"
+          Readers:
+              Type: ImplicitMeta
+              Rule: "ANY Readers"
+          Writers:
+              Type: ImplicitMeta
+              Rule: "ANY Writers"
+          Admins:
+              Type: ImplicitMeta
+              Rule: "MAJORITY Admins"
+
+      Capabilities:
+          <<: *ApplicationCapabilities
+
+
     Profiles:
       {{- if index .Values "hlf-peer" "enabled" }}
       {{- range .Values.appChannels }}
       OrgsChannel-{{ .channelName }}:
+        Capabilities:
+          V2_0: true
+        {{- if .channelPolicies }}
+        Policies:
+          {{- .channelPolicies | nindent 12 -}}
+        {{- end }}
         Application:
-          {{- if .policies }}
+          <<: *ApplicationDefaults
+          {{- if .appPolicies }}
           Policies:
-            {{- .policies | nindent 12 -}}
+            {{- .appPolicies | nindent 12 -}}
           {{- end }}
           Organizations:
           - *id001
@@ -57,26 +118,48 @@ data:
       {{- end }}
       {{- if index .Values "hlf-ord" "enabled" }}
       GenerateGenesis:
+        Policies:
+          {{- .Values.systemChannel.policies | nindent 12 }}
+        Capabilities:
+          V2_0: true
         Consortiums:
           SampleConsortium:
             Organizations: *id001
         Orderer:
           Addresses:
           - {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}
+          EtcdRaft:
+            Consenters:
+            - Host: {{ index .Values "hlf-ord" "host" }}
+              Port: {{ index .Values "hlf-ord" "port" }}
+              ClientTLSCert: /var/hyperledger/tls/client/pair/tls.crt
+              ServerTLSCert: /var/hyperledger/tls/server/pair/tls.crt
           BatchSize:
             AbsoluteMaxBytes: 99 MB
             MaxMessageCount: {{ index .Values "hlf-ord" "maxMessageCount" }}
             PreferredMaxBytes: 512 KB
           BatchTimeout: {{ index .Values "hlf-ord" "batchTimeout" }}
-          OrdererType: solo
+          OrdererType: etcdraft
           Organizations:
           - *id001
+          Capabilities:
+            V2_0: true
+          Policies:
+            {{- index .Values "hlf-ord" "policies" | nindent 12 }}
+
       {{- end }}
   core.yaml: |
     chaincode:
       builder: {{ index .Values "hlf-peer" "peer" "chaincode" "builder" }}
       golang:
           runtime: {{index .Values "hlf-peer" "peer" "chaincode" "runtime" "golang"}}
+      externalBuilders:
+        - name: external-builder
+          path: /builders
+          propagateEnvironment:
+             - GOPROXY
+             - ENVVAR_NAME_TO_PROPAGATE_FROM_PEER
+
     peer:
       BCCSP:
         Default: SW
