@@ -38,7 +38,7 @@ deploy:
       - name: network-orderer
         chartPath: charts/hlf-k8s
         namespace: orderer
-        valuesFiles: [ values/4-orgs/orderer.yaml ]
+        valuesFiles: [values/4-orgs/orderer.yaml]
         imageStrategy:
           helm: {}
         values:
@@ -47,7 +47,7 @@ deploy:
       - name: network-org-1-peer-1
         chartPath: charts/hlf-k8s
         namespace: org-1
-        valuesFiles: [ values/4-orgs/peer-1-org-1.yaml ]
+        valuesFiles: [values/4-orgs/peer-1-org-1.yaml]
         imageStrategy:
           helm: {}
         values:
@@ -56,7 +56,7 @@ deploy:
       - name: network-org-2-peer-1
         chartPath: charts/hlf-k8s
         namespace: org-2
-        valuesFiles: [ values/4-orgs/peer-1-org-2.yaml ]
+        valuesFiles: [values/4-orgs/peer-1-org-2.yaml]
         imageStrategy:
           helm: {}
         values:
@@ -65,7 +65,7 @@ deploy:
       - name: network-org-3-peer-1
         chartPath: charts/hlf-k8s
         namespace: org-3
-        valuesFiles: [ values/4-orgs/peer-1-org-3.yaml ]
+        valuesFiles: [values/4-orgs/peer-1-org-3.yaml]
         imageStrategy:
           helm: {}
         values:
@@ -74,7 +74,7 @@ deploy:
       - name: network-org-4-peer-1
         chartPath: charts/hlf-k8s
         namespace: org-4
-        valuesFiles: [ values/4-orgs/peer-1-org-4.yaml ]
+        valuesFiles: [values/4-orgs/peer-1-org-4.yaml]
         imageStrategy:
           helm: {}
         values:
