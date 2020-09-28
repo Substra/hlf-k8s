@@ -1,0 +1,66 @@
+organization:
+  id: MyOrg4MSP
+  name: MyOrg4
+
+nginx-ingress:
+  enabled: true
+  controller:
+    scope:
+      enabled: true
+
+
+hlf-ca:
+  caName: rcaOrg4
+  host: network-org-4-peer-1-hlf-ca.org-4
+  orderer:
+    host: network-orderer-hlf-ca.orderer
+
+hlf-ord:
+  host: network-orderer-hlf-ord.orderer
+
+hlf-peer:
+  host: network-org-4-peer-1-hlf-peer.org-4
+  peer:
+    mspID: MyOrg4MSP
+    gossip:
+      externalEndpoint: network-org-4-peer-1-hlf-peer.org-4:7051
+  discover-monitor:
+    enabled: true
+
+
+chaincodes:
+  - name: mycc
+    version: "1.0"
+    src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
+
+appChannels:
+  - channelName: mychannel
+    organizations:
+      - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
+      - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
+      - { org: MyOrg3, mspid: MyOrg3MSP, configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrgWithAnchors.json }
+      - { org: MyOrg4, mspid: MyOrg4MSP, configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrgWithAnchors.json }
+
+    proposalOrganizations:
+      - { org: MyOrg1, mspid: MyOrg1MSP, proposalServerUrl: network-org-1-peer-1-hlf-k8s-appchannel-operator-mychannel.org-1/proposal/ }
+      - { org: MyOrg2, mspid: MyOrg2MSP, proposalServerUrl: network-org-2-peer-1-hlf-k8s-appchannel-operator-mychannel.org-2/proposal/ }
+      - { org: MyOrg3, mspid: MyOrg3MSP, proposalServerUrl: network-org-3-peer-1-hlf-k8s-appchannel-operator-mychannel.org-3/proposal/ }
+      - { org: MyOrg4, mspid: MyOrg4MSP, proposalServerUrl: network-org-4-peer-1-hlf-k8s-appchannel-operator-mychannel.org-4/proposal/ }
+
+    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
+    chaincodeName: mycc
+    chaincodeVersion: "1.0"
+
+enrollments:
+  creds:
+    - { name: admin, secret: adminpwd, options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"}
+    - { name: user, secret: pwd, options: "--id.type peer"}
+  csrHost: network-org-4-peer-1-hlf-peer.org-4
+
+
+toolbox:
+  enabled: true
+
+hooks:
+  serviceAccount:
+    name: substra-delete-hook

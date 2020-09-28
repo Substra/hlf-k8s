@@ -1,6 +1,6 @@
 organization:
-  id: MyOrg2MSP
-  name: MyOrg2
+  id: MyOrg3MSP
+  name: MyOrg3
 
 nginx-ingress:
   enabled: true
@@ -10,8 +10,8 @@ nginx-ingress:
 
 
 hlf-ca:
-  caName: rcaOrg2
-  host: network-org-2-peer-1-hlf-ca.org-2
+  caName: rcaOrg3
+  host: network-org-3-peer-1-hlf-ca.org-3
   orderer:
     host: network-orderer-hlf-ca.orderer
 
@@ -19,11 +19,11 @@ hlf-ord:
   host: network-orderer-hlf-ord.orderer
 
 hlf-peer:
-  host: network-org-2-peer-1-hlf-peer.org-2
+  host: network-org-3-peer-1-hlf-peer.org-3
   peer:
-    mspID: MyOrg2MSP
+    mspID: MyOrg3MSP
     gossip:
-      externalEndpoint: network-org-2-peer-1-hlf-peer.org-2:7051
+      externalEndpoint: network-org-3-peer-1-hlf-peer.org-3:7051
   discover-monitor:
     enabled: true
 
@@ -35,21 +35,15 @@ chaincodes:
 
 appChannels:
   - channelName: mychannel
-    chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
+    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
     chaincodeName: mycc
     chaincodeVersion: "1.0"
-
-  - channelName: yourchannel
-    chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
-    chaincodeName: mycc
-    chaincodeVersion: "1.0"
-
 
 enrollments:
   creds:
     - { name: admin, secret: adminpwd, options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"}
     - { name: user, secret: pwd, options: "--id.type peer"}
-  csrHost: network-org-2-peer-1-hlf-peer.org-2
+  csrHost: network-org-3-peer-1-hlf-peer.org-3
 
 
 toolbox:

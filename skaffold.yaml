@@ -32,7 +32,7 @@ deploy:
       - name: network-orderer
         chartPath: charts/hlf-k8s
         namespace: orderer
-        valuesFiles: [ tools/skaffold-values/orderer-2-orgs.yaml ]
+        valuesFiles: [ tools/skaffold-values/2-orgs/orderer.yaml ]
         imageStrategy:
           helm: {}
         values:
@@ -41,7 +41,7 @@ deploy:
       - name: network-org-1-peer-1
         chartPath: charts/hlf-k8s
         namespace: org-1
-        valuesFiles: [ tools/skaffold-values/peer-1-org-1-2-orgs.yaml ]
+        valuesFiles: [ tools/skaffold-values/2-orgs/peer-1-org-1.yaml ]
         imageStrategy:
           helm: {}
         values:
@@ -51,7 +51,7 @@ deploy:
       - name: network-org-2-peer-1
         chartPath: charts/hlf-k8s
         namespace: org-2
-        valuesFiles: [ tools/skaffold-values/peer-1-org-2-2-orgs.yaml ]
+        valuesFiles: [ tools/skaffold-values/2-orgs/peer-1-org-2.yaml ]
         imageStrategy:
           helm: {}
         values:

@@ -38,6 +38,9 @@ appChannels:
     organizations:
       - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
       - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
+      - { org: MyOrg3, mspid: MyOrg3MSP, configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrgWithAnchors.json }
+      - { org: MyOrg4, mspid: MyOrg4MSP, configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrgWithAnchors.json }
+
     policies: |-
       Readers:
           Type: ImplicitMeta
@@ -49,29 +52,9 @@ appChannels:
           Type: ImplicitMeta
           Rule: "ANY Admins"
 
-    chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
+    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
     chaincodeName: mycc
     chaincodeVersion: "1.0"
-
-  - channelName: yourchannel
-    organizations:
-      - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
-      - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
-    policies: |-
-      Readers:
-          Type: ImplicitMeta
-          Rule: "ANY Readers"
-      Writers:
-          Type: ImplicitMeta
-          Rule: "ANY Writers"
-      Admins:
-          Type: ImplicitMeta
-          Rule: "ANY Admins"
-
-    chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
-    chaincodeName: mycc
-    chaincodeVersion: "1.0"
-
 
 enrollments:
   creds:
