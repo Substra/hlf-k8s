@@ -32,7 +32,7 @@ deploy:
       - name: network-orderer
         chartPath: charts/hlf-k8s
         namespace: orderer
-        valuesFiles: [values/2-orgs/orderer.yaml]
+        valuesFiles: [dev/values/2-orgs/orderer.yaml]
         imageStrategy:
           helm: {}
         values:
@@ -41,7 +41,7 @@ deploy:
       - name: network-org-1-peer-1
         chartPath: charts/hlf-k8s
         namespace: org-1
-        valuesFiles: [values/2-orgs/peer-1-org-1.yaml]
+        valuesFiles: [dev/values/2-orgs/org-1-peer-1.yaml]
         imageStrategy:
           helm: {}
         values:
@@ -51,7 +51,7 @@ deploy:
       - name: network-org-2-peer-1
         chartPath: charts/hlf-k8s
         namespace: org-2
-        valuesFiles: [values/2-orgs/peer-1-org-2.yaml]
+        valuesFiles: [dev/values/2-orgs/org-2-peer-1.yaml]
         imageStrategy:
           helm: {}
         values:
@@ -64,6 +64,6 @@ deploy:
   # Ref: https://github.com/GoogleContainerTools/skaffold/blob/dedd545/pkg/skaffold/runner/new.go#L191-L214 (func getDeployer)
   kubectl:
     manifests:
-      - k8s/serviceAccount-orderer.yaml
-      - k8s/serviceAccount-org-1.yaml
-      - k8s/serviceAccount-org-2.yaml
+      - dev/serviceAccounts/serviceAccount-orderer.yaml
+      - dev/serviceAccounts/serviceAccount-org-1.yaml
+      - dev/serviceAccounts/serviceAccount-org-2.yaml
