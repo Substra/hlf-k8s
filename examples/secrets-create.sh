@@ -8,19 +8,24 @@
 #   $ skaffold run
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+KUBECTL="kubectl"
 OP="apply"
+
+if [ -n "$KUBE_CONTEXT" ]; then
+    KUBECTL="kubectl --context=${KUBE_CONTEXT}"
+fi
 
 if [ "$1" == "delete" ]; then
     OP="delete"
 fi
 
 if [ "$OP" = "apply" ]; then
-    kubectl create namespace orderer
-    kubectl create namespace org-1
-    kubectl create namespace org-2
+    ${KUBECTL} create namespace orderer
+    ${KUBECTL} create namespace org-1
+    ${KUBECTL} create namespace org-2
 fi
 
-kubectl "$OP" -f "${DIR}/secrets/secrets-orderer-genesis.yaml"
-kubectl "$OP" -f "${DIR}/secrets/secrets-orderer.yaml"
-kubectl "$OP" -f "${DIR}/secrets/secrets-org-1.yaml"
-kubectl "$OP" -f "${DIR}/secrets/secrets-org-2.yaml"
+${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-orderer-genesis.yaml"
+${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-orderer.yaml"
+${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-org-1.yaml"
+${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-org-2.yaml"
