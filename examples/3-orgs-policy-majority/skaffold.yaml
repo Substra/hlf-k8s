@@ -14,16 +14,16 @@
 
 # ABOUT
 #
-#   This is An hlf-k8s deployment with 4 organizations using the "ANY"
-#   application channel policy. A chosen node (here MyOrg1) is responsible
-#   for adding all the other nodes to the application channel.
+#   This is An hlf-k8s deployment with 3 organizations using the default
+#   application channel policy ("MAJORITY")
+#
 ---
 apiVersion: skaffold/v1beta13
 kind: Config
 build:
   artifacts:
     - image: substrafoundation/hlf-k8s
-      context: .
+      context: ../../
       docker:
         dockerfile: images/hlf-k8s/Dockerfile
       sync:
@@ -36,45 +36,36 @@ deploy:
   helm:
     releases:
       - name: network-orderer
-        chartPath: charts/hlf-k8s
+        chartPath: ../../charts/hlf-k8s
         namespace: orderer
-        valuesFiles: [dev/values/4-orgs-policy-any/orderer.yaml]
+        valuesFiles: [values/orderer.yaml]
         imageStrategy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
 
       - name: network-org-1-peer-1
-        chartPath: charts/hlf-k8s
+        chartPath: ../../charts/hlf-k8s
         namespace: org-1
-        valuesFiles: [dev/values/4-orgs-policy-any/org-1-peer-1.yaml]
+        valuesFiles: [values/org-1-peer-1.yaml]
         imageStrategy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
 
       - name: network-org-2-peer-1
-        chartPath: charts/hlf-k8s
+        chartPath: ../../charts/hlf-k8s
         namespace: org-2
-        valuesFiles: [dev/values/4-orgs-policy-any/org-2-peer-1.yaml]
+        valuesFiles: [values/org-2-peer-1.yaml]
         imageStrategy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
 
       - name: network-org-3-peer-1
-        chartPath: charts/hlf-k8s
+        chartPath: ../../charts/hlf-k8s
         namespace: org-3
-        valuesFiles: [dev/values/4-orgs-policy-any/org-3-peer-1.yaml]
-        imageStrategy:
-          helm: {}
-        values:
-          image: substrafoundation/hlf-k8s
-
-      - name: network-org-4-peer-1
-        chartPath: charts/hlf-k8s
-        namespace: org-4
-        valuesFiles: [dev/values/4-orgs-policy-any/org-4-peer-1.yaml]
+        valuesFiles: [values/org-3-peer-1.yaml]
         imageStrategy:
           helm: {}
         values:
@@ -84,8 +75,7 @@ deploy:
       install: ["--create-namespace"]
   kubectl:
     manifests:
-      - dev/serviceAccounts/serviceAccount-orderer.yaml
-      - dev/serviceAccounts/serviceAccount-org-1.yaml
-      - dev/serviceAccounts/serviceAccount-org-2.yaml
-      - dev/serviceAccounts/serviceAccount-org-3.yaml
-      - dev/serviceAccounts/serviceAccount-org-4.yaml
+      - ../serviceAccounts/serviceAccount-orderer.yaml
+      - ../serviceAccounts/serviceAccount-org-1.yaml
+      - ../serviceAccounts/serviceAccount-org-2.yaml
+      - ../serviceAccounts/serviceAccount-org-3.yaml

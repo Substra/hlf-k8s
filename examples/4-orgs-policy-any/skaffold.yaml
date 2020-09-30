@@ -11,13 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# ABOUT
+#
+#   This is An hlf-k8s deployment with 4 organizations using the "ANY"
+#   application channel policy. A chosen node (here MyOrg1) is responsible
+#   for adding all the other nodes to the application channel.
 ---
 apiVersion: skaffold/v1beta13
 kind: Config
 build:
   artifacts:
     - image: substrafoundation/hlf-k8s
-      context: .
+      context: ../../
       docker:
         dockerfile: images/hlf-k8s/Dockerfile
       sync:
@@ -30,28 +36,45 @@ deploy:
   helm:
     releases:
       - name: network-orderer
-        chartPath: charts/hlf-k8s
+        chartPath: ../../charts/hlf-k8s
         namespace: orderer
-        valuesFiles: [examples/2-orgs-policy-any/values/orderer.yaml]
+        valuesFiles: [values/orderer.yaml]
         imageStrategy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
 
       - name: network-org-1-peer-1
-        chartPath: charts/hlf-k8s
+        chartPath: ../../charts/hlf-k8s
         namespace: org-1
-        valuesFiles: [examples/2-orgs-policy-any/values/org-1-peer-1.yaml]
+        valuesFiles: [values/org-1-peer-1.yaml]
         imageStrategy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
 
-
       - name: network-org-2-peer-1
-        chartPath: charts/hlf-k8s
+        chartPath: ../../charts/hlf-k8s
         namespace: org-2
-        valuesFiles: [examples/2-orgs-policy-any/values/org-2-peer-1.yaml]
+        valuesFiles: [values/org-2-peer-1.yaml]
+        imageStrategy:
+          helm: {}
+        values:
+          image: substrafoundation/hlf-k8s
+
+      - name: network-org-3-peer-1
+        chartPath: ../../charts/hlf-k8s
+        namespace: org-3
+        valuesFiles: [values/org-3-peer-1.yaml]
+        imageStrategy:
+          helm: {}
+        values:
+          image: substrafoundation/hlf-k8s
+
+      - name: network-org-4-peer-1
+        chartPath: ../../charts/hlf-k8s
+        namespace: org-4
+        valuesFiles: [values/org-4-peer-1.yaml]
         imageStrategy:
           helm: {}
         values:
@@ -59,11 +82,10 @@ deploy:
 
     flags:
       install: ["--create-namespace"]
-  # We create the serviceAccounts with the kubectl deployer to ensure the serviceAccounts will stay present for the Helm deletion hooks
-  # By design Skaffold create and delete ressources in a fixed order (Helm > kubectl > kustomize)
-  # Ref: https://github.com/GoogleContainerTools/skaffold/blob/dedd545/pkg/skaffold/runner/new.go#L191-L214 (func getDeployer)
   kubectl:
     manifests:
-      - examples/serviceAccounts/serviceAccount-orderer.yaml
-      - examples/serviceAccounts/serviceAccount-org-1.yaml
-      - examples/serviceAccounts/serviceAccount-org-2.yaml
+      - ../serviceAccounts/serviceAccount-orderer.yaml
+      - ../serviceAccounts/serviceAccount-org-1.yaml
+      - ../serviceAccounts/serviceAccount-org-2.yaml
+      - ../serviceAccounts/serviceAccount-org-3.yaml
+      - ../serviceAccounts/serviceAccount-org-4.yaml
