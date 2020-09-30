@@ -13,6 +13,7 @@
 #
 
 for i in `seq $1`; do
+    echo org-$i
     kubectl exec -it -n org-$i `kubectl get pods -n org-$i | grep toolbox | cut -d' ' -f1` -- \
     bash -c "peer chaincode invoke \
         -C mychannel \
@@ -24,4 +25,5 @@ for i in `seq $1`; do
         --keyfile /var/hyperledger/tls/server/pair/tls.key \
         -o network-orderer-hlf-ord.orderer:7050 \
         -c '{\"Args\":[\"queryTraintuples\"]}'"
+    echo '-----------'
 done
