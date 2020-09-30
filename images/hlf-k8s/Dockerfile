@@ -17,8 +17,3 @@ RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/
 RUN wget https://github.com/fullstorydev/grpcurl/releases/download/v1.3.0/grpcurl_1.3.0_linux_x86_64.tar.gz && \
   tar xvzf grpcurl_1.3.0_linux_x86_64.tar.gz && \
   mv grpcurl /bin
-
-COPY ./images/hlf-k8s/setup-hfc-binaries.sh .
-
-RUN ls -la
-RUN ./setup-hfc-binaries.sh
