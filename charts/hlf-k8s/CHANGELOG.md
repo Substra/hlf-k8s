@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.2
+
+- Added `genesis.generate` (defaults to `true` - behavior unchanged)
+
+## 3.0.1
+
+- Bump `hlf-peer` chart to `v1.6.0`
+
 ## 3.0.0
 
 - Switched to Helm3

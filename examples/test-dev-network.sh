@@ -12,7 +12,9 @@
 #  ./test-dev-network.sh 2
 #
 
-for i in `seq $1`; do
+NUM_ORGS=${1:-2}
+
+for i in `seq $NUM_ORGS`; do
     echo org-$i
     kubectl exec -it -n org-$i `kubectl get pods -n org-$i | grep toolbox | cut -d' ' -f1` -- \
     bash -c "peer chaincode invoke \
