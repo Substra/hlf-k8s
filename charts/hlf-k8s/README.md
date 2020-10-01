@@ -57,6 +57,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `configOperator.ingress.annotations` | Config operator ingress annotations | (undefined) |
 | `configOperator.ingress.tls` | Config operator ingress TLS configuration | (undefined) |
 | `configOperator.ingress.hosts` | Config operator ingress hosts | (undefined) |
+| `genesis.generate` | If true, generate a HLF genesis block and populate the `secrets.genesis` secret | `true` |
 | `hooks.uninstallChaincode.enabled` | If true, the chaincode will be automatically uninstalled when the chart is uninstalled | `true` |
 | **Orderer** |  |  |
 | `hlf-ord.enabled` | If true, a HLF Orderer will be installed | `false` |
@@ -237,7 +238,7 @@ On each peer, expose the `config` route using `configOperator.ingress`.
 
 Two types of monitoring pods are offered to facilitate troubleshooting. They periodically poll and display information about the system and application channels. Check the pod's log to see the relevant information.
 
-- **monitor pod** shows the orgs that **have been added** to an application channel (by a member of the system channel). 
+- **monitor pod** shows the orgs that **have been added** to an application channel (by a member of the system channel).
 - **discover-monitor pod** shows the orgs that **have have joined** a channel **and are online**
 
 Note that the monitor pod also shows the orgs that are part of the **system channel**.

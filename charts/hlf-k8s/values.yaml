@@ -48,8 +48,8 @@ appChannels:
 
   ## The organizations to fetch signed proposals from (see README)
   proposalOrganizations: []
-  # - { org: Org1, mspid: Org1MSP, proposalServerUrl: peer-1-org-appchannel-operator.org-1/proposal/ }
-  # - { org: Org2, mspid: Org2MSP, proposalServerUrl: peer-2-org-appchannel-operator.org-2/proposal/ }
+  # - { org: Org1, mspid: Org1MSP, proposalServerUrl: peer-1-org-appchannel-operator-mychannel.org-1/proposal/ }
+  # - { org: Org2, mspid: Org2MSP, proposalServerUrl: peer-2-org-appchannel-operator-mychannel.org-2/proposal/ }
 
   # chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
   # chaincodeName: mycc
@@ -313,3 +313,6 @@ hooks:
 
 toolbox:
   enabled: false
+
+genesis:
+  generate: true

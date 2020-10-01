@@ -6,13 +6,13 @@ It is part of the [Substra project](https://github.com/SubstraFoundation/substra
 
 ## Prerequisites
 
-- [kubernetes](https://kubernetes.io/) v1.15
+- [kubernetes](https://kubernetes.io/) v1.16
 - [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) v1.18
-- [helm](https://github.com/helm/helm) v2.14
+- [helm](https://github.com/helm/helm) v3
 
 ## Local install
 
-Use [skaffold](https://github.com/GoogleContainerTools/skaffold) v1.7+.
+Use [skaffold](https://github.com/GoogleContainerTools/skaffold) v1.14+.
 
 To start hlf-k8s, run:
 
