@@ -4,19 +4,24 @@
 #
 # To speed up local deployment, run this script before running `skaffold run`:
 #
-#   $ ./examples/secrets-create.sh
+#   $ ./examples/dev-secrets.sh create
 #   $ skaffold run
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 KUBECTL="kubectl"
-OP="apply"
+
+if [ "$1" != "create" ] && [ "$1" != "delete" ]; then
+    echo "Usage: dev-secrets.sh [create|delete]"
+    exit
+fi
+
+OP=$1
+if [ "$OP" == "create" ]; then
+    OP="apply"
+fi
 
 if [ -n "$KUBE_CONTEXT" ]; then
     KUBECTL="kubectl --context=${KUBE_CONTEXT}"
-fi
-
-if [ "$1" == "delete" ]; then
-    OP="delete"
 fi
 
 if [ "$OP" = "apply" ]; then
