@@ -61,39 +61,38 @@ data:
       {{- end }}
 
     Capabilities:
-        Channel: &ChannelCapabilities
-            V2_0: true
+      Channel: &ChannelCapabilities
+          V2_0: true
 
-        Orderer: &OrdererCapabilities
-            V2_0: true
+      Orderer: &OrdererCapabilities
+          V2_0: true
 
-        Application: &ApplicationCapabilities
-            V2_0: true
+      Application: &ApplicationCapabilities
+          V2_0: true
 
     Application: &ApplicationDefaults
 
       Organizations: null
 
       Policies: &ApplicationDefaultPolicies
-          LifecycleEndorsement:
-              Type: ImplicitMeta
-              Rule: "ANY Endorsement"
-          Endorsement:
-              Type: ImplicitMeta
-              Rule: "MAJORITY Endorsement"
-          Readers:
-              Type: ImplicitMeta
-              Rule: "ANY Readers"
-          Writers:
-              Type: ImplicitMeta
-              Rule: "ANY Writers"
-          Admins:
-              Type: ImplicitMeta
-              Rule: "MAJORITY Admins"
+        LifecycleEndorsement:
+            Type: ImplicitMeta
+            Rule: "ANY Endorsement"
+        Endorsement:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Endorsement"
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
 
       Capabilities:
           <<: *ApplicationCapabilities
-
 
     Profiles:
       {{- if index .Values "hlf-peer" "enabled" }}
@@ -101,10 +100,8 @@ data:
       OrgsChannel-{{ .channelName }}:
         Capabilities:
           V2_0: true
-        {{- if .channelPolicies }}
         Policies:
-          {{- .channelPolicies | nindent 12 -}}
-        {{- end }}
+          {{- .channelPolicies | nindent 12 }}
         Application:
           <<: *ApplicationDefaults
           {{- if .appPolicies }}
@@ -116,6 +113,7 @@ data:
         Consortium: SampleConsortium
       {{- end }}
       {{- end }}
+
       {{- if index .Values "hlf-ord" "enabled" }}
       GenerateGenesis:
         Policies:
@@ -146,8 +144,8 @@ data:
             V2_0: true
           Policies:
             {{- index .Values "hlf-ord" "policies" | nindent 12 }}
-
       {{- end }}
+
   core.yaml: |
     chaincode:
       builder: {{ index .Values "hlf-peer" "peer" "chaincode" "builder" }}

@@ -18,8 +18,13 @@ image:
   pullPolicy: IfNotPresent
 
 imageCA:
-  repository: substrafoundation/hlf-k8s
+  repository: substrafoundation/hlf-k8s-ca
   tag: latest
+  pullPolicy: IfNotPresent
+
+imageChaincode:
+  repository: substrafoundation/substra-chaincode
+  tag: hlf-2
   pullPolicy: IfNotPresent
 
 nginx-ingress:
@@ -82,20 +87,20 @@ appChannels:
   #       Rule: "ANY Admins"
   # appPolicies: |-
   #   LifecycleEndorsement:
-  #         Type: ImplicitMeta
-  #         Rule: "ANY Endorsement"
-  #     Endorsement:
-  #         Type: ImplicitMeta
-  #         Rule: "MAJORITY Endorsement"
-  #     Readers:
-  #         Type: ImplicitMeta
-  #         Rule: "ANY Readers"
-  #     Writers:
-  #         Type: ImplicitMeta
-  #         Rule: "ANY Writers"
-  #     Admins:
-  #         Type: ImplicitMeta
-  #         Rule: "MAJORITY Admins"
+  #       Type: ImplicitMeta
+  #       Rule: "ANY Endorsement"
+  #   Endorsement:
+  #       Type: ImplicitMeta
+  #       Rule: "MAJORITY Endorsement"
+  #   Readers:
+  #       Type: ImplicitMeta
+  #       Rule: "ANY Readers"
+  #   Writers:
+  #       Type: ImplicitMeta
+  #       Rule: "ANY Writers"
+  #   Admins:
+  #       Type: ImplicitMeta
+  #       Rule: "MAJORITY Admins"
 
   ingress:
     enabled: false
@@ -368,8 +373,6 @@ hooks:
     name: ""
     namespace: ""
   deleteSecrets:
-    enabled: true
-  uninstallChaincode:
     enabled: true
 
 toolbox:

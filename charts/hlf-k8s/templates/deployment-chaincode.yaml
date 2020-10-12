@@ -1,0 +1,62 @@
+{{- if index .Values "hlf-peer" "enabled" }}
+{{- range $index, $value := .Values.chaincodes }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "substra.fullname" $ }}-chaincode-{{ .name}}
+  labels:
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode
+    app.kubernetes.io/part-of: {{ template "substra.name" $ }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
+        app.kubernetes.io/instance: {{ $.Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
+        app.kubernetes.io/instance: {{ $.Release.Name }}
+    spec:
+      containers:
+        - name: substra-chaincode-{{ .name}}
+          image: {{ $.Values.imageChaincode.repository }}:{{ $.Values.imageChaincode.tag }}
+          imagePullPolicy: "{{ $.Values.imageChaincode.pullPolicy }}"
+          command: ['./chaincode']
+          env:
+            - name: CHAINCODE_CCID
+              valueFrom:
+                secretKeyRef:
+                  name: chaincode-ccid-{{ .name }}
+                  key: ccid
+            - name: CHAINCODE_ADDRESS
+              value: "0.0.0.0:{{ .port }}"
+          ports:
+            - containerPort: {{ .port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "substra.fullname" $ }}-chaincode-{{ .name}}
+  labels:
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
+spec:
+  type: ClusterIP
+  ports:
+  - name: chaincode
+    port: {{ .port }}
+    protocol: TCP
+    targetPort: {{ .port }}
+  selector:
+    app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+{{- end }}
+{{- end }}

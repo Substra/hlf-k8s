@@ -1,18 +1,18 @@
 dependencies:
 - name: hlf-ca
-  repository: file:////Users/kmoutet/Substra/charts/stable/hlf-ca
+  repository: https://kubernetes-charts.storage.googleapis.com/
   version: 1.2.0
 - name: hlf-ord
-  repository: file:////Users/kmoutet/Substra/charts/stable/hlf-ord
+  repository: file://///Users/kmoutet/Substra/charts-fork/stable/hlf-ord
   version: 2.0.0
 - name: hlf-peer
   repository: file:////Users/kmoutet/Substra/charts/stable/hlf-peer
   version: 2.0.0
 - name: hlf-couchdb
-  repository: file:////Users/kmoutet/Substra/charts/stable/hlf-couchdb
+  repository: https://kubernetes-charts.storage.googleapis.com/
   version: 1.0.7
 - name: nginx-ingress
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 1.29.7
-digest: sha256:252ba517c6e300a044559cd6ba13c2ddb6cb7bdcede01bcfcb945208c643dcdf
-generated: "2020-09-23T15:13:44.23634+02:00"
+digest: sha256:ef8807d4a16f60fcb29d8c9cd2d2b55d2c4707e367c945a24050a1fe8b3ced3e
+generated: "2020-10-13T09:40:21.264098+02:00"

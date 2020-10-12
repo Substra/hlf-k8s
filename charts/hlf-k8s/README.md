@@ -58,7 +58,6 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `configOperator.ingress.tls` | Config operator ingress TLS configuration | (undefined) |
 | `configOperator.ingress.hosts` | Config operator ingress hosts | (undefined) |
 | `genesis.generate` | If true, generate a HLF genesis block and populate the `secrets.genesis` secret | `true` |
-| `hooks.uninstallChaincode.enabled` | If true, the chaincode will be automatically uninstalled when the chart is uninstalled | `true` |
 | **Orderer** |  |  |
 | `hlf-ord.enabled` | If true, a HLF Orderer will be installed | `false` |
 | `hlf-ord.host` | The hostname for the Orderer | `orderer-hostname` |

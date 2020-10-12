@@ -21,11 +21,6 @@ build:
       docker:
         dockerfile: images/hlf-k8s/Dockerfile
 
-    - image: substrafoundation/hlf-k8s-ca
-      context: .
-      docker:
-        dockerfile: images/hlf-k8s-ca/Dockerfile
-
     - image: substrafoundation/fabric-peer
       context: .
       docker:
@@ -43,7 +38,6 @@ deploy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
-          image-ca: substrafoundation/hlf-k8s-ca
 
       - name: network-org-1-peer-1
         chartPath: charts/hlf-k8s
@@ -53,7 +47,6 @@ deploy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
-          image-ca: substrafoundation/hlf-k8s-ca
           hlf-peer.image: substrafoundation/fabric-peer
 
       - name: network-org-2-peer-1
@@ -64,7 +57,6 @@ deploy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
-          image-ca: substrafoundation/hlf-k8s-ca
           hlf-peer.image: substrafoundation/fabric-peer
 
     flags:

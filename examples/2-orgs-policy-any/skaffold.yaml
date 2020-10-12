@@ -43,6 +43,7 @@ deploy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
+          imageCA: substrafoundation/hlf-k8s-ca
 
       - name: network-org-1-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -52,6 +53,8 @@ deploy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
+          imageCA: substrafoundation/hlf-k8s-ca
+          hlf-peer.image: substrafoundation/fabric-peer
 
 
       - name: network-org-2-peer-1
@@ -62,6 +65,8 @@ deploy:
           helm: {}
         values:
           image: substrafoundation/hlf-k8s
+          imageCA: substrafoundation/hlf-k8s-ca
+          hlf-peer.image: substrafoundation/fabric-peer
 
     flags:
       install: ["--create-namespace"]

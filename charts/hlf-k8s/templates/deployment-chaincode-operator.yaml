@@ -83,7 +83,7 @@ spec:
                 CHAINCODE_CCID=$(peer lifecycle chaincode queryinstalled 2>&1 | grep {{ .name }} | awk 'NR==1{print substr($3, 1, length($3)-1)}')
 
                 until kubectl get secret chaincode-ccid-{{ .name }} > /dev/null; do
-                    kubectl create secret generic chaincode-ccid-{{ .name }} --from-literal=chaincode.ccid=$CHAINCODE_CCID
+                    kubectl create secret generic chaincode-ccid-{{ .name }} --from-literal=ccid=$CHAINCODE_CCID
                 done
 
                 # Approve chaincode

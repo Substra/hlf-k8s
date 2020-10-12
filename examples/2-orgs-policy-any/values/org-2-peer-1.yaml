@@ -26,24 +26,52 @@ hlf-peer:
       externalEndpoint: network-org-2-peer-1-hlf-peer.org-2:7051
   discover-monitor:
     enabled: true
-
+  couchdbInstance: network-org-2-peer-1-hlf-couchdb
 
 chaincodes:
-  - name: mycc
-    version: "1.0"
-    src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
+- address: network-org-2-peer-1-hlf-k8s-chaincode-mycc.org-2
+  chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+  channelName: mychannel
+  name: mycc
+  port: 7052
+  version: "1.0"
+- address: network-org-2-peer-1-hlf-k8s-chaincode-yourcc.org-2
+  chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+  channelName: yourchannel
+  name: yourcc
+  port: 7052
+  version: "1.0"
 
 appChannels:
-  - channelName: mychannel
-    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-    chaincodeName: mycc
-    chaincodeVersion: "1.0"
+- channelName: mychannel
+  chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+  chaincodeName: mycc
+  chaincodeVersion: "1.0"
+  channelPolicies: |-
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "ANY Admins"
 
-  - channelName: yourchannel
-    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-    chaincodeName: mycc
-    chaincodeVersion: "1.0"
-
+- channelName: yourchannel
+  chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+  chaincodeName: yourcc
+  chaincodeVersion: "1.0"
+  channelPolicies: |-
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "ANY Admins"
 
 enrollments:
   creds:

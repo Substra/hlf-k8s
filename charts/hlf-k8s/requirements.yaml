@@ -18,11 +18,13 @@ dependencies:
     version: 1.2.0
     condition: hlf-ca.enabled
   - name: hlf-ord
-    repository: https://kubernetes-charts.storage.googleapis.com/
+    # repository: https://kubernetes-charts.storage.googleapis.com/
+    repository: file://///Users/kmoutet/Substra/charts-fork/stable/hlf-ord
     version: 2.0.0
     condition: hlf-ord.enabled
   - name: hlf-peer
-    repository: https://kubernetes-charts.storage.googleapis.com/
+    repository: file:////Users/kmoutet/Substra/charts/stable/hlf-peer
+    # repository: https://kubernetes-charts.storage.googleapis.com/
     version: 2.0.0
     condition: hlf-peer.enabled
   - name: hlf-couchdb
