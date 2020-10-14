@@ -13,17 +13,18 @@
 # limitations under the License.
 
 {{- if index .Values "hlf-peer" "enabled" }}
-{{- range $index, $value := .Values.chaincodes }}
+{{- range $index, $value :=.Values.appChannels }}
+{{- range .chaincodes }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ printf "%s-%s-chaincode-operator-%d" $.Release.Name $.Chart.Name $index | lower | trunc 63 | trimSuffix "-" }}
+  name: {{ printf "%s-%s-chaincode-operator-%s" $.Release.Name $.Chart.Name .chaincodeName | lower | trunc 63 | trimSuffix "-" }}
   labels:
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
     app.kubernetes.io/instance: {{ $.Release.Name }}
     helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
-    app.kubernetes.io/name: {{ printf "%s-chaincode-operator-%d" $.Chart.Name $index | lower | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/name: {{ printf "%s-chaincode-operator-%s" $.Chart.Name .chaincodeName | lower | trunc 63 | trimSuffix "-" }}
     app.kubernetes.io/part-of: {{ $.Release.Name | lower | trunc 63 | trimSuffix "-" }}
 spec:
   replicas: 1
@@ -40,7 +41,7 @@ spec:
       serviceAccountName: {{ template "substra.fullname" $ }}
       containers:
         - name: fabric-tools
-          image: {{ $.Values.image.repository }}:{{ $.Values.image.tag }}
+          image: {{ $.Values.images.hlfk8s.repository }}:{{ $.Values.images.hlfk8s.tag }}
           command: ['bash', '-c']
           args:
             - |
@@ -52,14 +53,14 @@ spec:
 
                 peer lifecycle chaincode queryinstalled > chaincode.list
 
-                until grep {{ .name }} chaincode.list > /dev/null; do
-                  printf "[DEBUG] Installing chaincode {{ .name }} {{ .version }}\n"
+                until grep {{ .chaincodeName }} chaincode.list > /dev/null; do
+                  printf "[DEBUG] Installing chaincode {{ .chaincodeName }} {{ .chaincodeVersion }}\n"
 
                   ## Clean potential remaining artifacts
                   rm -f code.tar.gz chaincode.tgz connection.json metadata.json
 
                   echo "{
-                  \"address\": \"{{ .address }}:{{ .port }}\",
+                  \"address\": \"{{ .chaincodeAddress }}:{{ .chaincodePort }}\",
                   \"dial_timeout\": \"10s\",
                   \"tls_required\": true,
                   \"client_auth_required\": true,
@@ -70,7 +71,7 @@ spec:
 
                   tar cfz code.tar.gz connection.json
 
-                  echo '{"path":"", "type":"external", "label":"{{ .name }}"}' > metadata.json
+                  echo '{"path":"", "type":"external", "label":"{{ .chaincodeName }}"}' > metadata.json
                   tar cfz chaincode.tgz code.tar.gz metadata.json
 
                   ## Install chaincode
@@ -80,10 +81,10 @@ spec:
                   sleep 10
                 done
 
-                CHAINCODE_CCID=$(peer lifecycle chaincode queryinstalled 2>&1 | grep {{ .name }} | awk 'NR==1{print substr($3, 1, length($3)-1)}')
+                CHAINCODE_CCID=$(peer lifecycle chaincode queryinstalled 2>&1 | grep {{ .chaincodeName }} | awk 'NR==1{print substr($3, 1, length($3)-1)}')
 
-                until kubectl get secret chaincode-ccid-{{ .name }} > /dev/null; do
-                    kubectl create secret generic chaincode-ccid-{{ .name }} --from-literal=ccid=$CHAINCODE_CCID
+                until kubectl get secret chaincode-ccid-{{ .chaincodeName }} > /dev/null; do
+                    kubectl create secret generic chaincode-ccid-{{ .chaincodeName }} --from-literal=ccid=$CHAINCODE_CCID
                 done
 
                 # Approve chaincode
@@ -92,11 +93,11 @@ spec:
 
                 until grep "${CHAINCODE_CCID}" chaincode.approve > /dev/null; do
 
-                    printf "[DEBUG] Approve chaincode {{ .name }} {{ .version }}\n"
+                    printf "[DEBUG] Approve chaincode {{ .chaincodeName }} {{ .chaincodeVersion }}\n"
 
-                    peer lifecycle chaincode approveformyorg  --signature-policy "{{ .chaincodePolicy}}" --channelID {{ .channelName }} --name {{ .name }}  --version {{ .version }} --package-id $CHAINCODE_CCID --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                    peer lifecycle chaincode approveformyorg  --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }}  --version {{ .chaincodeVersion }} --package-id $CHAINCODE_CCID --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
 
-                    peer lifecycle chaincode queryapproved --channelID {{ .channelName }} --name {{ .name }} --sequence 1 -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.approve 2>&1
+                    peer lifecycle chaincode queryapproved --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --sequence 1 -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.approve 2>&1
 
                 done
 
@@ -218,5 +219,6 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}

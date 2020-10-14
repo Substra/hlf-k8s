@@ -37,7 +37,7 @@ spec:
       serviceAccountName: {{ template "substra.fullname" . }}
       containers:
         - name: fabric-tools
-          image: {{ .Values.imageCA.repository }}:{{ .Values.imageCA.tag }}
+          image: {{ .Values.images.hlfk8sca.repository }}:{{ .Values.images.hlfk8sca.tag }}
           command: ['sh', '-c']
           args:
             - |

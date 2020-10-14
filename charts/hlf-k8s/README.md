@@ -73,9 +73,12 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `systemChannel.name` | The name of the system channel | `systemchannel` |
 | `systemChannel.organizations` | The organizations to add to the system channel. See [Add an organization to the system channel](#add-an-organization-to-the-system-channel). | `[]` |
 | **Common / Other** |  |  |
-| `image.repository` | `hlf-k8s` image repository | `substrafoundation/hlf-k8s` |
-| `image.tag` | `hlf-k8s` image tag | `latest` |
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `images.hlfk8s.repository` | `hlf-k8s` image repository | `substrafoundation/hlf-k8s` |
+| `images.hlfk8s.tag` | `hlf-k8s` image tag | `latest` |
+| `images.hlfk8s.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `images.hlfk8sca.repository` | `hlf-k8s-ca` image repository | `substrafoundation/hlf-k8s-ca` |
+| `images.hlfk8sca.tag` | `hlf-k8s-ca` image tag | `latest` |
+| `images.hlfk8sca.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `nodeSelector` | Node labels for pod assignment | `{}` |
 | `tolerations` | Toleration labels for pod assignment | `[]` |
 | `affinity` | Affinity settings for pod assignment | `{}` |

@@ -8,7 +8,6 @@ nginx-ingress:
     scope:
       enabled: true
 
-
 hlf-ca:
   caName: rcaOrg1
   host: network-org-1-peer-1-hlf-ca.org-1
@@ -26,30 +25,11 @@ hlf-peer:
       externalEndpoint: network-org-1-peer-1-hlf-peer.org-1:7051
   discover-monitor:
     enabled: true
-
   couchdbInstance: network-org-1-peer-1-hlf-couchdb
 
 
-chaincodes:
-- address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
-  chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-  channelName: mychannel
-  name: mycc
-  port: 7052
-  version: "1.0"
-- address: network-org-1-peer-1-hlf-k8s-chaincode-yourcc.org-1
-  chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-  channelName: yourchannel
-  name: yourcc
-  port: 7052
-  version: "1.0"
-
 appChannels:
 - channelName: mychannel
-  organizations:
-    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
-    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
-
   channelPolicies: |-
     Readers:
         Type: ImplicitMeta
@@ -60,16 +40,39 @@ appChannels:
     Admins:
         Type: ImplicitMeta
         Rule: "ANY Admins"
+  appPolicies: |-
+    LifecycleEndorsement:
+        Type: ImplicitMeta
+        Rule: "ANY Endorsement"
+    Endorsement:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Endorsement"
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
 
-  chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-  chaincodeName: mycc
-  chaincodeVersion: "1.0"
+  chaincodes:
+  - chaincodeAddress: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+    chaincodeName: mycc
+    chaincodePort: 7052
+    chaincodeVersion: "1.0"
+    image:
+      repository: substrafoundation/substra-chaincode
+      tag: hlf-2
+      pullPolicy: IfNotPresent
+
+  organizations:
+    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
+    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
 
 - channelName: yourchannel
-  organizations:
-    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
-    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
-
   channelPolicies: |-
     Readers:
         Type: ImplicitMeta
@@ -80,10 +83,37 @@ appChannels:
     Admins:
         Type: ImplicitMeta
         Rule: "ANY Admins"
+  appPolicies: |-
+    LifecycleEndorsement:
+        Type: ImplicitMeta
+        Rule: "ANY Endorsement"
+    Endorsement:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Endorsement"
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
 
-  chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-  chaincodeName: yourcc
-  chaincodeVersion: "1.0"
+  chaincodes:
+  - chaincodeAddress: network-org-1-peer-1-hlf-k8s-chaincode-yourcc.org-1
+    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+    chaincodeName: yourcc
+    chaincodePort: 7052
+    chaincodeVersion: "1.0"
+    image:
+      repository: substrafoundation/substra-chaincode
+      tag: hlf-2
+      pullPolicy: IfNotPresent
+
+  organizations:
+    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
+    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
 
 
 enrollments:

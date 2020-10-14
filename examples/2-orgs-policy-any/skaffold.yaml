@@ -42,8 +42,8 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: substrafoundation/hlf-k8s
-          imageCA: substrafoundation/hlf-k8s-ca
+          images.hlfk8s: substrafoundation/hlf-k8s
+          images.hlfk8sca: substrafoundation/hlf-k8s-ca
 
       - name: network-org-1-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -52,8 +52,8 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: substrafoundation/hlf-k8s
-          imageCA: substrafoundation/hlf-k8s-ca
+          images.hlfk8s: substrafoundation/hlf-k8s
+          images.hlfk8sca: substrafoundation/hlf-k8s-ca
           hlf-peer.image: substrafoundation/fabric-peer
 
 
@@ -64,8 +64,8 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: substrafoundation/hlf-k8s
-          imageCA: substrafoundation/hlf-k8s-ca
+          images.hlfk8s: substrafoundation/hlf-k8s
+          images.hlfk8sca: substrafoundation/hlf-k8s-ca
           hlf-peer.image: substrafoundation/fabric-peer
 
     flags:

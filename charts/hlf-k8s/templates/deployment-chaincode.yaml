@@ -1,10 +1,11 @@
 {{- if index .Values "hlf-peer" "enabled" }}
-{{- range $index, $value := .Values.chaincodes }}
+{{- range .Values.appChannels }}
+{{- range .chaincodes }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "substra.fullname" $ }}-chaincode-{{ .name}}
+  name: {{ template "substra.fullname" $ }}-chaincode-{{ .chaincodeName}}
   labels:
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
     app.kubernetes.io/instance: {{ $.Release.Name }}
@@ -15,34 +16,34 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .chaincodeName}}
         app.kubernetes.io/instance: {{ $.Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .chaincodeName}}
         app.kubernetes.io/instance: {{ $.Release.Name }}
     spec:
       containers:
-        - name: substra-chaincode-{{ .name}}
-          image: {{ $.Values.imageChaincode.repository }}:{{ $.Values.imageChaincode.tag }}
-          imagePullPolicy: "{{ $.Values.imageChaincode.pullPolicy }}"
+        - name: substra-chaincode-{{ .chaincodeName}}
+          image: {{ .image.repository }}:{{ .image.tag }}
+          imagePullPolicy: "{{ .image.pullPolicy }}"
           command: ['./chaincode']
           env:
             - name: CHAINCODE_CCID
               valueFrom:
                 secretKeyRef:
-                  name: chaincode-ccid-{{ .name }}
+                  name: chaincode-ccid-{{ .chaincodeName }}
                   key: ccid
             - name: CHAINCODE_ADDRESS
-              value: "0.0.0.0:{{ .port }}"
+              value: "0.0.0.0:{{ .chaincodePort }}"
           volumeMounts:
             - mountPath: /var/hyperledger/tls/client/pair
               name: tls-client
             - mountPath: /var/hyperledger/tls/client/cert
               name: tls-clientrootcert
           ports:
-            - containerPort: {{ .port }}
+            - containerPort: {{ .chaincodePort }}
       volumes:
       - name: tls-client
         secret:
@@ -54,21 +55,22 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "substra.fullname" $ }}-chaincode-{{ .name}}
+  name: {{ template "substra.fullname" $ }}-chaincode-{{ .chaincodeName}}
   labels:
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
     app.kubernetes.io/instance: {{ $.Release.Name }}
     helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
-    app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
+    app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .chaincodeName}}
 spec:
   type: ClusterIP
   ports:
   - name: chaincode
-    port: {{ .port }}
+    port: {{ .chaincodePort }}
     protocol: TCP
-    targetPort: {{ .port }}
+    targetPort: {{ .chaincodePort }}
   selector:
-    app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
+    app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .chaincodeName}}
     app.kubernetes.io/instance: {{ $.Release.Name }}
+{{- end }}
 {{- end }}
 {{- end }}
