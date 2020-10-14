@@ -26,24 +26,53 @@ hlf-peer:
       externalEndpoint: network-org-2-peer-1-hlf-peer.org-2:7051
   discover-monitor:
     enabled: true
-
-
-chaincodes:
-  - name: mycc
-    version: "1.0"
-    src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
+  couchdbInstance: network-org-1-peer-1-hlf-couchdb
 
 appChannels:
-  - channelName: mychannel
+- channelName: mychannel
+  channelPolicies: |-
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "ANY Admins"
+  appPolicies: |-
+    LifecycleEndorsement:
+        Type: ImplicitMeta
+        Rule: "ANY Endorsement"
+    Endorsement:
+        Type: ImplicitMeta
+        Rule: "ANY Endorsement"
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "ANY Admins"
+
+  chaincodes:
+  - chaincodeAddress: network-org-2-peer-1-hlf-k8s-chaincode-mycc.org-2
     chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
     chaincodeName: mycc
+    chaincodePort: 7052
     chaincodeVersion: "1.0"
+    image:
+      repository: substrafoundation/substra-chaincode
+      tag: hlf-2
+      pullPolicy: IfNotPresent
 
 enrollments:
   creds:
     - { name: admin, secret: adminpwd, options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"}
     - { name: user, secret: pwd, options: "--id.type peer"}
-  csrHost: network-org-2-peer-1-hlf-peer.org-2
+  csrHost: network-org-2-peer-1-hlf-peer.org-2,network-org-2-peer-1-hlf-k8s-chaincode-mycc.org-2
 
 
 toolbox:

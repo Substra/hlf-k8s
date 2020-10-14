@@ -26,7 +26,6 @@ hlf-ord:
 
 appChannels:
   - channelName: mychannel
-  - channelName: yourchannel
 
 systemChannel:
   organizations:

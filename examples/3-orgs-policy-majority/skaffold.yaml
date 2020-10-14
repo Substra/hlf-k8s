@@ -14,7 +14,7 @@
 
 # ABOUT
 #
-#   This is An hlf-k8s deployment with 3 organizations using the default
+#   This is An hlf-k8s deployment with 4 organizations using the default
 #   application channel policy ("MAJORITY")
 #
 ---
@@ -48,7 +48,8 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: substrafoundation/hlf-k8s
+          images.hlfk8s: substrafoundation/hlf-k8s
+          images.hlfk8sca: substrafoundation/hlf-k8s-ca
 
       - name: network-org-1-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -57,7 +58,9 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: substrafoundation/hlf-k8s
+          images.hlfk8s: substrafoundation/hlf-k8s
+          images.hlfk8sca: substrafoundation/hlf-k8s-ca
+          hlf-peer.image: substrafoundation/fabric-peer
 
       - name: network-org-2-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -66,7 +69,9 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: substrafoundation/hlf-k8s
+          images.hlfk8s: substrafoundation/hlf-k8s
+          images.hlfk8sca: substrafoundation/hlf-k8s-ca
+          hlf-peer.image: substrafoundation/fabric-peer
 
       - name: network-org-3-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -75,7 +80,9 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: substrafoundation/hlf-k8s
+          images.hlfk8s: substrafoundation/hlf-k8s
+          images.hlfk8sca: substrafoundation/hlf-k8s-ca
+          hlf-peer.image: substrafoundation/fabric-peer
 
     flags:
       install: ["--create-namespace"]
@@ -85,3 +92,4 @@ deploy:
       - ../serviceAccounts/serviceAccount-org-1.yaml
       - ../serviceAccounts/serviceAccount-org-2.yaml
       - ../serviceAccounts/serviceAccount-org-3.yaml
+      - ../serviceAccounts/serviceAccount-org-4.yaml

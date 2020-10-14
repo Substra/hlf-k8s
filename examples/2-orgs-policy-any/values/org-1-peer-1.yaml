@@ -27,7 +27,6 @@ hlf-peer:
     enabled: true
   couchdbInstance: network-org-1-peer-1-hlf-couchdb
 
-
 appChannels:
 - channelName: mychannel
   channelPolicies: |-
@@ -46,7 +45,7 @@ appChannels:
         Rule: "ANY Endorsement"
     Endorsement:
         Type: ImplicitMeta
-        Rule: "MAJORITY Endorsement"
+        Rule: "ANY Endorsement"
     Readers:
         Type: ImplicitMeta
         Rule: "ANY Readers"
@@ -55,7 +54,7 @@ appChannels:
         Rule: "ANY Writers"
     Admins:
         Type: ImplicitMeta
-        Rule: "MAJORITY Admins"
+        Rule: "ANY Admins"
 
   chaincodes:
   - chaincodeAddress: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
@@ -89,7 +88,7 @@ appChannels:
         Rule: "ANY Endorsement"
     Endorsement:
         Type: ImplicitMeta
-        Rule: "MAJORITY Endorsement"
+        Rule: "ANY Endorsement"
     Readers:
         Type: ImplicitMeta
         Rule: "ANY Readers"
@@ -98,7 +97,7 @@ appChannels:
         Rule: "ANY Writers"
     Admins:
         Type: ImplicitMeta
-        Rule: "MAJORITY Admins"
+        Rule: "ANY Admins"
 
   chaincodes:
   - chaincodeAddress: network-org-1-peer-1-hlf-k8s-chaincode-yourcc.org-1

@@ -80,7 +80,7 @@ data:
             Rule: "ANY Endorsement"
         Endorsement:
             Type: ImplicitMeta
-            Rule: "MAJORITY Endorsement"
+            Rule: "ANY Endorsement"
         Readers:
             Type: ImplicitMeta
             Rule: "ANY Readers"
@@ -89,7 +89,7 @@ data:
             Rule: "ANY Writers"
         Admins:
             Type: ImplicitMeta
-            Rule: "MAJORITY Admins"
+            Rule: "ANY Admins"
 
       Capabilities:
           <<: *ApplicationCapabilities
