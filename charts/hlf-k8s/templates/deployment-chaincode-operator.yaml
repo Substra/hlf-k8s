@@ -58,15 +58,15 @@ spec:
                   ## Clean potential remaining artifacts
                   rm -f code.tar.gz chaincode.tgz connection.json metadata.json
 
-                  echo '{
-                  "address": "{{ .address }}:{{ .port }}",
-                  "dial_timeout": "10s",
-                  "tls_required": false,
-                  "client_auth_required": false,
-                  "client_key": "-----BEGIN EC PRIVATE KEY----- ... -----END EC PRIVATE KEY-----",
-                  "client_cert": "-----BEGIN CERTIFICATE----- ... -----END CERTIFICATE-----",
-                  "root_cert": "-----BEGIN CERTIFICATE---- ... -----END CERTIFICATE-----"
-                  }' > connection.json
+                  echo "{
+                  \"address\": \"{{ .address }}:{{ .port }}\",
+                  \"dial_timeout\": \"10s\",
+                  \"tls_required\": true,
+                  \"client_auth_required\": true,
+                  \"client_key\": \"$(awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' /var/hyperledger/tls/client/pair/tls.key)\",
+                  \"client_cert\": \"$(awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' /var/hyperledger/tls/client/pair/tls.crt)\",
+                  \"root_cert\": \"$(awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' /var/hyperledger/tls/client/cert/cacert.pem)\"
+                  }" > connection.json
 
                   tar cfz code.tar.gz connection.json
 

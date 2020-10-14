@@ -36,8 +36,20 @@ spec:
                   key: ccid
             - name: CHAINCODE_ADDRESS
               value: "0.0.0.0:{{ .port }}"
+          volumeMounts:
+            - mountPath: /var/hyperledger/tls/client/pair
+              name: tls-client
+            - mountPath: /var/hyperledger/tls/client/cert
+              name: tls-clientrootcert
           ports:
             - containerPort: {{ .port }}
+      volumes:
+      - name: tls-client
+        secret:
+          secretName: {{ $.Values.secrets.tlsClient }}
+      - name: tls-clientrootcert
+        secret:
+          secretName: {{ $.Values.secrets.tlsClientRootCert }}
 ---
 apiVersion: v1
 kind: Service
