@@ -37,21 +37,22 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-peer.persistence.enabled` | If true, enable persistence for the Peer | `false` |
 | `hlf-peer.persistence.size` | Size of data volume | (undefined) |
 | `hlf-peer.persistence.storageClass` | Storage class of backing PVC | (undefined) |
-| `chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
-| `chaincodes[].name` | The name of the chaincode | (undefined) |
-| `chaincodes[].version` | The chaincode version | (undefined) |
-| `chaincodes[].src` | The URL to a chaincode archive (.tar.gz) | (undefined) |
-| `chaincodes[].hostPath` | A host path containing the chaincode source code | (undefined) |
-| `chaincodes[].configMap.name` | The name of a ConfigMap containing the chaincode source code (tar.gz) | (undefined) |
-| `chaincodes[].configMap.fileName` | The name of the archive within the ConfigMap | (undefined) |
 | `appChannels` | The application channels to create | `[{channelName: mychannel}]` |
 | `appChannels[].channelName` | The name of the application channel. Must be alphanumerical (9 characters max.) | (undefined) |
 | `appChannels[].organizations` | The organizations to add to the application channel. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | `[]` |
 | `appChannels[].proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
-| `appChannels[].chaincodePolicy` | The chaincode policy | (undefined) |
-| `appChannels[].chaincodeName` | The chaincode name | (undefined) |
-| `appChannels[].chaincodeVersion` | The chaincode version | (undefined) |
-| `appChannels[].policies` | This value, if set, will override the default HLF application channel policy. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | (undefined) |
+| `appChannels[].appPolicies` | This value, if set, will override the default HLF application policy. | (undefined) |
+| `appChannels[].chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
+| `appChannels[].chaincodes[].chaincodeName` | The name of the chaincode | (undefined) |
+| `appChannels[].chaincodes[].chaincodeVersion` | The chaincode version | (undefined) |
+| `appChannels[].chaincodes[].chaincodeAddress` | The URL to the chaincode service | (undefined) |
+| `appChannels[].chaincodes[].chaincodePort` | The port to the chaincode service | (undefined) |
+| `appChannels[].chaincodes[].chaincodeAddress` | The URL to a chaincode service | (undefined) |
+| `appChannels[].chaincodes[].chaincodeAddress` | The URL to a chaincode service | (undefined) |
+| `appChannels[].chaincodes[].chaincodePolicy` | The chaincode policy | (undefined) |
+| `appChannels[].chaincodes[].image.repository` | `chaincode` image repository | (undefined) |
+| `appChannels[].chaincodes[].image.tag` | `chaincode` image tag | (undefined) |
+| `appChannels[].chaincodes[].image.pullPolicy` | Image pull policy | (undefined) |
 | `appChannels[].ingress.enabled` | If true, Ingress will be created for this application channel operator. | `false` |
 | `appChannels[].ingress.annotations` | Application channel operator ingress annotations | (undefined) |
 | `appChannels[].ingress.tls` | Application channel operator ingress TLS configuration | (undefined) |
@@ -124,14 +125,18 @@ Install a chaincode on a peer using the following values.
 On a peer:
 
 ```yaml
-chaincodes:
-  - name: mycc     # Chaincode name
-    version: "1.0" # Chaincode version
-    # Chaincode source code archive URL
-    src: https://github.com/SubstraFoundation/substra-chaincode/archive/0.0.2.tar.gz
+appChannels:
+    chaincodes:
+      - chaincodeName: mycc
+        chaincodeVersion: "1.0"
+        chaincodeAddress: "chaincode-org-0-substra-chaincode-chaincode.org-0"
+        chaincodePort: "7052"
+        chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
+        image:
+          repository: substrafoundation/substra-chaincode
+          tag: hlf-2
+          pullPolicy: IfNotPresent
 ```
-
-You can also provide the chaincode source code using a ConfigMap or a host path (see: [Configuration](#Configuration))
 
 ### Add an organization to the system channel
 
@@ -209,7 +214,7 @@ Orderer configuration:
 ```yaml
 appChannels:
 - channelName: mychannel
-  policies: |
+  channelPolicies: |
      Readers:
            Type: ImplicitMeta
            Rule: "ANY Readers"
