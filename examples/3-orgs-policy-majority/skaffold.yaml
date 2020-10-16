@@ -14,7 +14,7 @@
 
 # ABOUT
 #
-#   This is An hlf-k8s deployment with 4 organizations using the default
+#   This is An hlf-k8s deployment with 3 organizations using the default
 #   application channel policy ("MAJORITY")
 #
 ---

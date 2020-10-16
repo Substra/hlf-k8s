@@ -20,12 +20,12 @@ hlf-ord:
 hlf-peer:
   host: network-org-2-peer-1-hlf-peer.org-2
   peer:
+    couchdbInstance: network-org-2-peer-1
     mspID: MyOrg2MSP
     gossip:
       externalEndpoint: network-org-2-peer-1-hlf-peer.org-2:7051
   discover-monitor:
     enabled: true
-  couchdbInstance: network-org-2-peer-1-hlf-couchdb
 
 appChannels:
 - channelName: mychannel

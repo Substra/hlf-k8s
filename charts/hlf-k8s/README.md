@@ -25,8 +25,11 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-peer.peer.mspID` | ID of MSP the Peer belongs to | `Org1MSP` |
 | `hlf-peer.discover-monitor.enabled` | If true, create a discover monitor pod (see [Monitoring pods](#monitoring-pods)) | `false` |
 | `hlf-peer.peer.gossip.externalEndpoint` | HLF peer gossip external endpoint | `""` |
+| `hlf-peer.peer.databaseType` | Database type to use (goleveldb or CouchDB) | `CouchDB` |
+| `hlf-peer.peer.couchdbInstance` | CouchDB chart name to use cdb-peer | `cdb-peer` |
 | `hlf-peer.host` | The Peers's host | `peer-hostname` |
 | `hlf-peer.port` | The Peers's port | `7051` |
+| `hlf-peer.docker.enabled` | Enable docker socket mount in the peer container | `false` |
 | `hlf-peer.ingress.enabled` | If true, Ingress will be created for the Peer | `false` |
 | `hlf-peer.ingress.annotations` | Peer ingress annotations | (undefined) |
 | `hlf-peer.ingress.tls` | Peer ingress TLS configuration | (undefined) |
@@ -61,6 +64,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | **Orderer** |  |  |
 | `hlf-ord.enabled` | If true, a HLF Orderer will be installed | `false` |
 | `hlf-ord.host` | The hostname for the Orderer | `orderer-hostname` |
+| `hlf-ord.port` | The Orderer's port | `7050` |
 | `hlf-ord.ord.mspID` | ID of MSP the Orderer belongs to | `MyOrdererMSP` |
 | `hlf-ord.monitor.enabled` | If true, create a monitor pod (see [Monitoring pods](#monitoring-pods)) | `false` |
 | `hlf-ord.ingress.enabled` | If true, Ingress will be created for the Orderer | (undefined) |
@@ -84,8 +88,6 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `affinity` | Affinity settings for pod assignment | `{}` |
 | `organization.id` | The organization id | `MyOrganizationMSP` |
 | `organization.name` | The organization name | `MyOrganization` |
-| `hlf-ord.host` | The Orderer's host | `orderer-hostname` |
-| `hlf-ord.port` | The Orderer's port | `7050` |
 | `enrollments.creds` | The users to enroll with the CA | `[]` |
 | `enrollments.csrHost` | The value to pass to `--csr.hosts` when enrolling users to the CA | `service-hostname` |
 | `hlf-ca.caName` | Name of CA | `rca` |

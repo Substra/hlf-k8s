@@ -30,7 +30,7 @@ dependencies:
   - name: hlf-couchdb
     repository: https://kubernetes-charts.storage.googleapis.com/
     version: 1.0.7
-    condition: hlf-couchdb.enabled
+    condition: hlf-peer.enabled
   - name: nginx-ingress
     repository: https://kubernetes-charts.storage.googleapis.com/
     version: ~1.29.2

@@ -184,6 +184,8 @@ hlf-peer:
     enabled:
       false
   peer:
+    databaseType: CouchDB # goleveldb
+    couchdbInstance: cdb-peer
     gossip:
       bootstrap: "127.0.0.1:7051"
     tls:
@@ -234,15 +236,13 @@ hlf-peer:
     ## This should include the Orderer TLS 'cacert.pem'
     ordTlsRootCert: ord-tls-rootcert
 
-  databaseType: CouchDB # goleveldb
-  couchdbInstance: cdb-peer
 
 
 hlf-couchdb:
-  enabled: true
   service:
     port: 5984
   image:
+    repository: hyperledger/fabric-couchdb
     tag: 0.4.21
   persistence:
     size: 10Gi
