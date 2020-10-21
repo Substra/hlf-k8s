@@ -48,16 +48,33 @@ spec:
               ## Update CA certs
               update-ca-certificates
 
+              ## Check connection with the Peer
+              printf "[DEBUG] Testing the connection with the Peer ({{ index $.Values "hlf-peer" "host" }}:{{ index $.Values "hlf-peer" "port" }})\n"
+              until $(nc -z {{ index $.Values "hlf-peer" "host" }} {{ index $.Values "hlf-peer" "port" }}); do
+                printf "[DEBUG] Peer ({{ index $.Values "hlf-peer" "host" }}:{{ index $.Values "hlf-peer" "port" }}) is not reacheable, retry in 5s\n"
+                sleep 5
+              done
+
+              ## Check connection with the Orderer
+              printf "[DEBUG] Testing the connection with the Orderer ({{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }})\n"
+              until $(nc -z {{ index $.Values "hlf-ord" "host" }} {{ index $.Values "hlf-ord" "port" }}); do
+                printf "[DEBUG] Orderer ({{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }}) is not reacheable, retry in 5s\n"
+                sleep 5
+              done
+
               ## Install chaincode on peer
               while true; do
 
-                peer lifecycle chaincode queryinstalled > chaincode.list
+                peer lifecycle chaincode queryinstalled -O json > chaincode.list 2>/dev/null
 
-                until grep {{ .chaincodeName }} chaincode.list > /dev/null; do
-                  printf "[DEBUG] Installing chaincode {{ .chaincodeName }} {{ .chaincodeVersion }}\n"
+                until jq -e '.installed_chaincodes[] | select(.label=="{{ .chaincodeName }}")' chaincode.list > /dev/null; do
+                  printf "[DEBUG] Chaincode {{ .chaincodeName }} not installed\n"
+                  printf "[DEBUG] Installing chaincode {{ .chaincodeName }}\n"
 
                   ## Clean potential remaining artifacts
                   rm -f code.tar.gz chaincode.tgz connection.json metadata.json
+
+                  printf "[DEBUG] Generate connection.json for {{ .chaincodeName }}\n"
 
                   echo "{
                   \"address\": \"{{ .chaincodeAddress }}:{{ .chaincodePort }}\",
@@ -69,35 +86,53 @@ spec:
                   \"root_cert\": \"$(awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' /var/hyperledger/tls/client/cert/cacert.pem)\"
                   }" > connection.json
 
+                  cat connection.json
+
+                  printf "[DEBUG] Archive connection.json to code.tar.gz for {{ .chaincodeName }}\n"
                   tar cfz code.tar.gz connection.json
 
+                  printf "[DEBUG] Generate metadata.json for {{ .chaincodeName }}\n"
                   echo '{"path":"", "type":"external", "label":"{{ .chaincodeName }}"}' > metadata.json
+
+                  printf "[DEBUG] Archive  code.tar.gz and metadata.json to chaincode.tgz for {{ .chaincodeName }}\n"
                   tar cfz chaincode.tgz code.tar.gz metadata.json
 
                   ## Install chaincode
-                  peer lifecycle chaincode install chaincode.tgz
+                  printf "[DEBUG] Install chaincode {{ .chaincodeName }}\n"
+                  peer lifecycle chaincode install chaincode.tgz 2>/dev/null
 
-                  peer lifecycle chaincode queryinstalled > chaincode.list
+
+                  peer lifecycle chaincode queryinstalled -O json > chaincode.list 2>/dev/null
+
+                  if  jq -e '.installed_chaincodes[] | select(.label=="{{ .chaincodeName }}")' chaincode.list > /dev/null; then
+                    CHAINCODE_CCID=$(jq '.installed_chaincodes[] | select(.label=="{{ .chaincodeName }}")' chaincode.list | jq -r .package_id)
+                    printf "[DEBUG] Chaincode {{ .chaincodeName }} installed as ccid : ${CHAINCODE_CCID}\n"
+                  fi
+
                   sleep 10
                 done
 
-                CHAINCODE_CCID=$(peer lifecycle chaincode queryinstalled 2>&1 | grep {{ .chaincodeName }} | awk 'NR==1{print substr($3, 1, length($3)-1)}')
+                CHAINCODE_CCID=$(jq '.installed_chaincodes[] | select(.label=="{{ .chaincodeName }}")' chaincode.list | jq -r .package_id)
 
                 until kubectl get secret chaincode-ccid-{{ .chaincodeName }} > /dev/null; do
+                    printf "[DEBUG] Create chaincode ccid secret for {{ .chaincodeName }}\n"
                     kubectl create secret generic chaincode-ccid-{{ .chaincodeName }} --from-literal=ccid=$CHAINCODE_CCID
                 done
 
                 # Approve chaincode
 
-                touch chaincode.approve
+                peer lifecycle chaincode queryapproved --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --sequence 1 -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.approve 2>&1
 
                 until grep "${CHAINCODE_CCID}" chaincode.approve > /dev/null; do
+                    printf "[DEBUG] Chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} with ccid ${CHAINCODE_CCID} is not approved\n"
 
-                    printf "[DEBUG] Approve chaincode {{ .chaincodeName }} {{ .chaincodeVersion }}\n"
+                    printf "[DEBUG] Approving chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} with ccid ${CHAINCODE_CCID}\n"
 
-                    peer lifecycle chaincode approveformyorg  --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }}  --version {{ .chaincodeVersion }} --package-id $CHAINCODE_CCID --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                    peer lifecycle chaincode approveformyorg  --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }}  --version {{ .chaincodeVersion }} --package-id $CHAINCODE_CCID --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /dev/null 2>&1
 
                     peer lifecycle chaincode queryapproved --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --sequence 1 -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.approve 2>&1
+
+                    sleep 10
 
                 done
 
