@@ -214,51 +214,56 @@ spec:
 
               {{- range .chaincodes }}
 
-              ## Wait readiness
+              ## Commit chaincode
 
-              peer lifecycle chaincode checkcommitreadiness --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --version {{ .chaincodeVersion }} --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.{{ .chaincodeName }}.ready 2>&1
+              peer lifecycle chaincode querycommitted --channelID {{ $value.channelName }} -n {{ .chaincodeName }} > chaincode.{{ .chaincodeName }}.list 2>&1
 
-              while grep "false" chaincode.{{ .chaincodeName }}.ready > /dev/null; do
+              until grep "{{ .chaincodeName }}" chaincode.{{ .chaincodeName }}.list | grep "{{ .chaincodeVersion }}" > /dev/null; do
 
-                # Chaincode commit
-                printf "[DEBUG] Wait chaincode ready {{ .chaincodeName }} {{ .chaincodeVersion }} on channel {{ $value.channelName }}\n"
+                ## Wait readiness
 
                 peer lifecycle chaincode checkcommitreadiness --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --version {{ .chaincodeVersion }} --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.{{ .chaincodeName }}.ready 2>&1
 
-                cat chaincode.{{ .chaincodeName }}.ready
+                while grep "false" chaincode.{{ .chaincodeName }}.ready > /dev/null; do
 
-              done
+                  # Chaincode commit
+                  printf "[DEBUG] Check chaincode commit readiness (approval) {{ .chaincodeName }} {{ .chaincodeVersion }} on channel {{ $value.channelName }}\n"
 
-              ## Commit chaincode
+                  peer lifecycle chaincode checkcommitreadiness --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --version {{ .chaincodeVersion }} --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.{{ .chaincodeName }}.ready 2>&1
 
-              peer lifecycle chaincode querycommitted --channelID {{ $value.channelName }} > chaincode.{{ .chaincodeName }}.list
+                  sleep 5
 
-              until grep "{{ .chaincodeName }}" chaincode.{{ .chaincodeName }}.list | grep "{{ .chaincodeVersion }}" > /dev/null; do
+                done
 
                 # Chaincode commit
                 printf "[DEBUG] Commit chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} on channel {{ $value.channelName }}\n"
 
-                peer lifecycle chaincode commit --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --version {{ .chaincodeVersion }} --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer lifecycle chaincode commit --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --version {{ .chaincodeVersion }} --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.{{ .chaincodeName }}.commit 2>&1
 
-                peer lifecycle chaincode querycommitted --channelID {{ $value.channelName }} > chaincode.{{ .chaincodeName }}.list
+                peer lifecycle chaincode querycommitted --channelID {{ $value.channelName }} -n {{ .chaincodeName }} > chaincode.{{ .chaincodeName }}.list 2>&1
 
+                sleep 5
 
               done
 
-              touch chaincode.{{ .chaincodeName }}.init
+              ## Init chaincode
+
+              peer chaincode invoke --isInit --channelID {{ $value.channelName }} --name {{ .chaincodeName }} -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt -c '{"Args":["Init"]}' > chaincode.{{ .chaincodeName }}.init 2>&1
 
               until grep "already initialized" chaincode.{{ .chaincodeName }}.init > /dev/null; do
 
-                  printf "[DEBUG] Init chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} on channel {{ $value.channelName }}\n"
-                  peer chaincode invoke --isInit --channelID {{ $value.channelName }} --name {{ .chaincodeName }} -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt -c '{"Args":["Init"]}' > chaincode.{{ .chaincodeName }}.init 2>&1
+                printf "[DEBUG] Init chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} on channel {{ $value.channelName }}\n"
 
-                  cat chaincode.{{ .chaincodeName }}.init
+                peer chaincode invoke --isInit --channelID {{ $value.channelName }} --name {{ .chaincodeName }} -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt -c '{"Args":["Init"]}' > chaincode.{{ .chaincodeName }}.init 2>&1
 
-                  sleep 5
+                sleep 5
+
               done
+
               {{ end }}
 
               sleep 10
+
             done
         resources:
           {{- toYaml $.Values.resources | nindent 14 }}
