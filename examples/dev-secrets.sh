@@ -39,9 +39,3 @@ ${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-orderer-genesis.yaml"
 ${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-orderer.yaml"
 ${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-org-1.yaml"
 ${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-org-2.yaml"
-
-
-
-if [ "$OP" = "delete" ]; then
-    ${KUBECTL} get secrets -A | grep chaincode | awk '{print $1,$2}' | xargs -n2 ${KUBECTL} delete secret -n
-fi

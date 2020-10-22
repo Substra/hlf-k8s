@@ -106,7 +106,7 @@ spec:
 
                   if  jq -e '.installed_chaincodes[] | select(.label=="{{ .chaincodeName }}")' chaincode.list > /dev/null; then
                     CHAINCODE_CCID=$(jq '.installed_chaincodes[] | select(.label=="{{ .chaincodeName }}")' chaincode.list | jq -r .package_id)
-                    printf "[DEBUG] Chaincode {{ .chaincodeName }} installed as ccid : ${CHAINCODE_CCID}\n"
+                    printf "[DEBUG] Chaincode {{ .chaincodeName }} installed with ccid : ${CHAINCODE_CCID}\n"
                   fi
 
                   sleep 10
@@ -125,6 +125,8 @@ spec:
 
                 until grep "${CHAINCODE_CCID}" chaincode.approve > /dev/null; do
                     printf "[DEBUG] Chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} with ccid ${CHAINCODE_CCID} is not approved\n"
+
+                    cat chaincode.approve
 
                     printf "[DEBUG] Approving chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} with ccid ${CHAINCODE_CCID}\n"
 

@@ -370,7 +370,11 @@ hooks:
   serviceAccount:
     name: ""
     namespace: ""
+  # If we delete or not HLF crypto materials secrets
   deleteSecrets:
+    enabled: true
+  # If we delete or not chaincode CCID secrets
+  deleteCCIDSecrets:
     enabled: true
 
 toolbox:

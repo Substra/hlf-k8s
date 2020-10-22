@@ -69,3 +69,7 @@ deploy:
       - examples/secrets/secrets-orderer.yaml
       - examples/secrets/secrets-org-1.yaml
       - examples/secrets/secrets-org-2.yaml
+      # For chaincode secrets deletion
+      - examples/serviceAccounts/serviceAccount-org-1.yaml
+      - examples/serviceAccounts/serviceAccount-org-2.yaml
+

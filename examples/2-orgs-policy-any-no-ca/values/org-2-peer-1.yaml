@@ -122,3 +122,7 @@ toolbox:
 hooks:
   deleteSecrets:
     enabled: false
+
+  # Name used for chaincode delete secret
+  serviceAccount:
+    name: substra-delete-hook
