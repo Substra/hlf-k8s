@@ -1,5 +1,12 @@
 # Changelog
 
+
+## 4.0.0
+
+- Switched to hyperledger fabric 2.x, update values accoridingly.
+- Use couchdb isntead of goleveldb
+- Remove docker dependency and add chaincode pod
+
 ## 3.0.2
 
 - Added `genesis.generate` (defaults to `true` - behavior unchanged)

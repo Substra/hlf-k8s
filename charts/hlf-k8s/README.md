@@ -41,13 +41,13 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `appChannels[].channelName` | The name of the application channel. Must be alphanumerical (9 characters max.) | (undefined) |
 | `appChannels[].organizations` | The organizations to add to the application channel. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | `[]` |
 | `appChannels[].proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
-| `appChannels[].appPolicies` | This value, if set, will override the default HLF application policy. | (undefined) |
+| `appChannels[].channelPolicies` | This value overrides the default HLF channel policy. | (defined in values.yaml) |
+| `appChannels[].appPolicies` | This value overrides the default HLF application policy. | (defined in values.yaml) |
 | `appChannels[].chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
 | `appChannels[].chaincodes[].chaincodeName` | The name of the chaincode | (undefined) |
 | `appChannels[].chaincodes[].chaincodeVersion` | The chaincode version | (undefined) |
 | `appChannels[].chaincodes[].chaincodeAddress` | The URL to the chaincode service | (undefined) |
 | `appChannels[].chaincodes[].chaincodePort` | The port to the chaincode service | (undefined) |
-| `appChannels[].chaincodes[].chaincodeAddress` | The URL to a chaincode service | (undefined) |
 | `appChannels[].chaincodes[].chaincodeAddress` | The URL to a chaincode service | (undefined) |
 | `appChannels[].chaincodes[].chaincodePolicy` | The chaincode policy | (undefined) |
 | `appChannels[].chaincodes[].image.repository` | `chaincode` image repository | (undefined) |
