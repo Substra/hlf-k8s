@@ -72,4 +72,3 @@ deploy:
       # For chaincode secrets deletion
       - examples/serviceAccounts/serviceAccount-org-1.yaml
       - examples/serviceAccounts/serviceAccount-org-2.yaml
-
