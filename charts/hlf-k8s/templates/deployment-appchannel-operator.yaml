@@ -103,6 +103,23 @@ spec:
                   channel-cfg.block \
                   channel-cfg.json
 
+                ## Fetch organization configuration
+                if ! ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
+                  printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
+                  curl --fail -L --output ./configOrg-$org.json $configUrl || continue # continue to next org if curl fails
+
+                  if ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
+                    printf "[DEBUG] Extract tls root certificate from the organization ($org) configuration file \n"
+                    jq -r .values.MSP.value.config.tls_root_certs[0] ./configOrg-$org.json | base64 -d > tlsRootCert-$org.crt
+
+                    printf "[DEBUG] Add the organization ($org) for endorsement \n"
+                    PEER_HOST=$(jq -r .values.AnchorPeers.value.anchor_peers[0].host configOrg-$org.json)
+                    PEER_PORT=$(jq -r .values.AnchorPeers.value.anchor_peers[0].port configOrg-$org.json)
+                    grep -qxF -e "--peerAddresses ${PEER_HOST}:${PEER_PORT} --tlsRootCertFiles tlsRootCert-$org.crt" endorsement.config || echo "--peerAddresses ${PEER_HOST}:${PEER_PORT} --tlsRootCertFiles tlsRootCert-$org.crt" >> endorsement.config
+                  fi
+
+                fi
+
                 ## Fetch up-to-date channel configuration block
                 until [ -f "channel.block" ] && [ -s "channel.block" ]; do
                   printf "[DEBUG] Fetching the channel ({{ .channelName }}) configuration block\n"
@@ -132,11 +149,6 @@ spec:
                   sleep 2
                 done
 
-                ## Fetch organization configuration
-                if ! ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
-                  printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
-                  curl --fail -L --output ./configOrg-$org.json $configUrl || continue # continue to next org if curl fails
-                fi
 
                 ## Fetch update proposal from external orgs if exists
                 while IFS=" " read -r orgProposal mspidProposal proposalServerUrl ; do
@@ -238,7 +250,11 @@ spec:
                 # Chaincode commit
                 printf "[DEBUG] Commit chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} on channel {{ $value.channelName }}\n"
 
-                peer lifecycle chaincode commit --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --version {{ .chaincodeVersion }} --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.{{ .chaincodeName }}.commit 2>&1
+                ENDORSEMENT=$(cat endorsement.config| tr '\n' ' ')
+
+                peer lifecycle chaincode commit --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --version {{ .chaincodeVersion }} --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt $ENDORSEMENT > chaincode.{{ .chaincodeName }}.commit 2>&1
+
+                cat chaincode.{{ .chaincodeName }}.commit
 
                 peer lifecycle chaincode querycommitted --channelID {{ $value.channelName }} > chaincode.{{ .chaincodeName }}.list 2>&1
 
