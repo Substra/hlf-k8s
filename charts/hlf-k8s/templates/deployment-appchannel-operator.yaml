@@ -103,22 +103,6 @@ spec:
                   channel-cfg.block \
                   channel-cfg.json
 
-                ## Fetch organization configuration
-                if ! ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
-                  printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
-                  curl --fail -L --output ./configOrg-$org.json $configUrl || continue # continue to next org if curl fails
-
-                  if ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
-                    printf "[DEBUG] Extract tls root certificate from the organization ($org) configuration file \n"
-                    jq -r .values.MSP.value.config.tls_root_certs[0] ./configOrg-$org.json | base64 -d > tlsRootCert-$org.crt
-
-                    printf "[DEBUG] Add the organization ($org) for endorsement \n"
-                    PEER_HOST=$(jq -r .values.AnchorPeers.value.anchor_peers[0].host configOrg-$org.json)
-                    PEER_PORT=$(jq -r .values.AnchorPeers.value.anchor_peers[0].port configOrg-$org.json)
-                    grep -qxF -e "--peerAddresses ${PEER_HOST}:${PEER_PORT} --tlsRootCertFiles tlsRootCert-$org.crt" endorsement.config || echo "--peerAddresses ${PEER_HOST}:${PEER_PORT} --tlsRootCertFiles tlsRootCert-$org.crt" >> endorsement.config
-                  fi
-
-                fi
 
                 ## Fetch up-to-date channel configuration block
                 until [ -f "channel.block" ] && [ -s "channel.block" ]; do
@@ -140,6 +124,22 @@ spec:
                   ## Remove all configuration files because of edge cases (network issue, proposal issue).
                   ## We prefer to delete all and retry all steps to avoid side effect.
                   rm -f *-$org.*
+                fi
+
+                ## Fetch organization configuration
+                if ! ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
+                  printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
+                  curl --fail -L --output ./configOrg-$org.json $configUrl || continue # continue to next org if curl fails
+
+                  if ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
+                    printf "[DEBUG] Extract tls root certificate from the organization ($org) configuration file \n"
+                    jq -r .values.MSP.value.config.tls_root_certs[0] ./configOrg-$org.json | base64 -d > tlsRootCert-$org.crt
+
+                    printf "[DEBUG] Add the organization ($org) for endorsement \n"
+                    PEER_HOST=$(jq -r .values.AnchorPeers.value.anchor_peers[0].host configOrg-$org.json)
+                    PEER_PORT=$(jq -r .values.AnchorPeers.value.anchor_peers[0].port configOrg-$org.json)
+                    grep -qxF -e "--peerAddresses ${PEER_HOST}:${PEER_PORT} --tlsRootCertFiles tlsRootCert-$org.crt" endorsement.config || echo "--peerAddresses ${PEER_HOST}:${PEER_PORT} --tlsRootCertFiles tlsRootCert-$org.crt" >> endorsement.config
+                  fi
                 fi
 
                 ## Extract application channel configuration
@@ -245,7 +245,7 @@ spec:
 
               peer lifecycle chaincode querycommitted --channelID {{ $value.channelName }} > chaincode.{{ .chaincodeName }}.list 2>&1
 
-              until grep "{{ .chaincodeName }}" chaincode.{{ .chaincodeName }}.list | grep "{{ .chaincodeVersion }}" > /dev/null; do
+              if ! grep "{{ .chaincodeName }}" chaincode.{{ .chaincodeName }}.list | grep "{{ .chaincodeVersion }}" > /dev/null; then
 
                 # Chaincode commit
                 printf "[DEBUG] Commit chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} on channel {{ $value.channelName }}\n"
@@ -260,13 +260,13 @@ spec:
 
                 sleep 5
 
-              done
+              fi
 
               ## Init chaincode
 
               peer chaincode invoke --isInit --channelID {{ $value.channelName }} --name {{ .chaincodeName }} -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt -c '{"Args":["Init"]}' > chaincode.{{ .chaincodeName }}.init 2>&1
 
-              until grep "already initialized" chaincode.{{ .chaincodeName }}.init > /dev/null; do
+              if ! grep "already initialized" chaincode.{{ .chaincodeName }}.init > /dev/null; then
 
                 printf "[DEBUG] Init chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} on channel {{ $value.channelName }}\n"
 
@@ -274,7 +274,7 @@ spec:
 
                 sleep 5
 
-              done
+              fi
 
               {{ end }}
 
