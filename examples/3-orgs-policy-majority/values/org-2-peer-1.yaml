@@ -38,14 +38,14 @@ appChannels:
         Rule: "ANY Writers"
     Admins:
         Type: ImplicitMeta
-        Rule: "ANY Admins"
+        Rule: "MAJORITY Admins"
   appPolicies: |-
     LifecycleEndorsement:
         Type: ImplicitMeta
         Rule: "ANY Endorsement"
     Endorsement:
         Type: ImplicitMeta
-        Rule: "ANY Endorsement"
+        Rule: "MAJORITY Endorsement"
     Readers:
         Type: ImplicitMeta
         Rule: "ANY Readers"
@@ -54,7 +54,7 @@ appChannels:
         Rule: "ANY Writers"
     Admins:
         Type: ImplicitMeta
-        Rule: "ANY Admins"
+        Rule: "MAJORITY Admins"
 
   chaincodes:
   - chaincodeAddress: network-org-2-peer-1-hlf-k8s-chaincode-mycc.org-2

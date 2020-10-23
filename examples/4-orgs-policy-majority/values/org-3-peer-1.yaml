@@ -8,7 +8,6 @@ nginx-ingress:
     scope:
       enabled: true
 
-
 hlf-ca:
   caName: rcaOrg3
   host: network-org-3-peer-1-hlf-ca.org-3
