@@ -14,24 +14,22 @@
 
 dependencies:
   - name: hlf-ca
-    repository: https://kubernetes-charts.storage.googleapis.com/
+    repository: https://owkin.github.io/charts/
     version: 1.2.0
     condition: hlf-ca.enabled
   - name: hlf-ord
-    # repository: https://kubernetes-charts.storage.googleapis.com/
-    repository: file://///Users/kmoutet/Substra/charts-fork/stable/hlf-ord
+    repository: https://owkin.github.io/charts/
     version: 2.0.0
     condition: hlf-ord.enabled
   - name: hlf-peer
-    repository: file:////Users/kmoutet/Substra/charts/stable/hlf-peer
-    # repository: https://kubernetes-charts.storage.googleapis.com/
+    repository: https://owkin.github.io/charts/
     version: 2.0.0
     condition: hlf-peer.enabled
   - name: hlf-couchdb
-    repository: https://kubernetes-charts.storage.googleapis.com/
+    repository: https://owkin.github.io/charts/
     version: 1.0.7
     condition: hlf-peer.enabled
   - name: nginx-ingress
-    repository: https://kubernetes-charts.storage.googleapis.com/
+    repository: https://charts.helm.sh/stable
     version: ~1.29.2
     condition: nginx-ingress.enabled
