@@ -229,14 +229,16 @@ spec:
 
               ## Wait readiness
 
-              peer lifecycle chaincode checkcommitreadiness --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --version {{ .chaincodeVersion }} --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.{{ .chaincodeName }}.ready 2>&1
-
-              while grep "false" chaincode.{{ .chaincodeName }}.ready > /dev/null; do
+              while true; do
 
                 # Chaincode commit
                 printf "[DEBUG] Wait chaincode ready {{ .chaincodeName }} {{ .chaincodeVersion }} on channel {{ $value.channelName }}\n"
 
                 peer lifecycle chaincode checkcommitreadiness --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --version {{ .chaincodeVersion }} --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.{{ .chaincodeName }}.ready 2>&1
+
+                if ! grep "false" chaincode.{{ .chaincodeName }}.ready > /dev/null; then
+                  break
+                fi
 
                 sleep 5
 

@@ -42,7 +42,9 @@ rules:
     - watch
     - list
     - create
+    {{- if or .Values.hooks.deleteSecrets.enabled .Values.hooks.deleteCCIDSecrets.enabled }}
     - delete
+    {{- end }}
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
