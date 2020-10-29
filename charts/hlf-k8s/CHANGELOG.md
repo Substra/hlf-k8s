@@ -3,7 +3,7 @@
 
 ## 4.0.0
 
-- Switched to hyperledger fabric 2.x, update values accoridingly.
+- Bump hyperledger fabric to 2.x. Please update values accordingly.
 - Use couchdb instead of goleveldb
 - Remove docker dependency and add chaincode pod
 
