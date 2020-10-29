@@ -13,6 +13,7 @@
 #
 
 NUM_ORGS=${1:-2}
+exit_code=0
 
 for i in `seq $NUM_ORGS`; do
     echo org-$i
@@ -27,5 +28,8 @@ for i in `seq $NUM_ORGS`; do
         --keyfile /var/hyperledger/tls/server/pair/tls.key \
         -o network-orderer-hlf-ord.orderer:7050 \
         -c '{\"Args\":[\"queryTraintuples\"]}'"
+    [ $? -ne 0 ] && exit_code=1
     echo '-----------'
 done
+
+exit $exit_code
