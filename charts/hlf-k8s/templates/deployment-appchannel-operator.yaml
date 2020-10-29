@@ -222,6 +222,7 @@ spec:
 
               done < /config/application-organizations
 
+
               ## CHAINCODES
 
               {{- range .chaincodes }}
