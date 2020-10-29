@@ -29,7 +29,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-peer.peer.couchdbInstance` | CouchDB chart name to use cdb-peer | `cdb-peer` |
 | `hlf-peer.host` | The Peers's host | `peer-hostname` |
 | `hlf-peer.port` | The Peers's port | `7051` |
-| `hlf-peer.docker.enabled` | Enable docker socket mount in the peer container | `false` |
+| `hlf-peer.docker.enabled` | If true, mount host docker socket in the peer container | `false` |
 | `hlf-peer.ingress.enabled` | If true, Ingress will be created for the Peer | `false` |
 | `hlf-peer.ingress.annotations` | Peer ingress annotations | (undefined) |
 | `hlf-peer.ingress.tls` | Peer ingress TLS configuration | (undefined) |
