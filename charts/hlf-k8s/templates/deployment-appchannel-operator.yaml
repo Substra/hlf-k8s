@@ -131,7 +131,7 @@ spec:
                   printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
                   curl --fail -L --output ./configOrg-$org.json $configUrl || continue # continue to next org if curl fails
 
-                  if ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
+                  if [ -s "configOrg-$org.json" ]; then
                     printf "[DEBUG] Extract tls root certificate from the organization ($org) configuration file \n"
                     jq -r .values.MSP.value.config.tls_root_certs[0] ./configOrg-$org.json | base64 -d > tlsRootCert-$org.crt
 
