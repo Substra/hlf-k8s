@@ -127,7 +127,7 @@ spec:
                 fi
 
                 ## Fetch organization configuration
-                if ! ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
+                if ! [ -s "configOrg-$org.json" ]; then
                   printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
                   curl --fail -L --output ./configOrg-$org.json $configUrl || continue # continue to next org if curl fails
 
