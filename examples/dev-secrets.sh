@@ -34,8 +34,3 @@ ${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-orderer-genesis.yaml"
 ${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-orderer.yaml"
 ${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-org-1.yaml"
 ${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-org-2.yaml"
-
-${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-orderer-genesis.yaml"
-${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-orderer.yaml"
-${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-org-1.yaml"
-${KUBECTL} "$OP" -f "${DIR}/secrets/secrets-org-2.yaml"

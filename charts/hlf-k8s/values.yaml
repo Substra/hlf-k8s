@@ -18,7 +18,7 @@ images:
     tag: latest
     pullPolicy: IfNotPresent
 
-  hlfk8sca:
+  hlfk8sCaEnrollment:
     repository: substrafoundation/hlf-k8s-ca
     tag: latest
     pullPolicy: IfNotPresent
@@ -184,7 +184,7 @@ hlf-peer:
     enabled:
       false
   peer:
-    databaseType: CouchDB # goleveldb
+    databaseType: CouchDB
     couchdbInstance: cdb-peer
     gossip:
       bootstrap: "127.0.0.1:7051"

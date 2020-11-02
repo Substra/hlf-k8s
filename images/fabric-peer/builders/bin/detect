@@ -16,8 +16,8 @@ CHAINCODE_METADATA_DIR="$2"
 
 set -euo pipefail
 
-# use jq to extract the chaincode type from metadata.json and exit with
-# success if the chaincode type is golang
+# use awk to extract the chaincode type from metadata.json and exit with
+# success if the chaincode type is external
 if [ "$(cat "$CHAINCODE_METADATA_DIR/metadata.json" | sed -e 's/[{}]/''/g' | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'type'\042/){print $(i+1)}}}' | tr -d '"')" = "external" ]; then
     exit 0
 fi

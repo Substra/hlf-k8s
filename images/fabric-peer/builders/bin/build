@@ -18,17 +18,15 @@ BUILD_OUTPUT_DIR="$3"
 
 set -euo pipefail
 
-#external chaincodes expect connection.json file in the chaincode package
+# external chaincodes expect connection.json file in the chaincode package
 if [ ! -f "$CHAINCODE_SOURCE_DIR/connection.json" ]; then
     >&2 echo "$CHAINCODE_SOURCE_DIR/connection.json not found"
     exit 1
 fi
 
-#simply copy the endpoint information to specified output location
+# simply copy the endpoint information to specified output location
 cp $CHAINCODE_SOURCE_DIR/connection.json $BUILD_OUTPUT_DIR/connection.json
 
 if [ -d "$CHAINCODE_SOURCE_DIR/metadata" ]; then
     cp -a $CHAINCODE_SOURCE_DIR/metadata $BUILD_OUTPUT_DIR/metadata
 fi
-
-exit 0

@@ -29,20 +29,3 @@ for i in `seq $NUM_ORGS`; do
         -c '{\"Args\":[\"queryTraintuples\"]}'"
     echo '-----------'
 done
-
-
-for i in `seq $NUM_ORGS`; do
-    echo org-$i
-    kubectl exec -it -n org-$i `kubectl get pods -n org-$i | grep toolbox | cut -d' ' -f1` -- \
-    bash -c "peer chaincode invoke \
-        -C yourchannel \
-        -n yourcc \
-        --tls \
-        --clientauth \
-        --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
-        --certfile /var/hyperledger/tls/server/pair/tls.crt \
-        --keyfile /var/hyperledger/tls/server/pair/tls.key \
-        -o network-orderer-hlf-ord.orderer:7050 \
-        -c '{\"Args\":[\"queryTraintuples\"]}'"
-    echo '-----------'
-done
