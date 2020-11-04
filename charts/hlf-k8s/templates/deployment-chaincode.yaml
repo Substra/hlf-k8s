@@ -37,6 +37,12 @@ spec:
                   key: ccid
             - name: CHAINCODE_ADDRESS
               value: "0.0.0.0:{{ .chaincodePort }}"
+            - name: TLS_CERT_FILE
+              value: "/var/hyperledger/tls/client/pair/tls.crt"
+            - name: TLS_KEY_FILE
+              value: "/var/hyperledger/tls/client/pair/tls.key"
+            - name: TLS_ROOTCERT_FILE
+              value: "/var/hyperledger/tls/client/cert/cacert.pem"
           volumeMounts:
             - mountPath: /var/hyperledger/tls/client/pair
               name: tls-client
