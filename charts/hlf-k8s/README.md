@@ -140,6 +140,42 @@ appChannels:
           pullPolicy: IfNotPresent
 ```
 
+
+### Test hlf-k8s with your own chaincode
+
+Example with substra-chaincode
+
+```bash
+git clone git@github.com:SubstraFoundation/substra-chaincode.git
+```
+
+Do your modifications in substra-chaincode
+
+Then you have to build your own substra-chaincode image
+
+Do a `eval $(minikube -p minikube docker-env)` for Minikube user to use docker from it. For Docker-desktop user, you don't have to do this !
+
+Then build substra-chaincode image
+
+```bash
+docker build -t substrafoundation/substra-chaincode:my-tag ./
+```
+
+You should modify values from your deployement to use your image for the chaincode part
+
+For instance with `substrafoundation/substra-chaincode:my-tag`
+```yaml
+  chaincodes:
+  - chaincodeAddress: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+    chaincodeName: mycc
+    chaincodePort: 7052
+    chaincodeVersion: "1.0"
+    image:
+      repository: substrafoundation/substra-chaincode
+      tag: my-tag
+```
+
 ### Add an organization to the system channel
 
 Adding an organization to the system channel allows it to adminstrate application channels.

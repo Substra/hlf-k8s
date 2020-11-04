@@ -154,10 +154,6 @@ data:
       externalBuilders:
         - name: external-builder
           path: /builders
-          propagateEnvironment:
-             - GOPROXY
-             - ENVVAR_NAME_TO_PROPAGATE_FROM_PEER
-
     peer:
       BCCSP:
         Default: SW
