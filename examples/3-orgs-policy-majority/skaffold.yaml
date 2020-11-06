@@ -92,4 +92,3 @@ deploy:
       - ../serviceAccounts/serviceAccount-org-1.yaml
       - ../serviceAccounts/serviceAccount-org-2.yaml
       - ../serviceAccounts/serviceAccount-org-3.yaml
-      - ../serviceAccounts/serviceAccount-org-4.yaml
