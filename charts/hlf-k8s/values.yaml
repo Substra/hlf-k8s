@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-images:
-  hlfk8s:
-    repository: substrafoundation/hlf-k8s
+fabric-tools:
+  image:
+    repository: substrafoundation/fabric-tools
     tag: latest
     pullPolicy: IfNotPresent
 
-  hlfk8sCaEnrollment:
-    repository: substrafoundation/hlf-k8s-ca
+fabric-tools-ca:
+  image:
+    repository: substrafoundation/fabric-tools-ca
     tag: latest
     pullPolicy: IfNotPresent
 

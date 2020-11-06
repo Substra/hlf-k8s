@@ -16,10 +16,10 @@ apiVersion: skaffold/v1beta13
 kind: Config
 build:
   artifacts:
-    - image: substrafoundation/hlf-k8s
+    - image: substrafoundation/fabric-tools
       context: ../../
       docker:
-        dockerfile: images/hlf-k8s/Dockerfile
+        dockerfile: images/fabric-tools/Dockerfile
 
     - image: substrafoundation/fabric-peer
       context: ../../
@@ -31,32 +31,32 @@ deploy:
   helm:
     releases:
       - name: network-orderer
-        chartPath: ../../charts/hlf-k8s
+        chartPath: ../../charts/fabric-tools
         namespace: orderer
         valuesFiles: [values/orderer.yaml]
         imageStrategy:
           helm: {}
         values:
-          images.hlfk8s: substrafoundation/hlf-k8s
+          fabric-tools.image: substrafoundation/fabric-tools
 
       - name: network-org-1-peer-1
-        chartPath: ../../charts/hlf-k8s
+        chartPath: ../../charts/fabric-tools
         namespace: org-1
         valuesFiles: [values/org-1-peer-1.yaml]
         imageStrategy:
           helm: {}
         values:
-          images.hlfk8s: substrafoundation/hlf-k8s
+          fabric-tools.image: substrafoundation/fabric-tools
           hlf-peer.image: substrafoundation/fabric-peer
 
       - name: network-org-2-peer-1
-        chartPath: ../../charts/hlf-k8s
+        chartPath: ../../charts/fabric-tools
         namespace: org-2
         valuesFiles: [values/org-2-peer-1.yaml]
         imageStrategy:
           helm: {}
         values:
-          images.hlfk8s: substrafoundation/hlf-k8s
+          fabric-tools.image: substrafoundation/fabric-tools
           hlf-peer.image: substrafoundation/fabric-peer
 
     flags:

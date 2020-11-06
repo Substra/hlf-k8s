@@ -22,15 +22,15 @@ apiVersion: skaffold/v1beta13
 kind: Config
 build:
   artifacts:
-    - image: substrafoundation/hlf-k8s
+    - image: substrafoundation/fabric-tools
       context: ../../
       docker:
-        dockerfile: images/hlf-k8s/Dockerfile
+        dockerfile: images/fabric-tools/Dockerfile
 
-    - image: substrafoundation/hlf-k8s-ca
+    - image: substrafoundation/fabric-tools-ca
       context: ../../
       docker:
-        dockerfile: images/hlf-k8s-ca/Dockerfile
+        dockerfile: images/fabric-tools-ca/Dockerfile
 
     - image: substrafoundation/fabric-peer
       context: ../../
@@ -48,8 +48,8 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          images.hlfk8s: substrafoundation/hlf-k8s
-          images.hlfk8sCaEnrollment: substrafoundation/hlf-k8s-ca
+          fabric-tools.image: substrafoundation/fabric-tools
+          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
 
       - name: network-org-1-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -58,8 +58,8 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          images.hlfk8s: substrafoundation/hlf-k8s
-          images.hlfk8sCaEnrollment: substrafoundation/hlf-k8s-ca
+          fabric-tools.image: substrafoundation/fabric-tools
+          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
           hlf-peer.image: substrafoundation/fabric-peer
 
       - name: network-org-2-peer-1
@@ -69,8 +69,8 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          images.hlfk8s: substrafoundation/hlf-k8s
-          images.hlfk8sCaEnrollment: substrafoundation/hlf-k8s-ca
+          fabric-tools.image: substrafoundation/fabric-tools
+          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
           hlf-peer.image: substrafoundation/fabric-peer
 
       - name: network-org-3-peer-1
@@ -80,8 +80,8 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          images.hlfk8s: substrafoundation/hlf-k8s
-          images.hlfk8sCaEnrollment: substrafoundation/hlf-k8s-ca
+          fabric-tools.image: substrafoundation/fabric-tools
+          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
           hlf-peer.image: substrafoundation/fabric-peer
 
     flags:

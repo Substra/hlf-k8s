@@ -77,12 +77,12 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `systemChannel.name` | The name of the system channel | `systemchannel` |
 | `systemChannel.organizations` | The organizations to add to the system channel. See [Add an organization to the system channel](#add-an-organization-to-the-system-channel). | `[]` |
 | **Common / Other** |  |  |
-| `images.hlfk8s.repository` | `hlf-k8s` image repository | `substrafoundation/hlf-k8s` |
-| `images.hlfk8s.tag` | `hlf-k8s` image tag | `latest` |
-| `images.hlfk8s.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `images.hlfk8sCaEnrollment.repository` | `hlf-k8s-ca` image repository | `substrafoundation/hlf-k8s-ca` |
-| `images.hlfk8sCaEnrollment.tag` | `hlf-k8s-ca` image tag | `latest` |
-| `images.hlfk8sCaEnrollment.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `fabric-tools.image.repository` | `fabric-tools` image repository | `substrafoundation/fabric-tools` |
+| `fabric-tools.image.tag` | `fabric-tools` image tag | `latest` |
+| `fabric-tools.image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `fabric-tools-ca.image.repository` | `fabric-tools-ca` image repository | `substrafoundation/fabric-tools-ca` |
+| `fabric-tools-ca.image.tag` | `fabric-tools-ca` image tag | `latest` |
+| `fabric-tools-ca.image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `nodeSelector` | Node labels for pod assignment | `{}` |
 | `tolerations` | Toleration labels for pod assignment | `[]` |
 | `affinity` | Affinity settings for pod assignment | `{}` |
