@@ -49,7 +49,7 @@ deploy:
           helm: {}
         values:
           fabric-tools.image: substrafoundation/fabric-tools
-          ifabric-tools-ca.image: substrafoundation/fabric-tools-ca
+          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
 
       - name: network-org-1-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -59,7 +59,7 @@ deploy:
           helm: {}
         values:
           fabric-tools.image: substrafoundation/fabric-tools
-          ifabric-tools-ca.image: substrafoundation/fabric-tools-ca
+          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
           hlf-peer.image: substrafoundation/fabric-peer
 
       - name: network-org-2-peer-1
@@ -70,7 +70,7 @@ deploy:
           helm: {}
         values:
           fabric-tools.image: substrafoundation/fabric-tools
-          ifabric-tools-ca.image: substrafoundation/fabric-tools-ca
+          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
           hlf-peer.image: substrafoundation/fabric-peer
 
       - name: network-org-3-peer-1
@@ -81,7 +81,7 @@ deploy:
           helm: {}
         values:
           fabric-tools.image: substrafoundation/fabric-tools
-          ifabric-tools-ca.image: substrafoundation/fabric-tools-ca
+          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
           hlf-peer.image: substrafoundation/fabric-peer
 
       - name: network-org-4-peer-1
@@ -92,7 +92,7 @@ deploy:
           helm: {}
         values:
           fabric-tools.image: substrafoundation/fabric-tools
-          ifabric-tools-ca.image: substrafoundation/fabric-tools-ca
+          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
           hlf-peer.image: substrafoundation/fabric-peer
 
     flags:
