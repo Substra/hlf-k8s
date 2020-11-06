@@ -19,12 +19,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ printf "%s-%s-chaincode-operator-%s" $.Release.Name $.Chart.Name .chaincodeName | lower | trunc 63 | trimSuffix "-" }}
+  name: {{ printf "%s-%s-chaincode-operator-%s" $.Release.Name $.Chart.Name .name | lower | trunc 63 | trimSuffix "-" }}
   labels:
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
     app.kubernetes.io/instance: {{ $.Release.Name }}
     helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
-    app.kubernetes.io/name: {{ printf "%s-chaincode-operator-%s" $.Chart.Name .chaincodeName | lower | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/name: {{ printf "%s-chaincode-operator-%s" $.Chart.Name .name | lower | trunc 63 | trimSuffix "-" }}
     app.kubernetes.io/part-of: {{ $.Release.Name | lower | trunc 63 | trimSuffix "-" }}
 spec:
   replicas: 1
@@ -67,17 +67,17 @@ spec:
 
                 peer lifecycle chaincode queryinstalled -O json > chaincode.list 2>/dev/null
 
-                until jq -e '.installed_chaincodes[] | select(.label=="{{ .chaincodeName }}")' chaincode.list > /dev/null; do
-                  printf "[DEBUG] Chaincode {{ .chaincodeName }} not installed\n"
-                  printf "[DEBUG] Installing chaincode {{ .chaincodeName }}\n"
+                until jq -e '.installed_chaincodes[] | select(.label=="{{ .name }}")' chaincode.list > /dev/null; do
+                  printf "[DEBUG] Chaincode {{ .name }} not installed\n"
+                  printf "[DEBUG] Installing chaincode {{ .name }}\n"
 
                   ## Clean potential remaining artifacts
                   rm -f code.tar.gz chaincode.tgz connection.json metadata.json
 
-                  printf "[DEBUG] Generate connection.json for {{ .chaincodeName }}\n"
+                  printf "[DEBUG] Generate connection.json for {{ .name }}\n"
 
                   echo "{
-                  \"address\": \"{{ .chaincodeAddress }}:{{ .chaincodePort }}\",
+                  \"address\": \"{{ .address }}:{{ .port }}\",
                   \"dial_timeout\": \"10s\",
                   \"tls_required\": true,
                   \"client_auth_required\": true,
@@ -88,53 +88,76 @@ spec:
 
                   cat connection.json
 
-                  printf "[DEBUG] Archive connection.json to code.tar.gz for {{ .chaincodeName }}\n"
+                  printf "[DEBUG] Archive connection.json to code.tar.gz for {{ .name }}\n"
                   tar cfz code.tar.gz connection.json
 
-                  printf "[DEBUG] Generate metadata.json for {{ .chaincodeName }}\n"
-                  echo '{"path":"", "type":"external", "label":"{{ .chaincodeName }}"}' > metadata.json
+                  printf "[DEBUG] Generate metadata.json for {{ .name }}\n"
+                  echo '{"path":"", "type":"external", "label":"{{ .name }}"}' > metadata.json
 
-                  printf "[DEBUG] Archive  code.tar.gz and metadata.json to chaincode.tgz for {{ .chaincodeName }}\n"
+                  printf "[DEBUG] Archive  code.tar.gz and metadata.json to chaincode.tgz for {{ .name }}\n"
                   tar cfz chaincode.tgz code.tar.gz metadata.json
 
                   ## Install chaincode
-                  printf "[DEBUG] Install chaincode {{ .chaincodeName }}\n"
+                  printf "[DEBUG] Install chaincode {{ .name }}\n"
                   peer lifecycle chaincode install chaincode.tgz 2>/dev/null
 
 
                   peer lifecycle chaincode queryinstalled -O json > chaincode.list 2>/dev/null
 
-                  if  jq -e '.installed_chaincodes[] | select(.label=="{{ .chaincodeName }}")' chaincode.list > /dev/null; then
-                    CHAINCODE_CCID=$(jq '.installed_chaincodes[] | select(.label=="{{ .chaincodeName }}")' chaincode.list | jq -r .package_id)
-                    printf "[DEBUG] Chaincode {{ .chaincodeName }} installed with ccid : ${CHAINCODE_CCID}\n"
+                  if  jq -e '.installed_chaincodes[] | select(.label=="{{ .name }}")' chaincode.list > /dev/null; then
+                    CHAINCODE_CCID=$(jq '.installed_chaincodes[] | select(.label=="{{ .name }}")' chaincode.list | jq -r .package_id)
+                    printf "[DEBUG] Chaincode {{ .name }} installed with ccid : ${CHAINCODE_CCID}\n"
                   fi
 
                   sleep 10
                 done
 
-                CHAINCODE_CCID=$(jq '.installed_chaincodes[] | select(.label=="{{ .chaincodeName }}")' chaincode.list | jq -r .package_id)
+                CHAINCODE_CCID=$(jq '.installed_chaincodes[] | select(.label=="{{ .name }}")' chaincode.list | jq -r .package_id)
 
-                until kubectl get secret chaincode-ccid-{{ .chaincodeName }} > /dev/null; do
-                    printf "[DEBUG] Create chaincode ccid secret for {{ .chaincodeName }}\n"
-                    kubectl create secret generic chaincode-ccid-{{ .chaincodeName }} --from-literal=ccid=$CHAINCODE_CCID
+                until kubectl get secret chaincode-ccid-{{ .name }} > /dev/null; do
+                    printf "[DEBUG] Create chaincode ccid secret for {{ .name }}\n"
+                    kubectl create secret generic chaincode-ccid-{{ .name }} --from-literal=ccid=$CHAINCODE_CCID
                 done
 
-                # Approve chaincode
+                ## Approve chaincode
 
-                peer lifecycle chaincode queryapproved --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --sequence 1 -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.approve 2>&1
+                while true ; do
+                  printf "[DEBUG] Approving chaincode {{ .name }} {{ .version }} with ccid ${CHAINCODE_CCID}\n"
 
-                until grep "${CHAINCODE_CCID}" chaincode.approve > /dev/null; do
-                    printf "[DEBUG] Chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} with ccid ${CHAINCODE_CCID} is not approved\n"
+                  peer lifecycle chaincode approveformyorg \
+                    --signature-policy "{{ .policy}}" \
+                    --channelID {{ $value.channelName }} \
+                    --name {{ .name }} \
+                    --version {{ .version }} \
+                    --package-id $CHAINCODE_CCID \
+                    --sequence 1  \
+                    --init-required \
+                    --tls \
+                    --clientauth \
+                    --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                    --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                    --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > /dev/null 2>&1
 
-                    cat chaincode.approve
+                  peer lifecycle chaincode queryapproved \
+                    --channelID {{ $value.channelName }} \
+                    --name {{ .name }} \
+                    --sequence 1 \
+                    --tls \
+                    --clientauth \
+                    --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                    --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                    --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode.approve 2>&1
 
-                    printf "[DEBUG] Approving chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} with ccid ${CHAINCODE_CCID}\n"
 
-                    peer lifecycle chaincode approveformyorg  --signature-policy "{{ .chaincodePolicy}}" --channelID {{ $value.channelName }} --name {{ .chaincodeName }}  --version {{ .chaincodeVersion }} --package-id $CHAINCODE_CCID --sequence 1 --init-required -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /dev/null 2>&1
+                  if grep "${CHAINCODE_CCID}" chaincode.approve > /dev/null; then
+                    break
+                  fi
 
-                    peer lifecycle chaincode queryapproved --channelID {{ $value.channelName }} --name {{ .chaincodeName }} --sequence 1 -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > chaincode.approve 2>&1
+                  printf "[DEBUG] Chaincode {{ .name }} {{ .version }} with ccid ${CHAINCODE_CCID} is not approved\n"
 
-                    sleep 10
+                  sleep 5
 
                 done
 

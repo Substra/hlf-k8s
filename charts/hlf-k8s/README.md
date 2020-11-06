@@ -44,12 +44,11 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `appChannels[].channelPolicies` | This value overrides the default HLF channel policy. | (defined in values.yaml) |
 | `appChannels[].appPolicies` | This value overrides the default HLF application policy. | (defined in values.yaml) |
 | `appChannels[].chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
-| `appChannels[].chaincodes[].chaincodeName` | The name of the chaincode | (undefined) |
-| `appChannels[].chaincodes[].chaincodeVersion` | The chaincode version | (undefined) |
-| `appChannels[].chaincodes[].chaincodeAddress` | The URL to the chaincode service | (undefined) |
-| `appChannels[].chaincodes[].chaincodePort` | The port to the chaincode service | (undefined) |
-| `appChannels[].chaincodes[].chaincodeAddress` | The URL to a chaincode service | (undefined) |
-| `appChannels[].chaincodes[].chaincodePolicy` | The chaincode policy | (undefined) |
+| `appChannels[].chaincodes[].name` | The name of the chaincode | (undefined) |
+| `appChannels[].chaincodes[].version` | The chaincode version | (undefined) |
+| `appChannels[].chaincodes[].address` | The URL to the chaincode service | (undefined) |
+| `appChannels[].chaincodes[].port` | The port to the chaincode service | (undefined) |
+| `appChannels[].chaincodes[].policy` | The chaincode policy | (undefined) |
 | `appChannels[].chaincodes[].image.repository` | `chaincode` image repository | (undefined) |
 | `appChannels[].chaincodes[].image.tag` | `chaincode` image tag | (undefined) |
 | `appChannels[].chaincodes[].image.pullPolicy` | Image pull policy | (undefined) |
@@ -129,11 +128,11 @@ On a peer:
 appChannels:
   - channelName: mychannel
     chaincodes:
-      - chaincodeName: mycc
-        chaincodeVersion: "1.0"
-        chaincodeAddress: "chaincode-org-0-substra-chaincode-chaincode.org-0"
-        chaincodePort: "7052"
-        chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
+      - name: mycc
+        version: "1.0"
+        address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
+        port: "7052"
+        policy: "OR('Org1MSP.member','Org2MSP.member')"
         image:
           repository: substrafoundation/substra-chaincode
           tag: hlf-2
@@ -166,11 +165,11 @@ Finally, modify deployment values to use your chaincode image:
 For instance with `substrafoundation/substra-chaincode:my-tag`
 ```yaml
   chaincodes:
-  - chaincodeAddress: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
-    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-    chaincodeName: mycc
-    chaincodePort: 7052
-    chaincodeVersion: "1.0"
+  - address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+    name: mycc
+    port: 7052
+    version: "1.0"
     image:
       repository: substrafoundation/substra-chaincode
       tag: my-tag

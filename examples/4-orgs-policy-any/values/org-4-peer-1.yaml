@@ -58,11 +58,11 @@ appChannels:
         Rule: "ANY Admins"
 
   chaincodes:
-  - chaincodeAddress: network-org-4-peer-1-hlf-k8s-chaincode-mycc.org-4
-    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
-    chaincodeName: mycc
-    chaincodePort: 7052
-    chaincodeVersion: "1.0"
+  - address: network-org-4-peer-1-hlf-k8s-chaincode-mycc.org-4
+    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
+    name: mycc
+    port: 7052
+    version: "1.0"
     image:
       repository: substrafoundation/substra-chaincode
       tag: hlf-2

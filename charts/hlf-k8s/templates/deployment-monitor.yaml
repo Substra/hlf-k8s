@@ -59,13 +59,12 @@ spec:
 
               peer channel fetch config systemChannel.block \
                 -c {{ $.Values.systemChannel.name }} \
-                -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} \
                 --tls \
                 --clientauth \
                 --cafile /var/hyperledger/tls/server/cert/cacert.pem \
                 --keyfile /var/hyperledger/tls/client/pair/tls.key \
                 --certfile /var/hyperledger/tls/client/pair/tls.crt \
-                > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+                -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > /tmp/out.txt 2>&1 || cat /tmp/out.txt
 
               configtxlator proto_decode --input systemChannel.block --type common.Block | jq '.data.data[0].payload.data.config.channel_group.groups.Consortiums.groups.SampleConsortium.groups | keys'
 
@@ -73,13 +72,12 @@ spec:
 
               peer channel fetch config applicationChannel.block \
                 -c {{ .channelName }} \
-                -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} \
                 --tls \
                 --clientauth \
                 --cafile /var/hyperledger/tls/server/cert/cacert.pem \
                 --keyfile /var/hyperledger/tls/client/pair/tls.key \
                 --certfile /var/hyperledger/tls/client/pair/tls.crt \
-                > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+                -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > /tmp/out.txt 2>&1 || cat /tmp/out.txt
 
               configtxlator proto_decode --input applicationChannel.block --type common.Block | jq '.data.data[0].payload.data.config.channel_group.groups.Application.groups | keys'
 

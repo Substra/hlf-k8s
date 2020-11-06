@@ -5,7 +5,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "substra.fullname" $ }}-chaincode-{{ .chaincodeName}}
+  name: {{ template "substra.fullname" $ }}-chaincode-{{ .name}}
   labels:
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
     app.kubernetes.io/instance: {{ $.Release.Name }}
@@ -16,16 +16,16 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .chaincodeName}}
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
         app.kubernetes.io/instance: {{ $.Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .chaincodeName}}
+        app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
         app.kubernetes.io/instance: {{ $.Release.Name }}
     spec:
       containers:
-        - name: substra-chaincode-{{ .chaincodeName}}
+        - name: substra-chaincode-{{ .name}}
           image: {{ .image.repository }}:{{ .image.tag }}
           imagePullPolicy: "{{ .image.pullPolicy }}"
           command: ['./chaincode']
@@ -33,10 +33,10 @@ spec:
             - name: CHAINCODE_CCID
               valueFrom:
                 secretKeyRef:
-                  name: chaincode-ccid-{{ .chaincodeName }}
+                  name: chaincode-ccid-{{ .name }}
                   key: ccid
             - name: CHAINCODE_ADDRESS
-              value: "0.0.0.0:{{ .chaincodePort }}"
+              value: "0.0.0.0:{{ .port }}"
             - name: TLS_CERT_FILE
               value: "/var/hyperledger/tls/client/pair/tls.crt"
             - name: TLS_KEY_FILE
@@ -49,7 +49,7 @@ spec:
             - mountPath: /var/hyperledger/tls/client/cert
               name: tls-clientrootcert
           ports:
-            - containerPort: {{ .chaincodePort }}
+            - containerPort: {{ .port }}
       volumes:
       - name: tls-client
         secret:
@@ -61,21 +61,21 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "substra.fullname" $ }}-chaincode-{{ .chaincodeName}}
+  name: {{ template "substra.fullname" $ }}-chaincode-{{ .name}}
   labels:
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
     app.kubernetes.io/instance: {{ $.Release.Name }}
     helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
-    app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .chaincodeName}}
+    app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
 spec:
   type: ClusterIP
   ports:
   - name: chaincode
-    port: {{ .chaincodePort }}
+    port: {{ .port }}
     protocol: TCP
-    targetPort: {{ .chaincodePort }}
+    targetPort: {{ .port }}
   selector:
-    app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .chaincodeName}}
+    app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name}}
     app.kubernetes.io/instance: {{ $.Release.Name }}
 {{- end }}
 {{- end }}

@@ -98,11 +98,11 @@ appChannels:
 
   chaincodes: []
   # -
-  #   chaincodeName: mycc
-  #   chaincodeVersion: "1.0"
-  #   chaincodeAddress: "chaincode-org-0-substra-chaincode-chaincode.org-0"
-  #   chaincodePort: "7052"
-  #   chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
+  #   name: mycc
+  #   version: "1.0"
+  #   address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
+  #   port: "7052"
+  #   policy: "OR('Org1MSP.member','Org2MSP.member')"
   #   image:
   #     repository: substrafoundation/substra-chaincode
   #     tag: hlf-2

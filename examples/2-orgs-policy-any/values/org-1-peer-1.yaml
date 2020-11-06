@@ -57,11 +57,11 @@ appChannels:
         Rule: "ANY Admins"
 
   chaincodes:
-  - chaincodeAddress: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
-    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-    chaincodeName: mycc
-    chaincodePort: 7052
-    chaincodeVersion: "1.0"
+  - address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+    name: mycc
+    port: 7052
+    version: "1.0"
     image:
       repository: substrafoundation/substra-chaincode
       tag: hlf-2
@@ -100,11 +100,11 @@ appChannels:
         Rule: "ANY Admins"
 
   chaincodes:
-  - chaincodeAddress: network-org-1-peer-1-hlf-k8s-chaincode-yourcc.org-1
-    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-    chaincodeName: yourcc
-    chaincodePort: 7052
-    chaincodeVersion: "1.0"
+  - address: network-org-1-peer-1-hlf-k8s-chaincode-yourcc.org-1
+    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+    name: yourcc
+    port: 7052
+    version: "1.0"
     image:
       repository: substrafoundation/substra-chaincode
       tag: hlf-2

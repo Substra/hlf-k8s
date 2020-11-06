@@ -68,7 +68,16 @@ spec:
                 ## Fetch system channel configuration block
                 until [ -f "channel.block" ] && [ -s "channel.block" ]; do
                   printf "[DEBUG] Fetching the system channel ({{ .Values.systemChannel.name }}) configuration block\n"
-                  peer channel fetch config channel.block -c {{ .Values.systemChannel.name }} -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+
+                  peer channel fetch config channel.block \
+                    -c {{ .Values.systemChannel.name }} \
+                    --tls \
+                    --clientauth \
+                    --cafile /var/hyperledger/msp/cacerts/cacert.pem \
+                    --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                    --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                    -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+
                   sleep 3
                 done
 
@@ -123,12 +132,29 @@ spec:
                 until $(grep "$org" channelconfignew-$org.json > /dev/null 2> /dev/null); do
 
                   printf "[DEBUG] Send system channel update proposal for $org\n"
-                  peer channel update -f proposal-$org.pb -c {{ .Values.systemChannel.name }} -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+
+                  peer channel update -f proposal-$org.pb \
+                    -c {{ .Values.systemChannel.name }} \
+                    --tls \
+                    --clientauth \
+                    --cafile /var/hyperledger/msp/cacerts/cacert.pem \
+                    --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                    --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                    -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }}
 
                   sleep 2
 
                   printf "[DEBUG] Fetch system channel configuration to check the update for $org\n"
-                  peer channel fetch config channelnew-$org.block -c {{ .Values.systemChannel.name }} -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/msp/cacerts/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+
+                  peer channel fetch config channelnew-$org.block \
+                    -c {{ .Values.systemChannel.name }} \
+                    --tls \
+                    --clientauth \
+                    --cafile /var/hyperledger/msp/cacerts/cacert.pem \
+                    --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                    --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                    -o {{ index .Values "hlf-ord" "host" }}:{{ index .Values "hlf-ord" "port" }} > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+
                   configtxlator proto_decode --input channelnew-$org.block --type common.Block | jq .data.data[0].payload.data.config > channelconfignew-$org.json
 
                   sleep 5
