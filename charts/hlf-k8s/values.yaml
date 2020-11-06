@@ -18,9 +18,9 @@ fabric-tools:
     tag: latest
     pullPolicy: IfNotPresent
 
-fabric-tools-ca:
+fabric-ca-tools:
   image:
-    repository: substrafoundation/fabric-tools-ca
+    repository: substrafoundation/fabric-ca-tools
     tag: latest
     pullPolicy: IfNotPresent
 

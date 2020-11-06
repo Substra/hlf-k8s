@@ -21,10 +21,10 @@ build:
       docker:
         dockerfile: images/fabric-tools/Dockerfile
 
-    - image: substrafoundation/fabric-tools-ca
+    - image: substrafoundation/fabric-ca-tools
       context: ../../
       docker:
-        dockerfile: images/fabric-tools-ca/Dockerfile
+        dockerfile: images/fabric-ca-tools/Dockerfile
 
     - image: substrafoundation/fabric-peer
       context: ../../
@@ -43,7 +43,7 @@ deploy:
           helm: {}
         values:
           fabric-tools.image: substrafoundation/fabric-tools
-          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
+          fabric-ca-tools.image: substrafoundation/fabric-ca-tools
 
       - name: network-org-1-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -53,7 +53,7 @@ deploy:
           helm: {}
         values:
           fabric-tools.image: substrafoundation/fabric-tools
-          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
+          fabric-ca-tools.image: substrafoundation/fabric-ca-tools
           hlf-peer.image: substrafoundation/fabric-peer
 
 
@@ -65,7 +65,7 @@ deploy:
           helm: {}
         values:
           fabric-tools.image: substrafoundation/fabric-tools
-          fabric-tools-ca.image: substrafoundation/fabric-tools-ca
+          fabric-ca-tools.image: substrafoundation/fabric-ca-tools
           hlf-peer.image: substrafoundation/fabric-peer
 
     flags:

@@ -14,6 +14,6 @@ hlf-k8s appChannels field expose now :
  - channel policies
  - chaincodes, which is not isolated anymore
 
-Rename images from hlf-k8s to fabric-tools and fabric-tools-ca
+Rename images from hlf-k8s to fabric-tools and fabric-ca-tools
 
 /!\ As we use TLS for chaincode and peer communications, you need to add chaincode fqdn in the csrHost of the CA enrollement
