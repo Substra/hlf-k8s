@@ -8,7 +8,6 @@ nginx-ingress:
     scope:
       enabled: true
 
-
 hlf-ca:
   caName: rcaOrg3
   host: network-org-3-peer-1-hlf-ca.org-3
@@ -21,41 +20,70 @@ hlf-ord:
 hlf-peer:
   host: network-org-3-peer-1-hlf-peer.org-3
   peer:
+    couchdbInstance: network-org-3-peer-1
     mspID: MyOrg3MSP
     gossip:
       externalEndpoint: network-org-3-peer-1-hlf-peer.org-3:7051
   discover-monitor:
     enabled: true
 
-
-chaincodes:
-  - name: mycc
-    version: "1.0"
-    src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
-
 appChannels:
-  - channelName: mychannel
-    organizations:
-      - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
-      - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
-      - { org: MyOrg3, mspid: MyOrg3MSP, configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrgWithAnchors.json }
-      - { org: MyOrg4, mspid: MyOrg4MSP, configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrgWithAnchors.json }
+- channelName: mychannel
+  channelPolicies: |-
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
+  appPolicies: |-
+    LifecycleEndorsement:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Endorsement"
+    Endorsement:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Endorsement"
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
 
-    proposalOrganizations:
-      - { org: MyOrg1, mspid: MyOrg1MSP, proposalServerUrl: network-org-1-peer-1-hlf-k8s-appchannel-operator-mychannel.org-1/proposal/ }
-      - { org: MyOrg2, mspid: MyOrg2MSP, proposalServerUrl: network-org-2-peer-1-hlf-k8s-appchannel-operator-mychannel.org-2/proposal/ }
-      - { org: MyOrg3, mspid: MyOrg3MSP, proposalServerUrl: network-org-3-peer-1-hlf-k8s-appchannel-operator-mychannel.org-3/proposal/ }
-      - { org: MyOrg4, mspid: MyOrg4MSP, proposalServerUrl: network-org-4-peer-1-hlf-k8s-appchannel-operator-mychannel.org-4/proposal/ }
+  chaincodes:
+  - address: network-org-3-peer-1-hlf-k8s-chaincode-mycc.org-3
+    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
+    name: mycc
+    port: 7052
+    version: "1.0"
+    image:
+      repository: substrafoundation/substra-chaincode
+      tag: hlf-2
+      pullPolicy: IfNotPresent
 
-    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
-    chaincodeName: mycc
-    chaincodeVersion: "1.0"
+  organizations:
+    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
+    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
+    - { org: MyOrg3, mspid: MyOrg3MSP, configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrgWithAnchors.json }
+    - { org: MyOrg4, mspid: MyOrg4MSP, configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrgWithAnchors.json }
+
+  proposalOrganizations:
+    - { org: MyOrg1, mspid: MyOrg1MSP, proposalServerUrl: network-org-1-peer-1-hlf-k8s-appchannel-operator-mychannel.org-1/proposal/ }
+    - { org: MyOrg2, mspid: MyOrg2MSP, proposalServerUrl: network-org-2-peer-1-hlf-k8s-appchannel-operator-mychannel.org-2/proposal/ }
+    - { org: MyOrg3, mspid: MyOrg3MSP, proposalServerUrl: network-org-3-peer-1-hlf-k8s-appchannel-operator-mychannel.org-3/proposal/ }
+    - { org: MyOrg4, mspid: MyOrg4MSP, proposalServerUrl: network-org-4-peer-1-hlf-k8s-appchannel-operator-mychannel.org-4/proposal/ }
 
 enrollments:
   creds:
     - { name: admin, secret: adminpwd, options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"}
     - { name: user, secret: pwd, options: "--id.type peer"}
-  csrHost: network-org-3-peer-1-hlf-peer.org-3
+  csrHost: network-org-3-peer-1-hlf-peer.org-3,network-org-3-peer-1-hlf-k8s-chaincode-mycc.org-3
 
 
 toolbox:

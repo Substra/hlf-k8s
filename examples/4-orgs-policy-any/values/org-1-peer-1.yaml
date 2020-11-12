@@ -21,46 +21,64 @@ hlf-ord:
 hlf-peer:
   host: network-org-1-peer-1-hlf-peer.org-1
   peer:
+    couchdbInstance: network-org-1-peer-1
     mspID: MyOrg1MSP
     gossip:
       externalEndpoint: network-org-1-peer-1-hlf-peer.org-1:7051
   discover-monitor:
     enabled: true
 
-
-chaincodes:
-  - name: mycc
-    version: "1.0"
-    src: https://github.com/SubstraFoundation/substra-chaincode/archive/master.tar.gz
-
 appChannels:
-  - channelName: mychannel
-    organizations:
-      - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
-      - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
-      - { org: MyOrg3, mspid: MyOrg3MSP, configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrgWithAnchors.json }
-      - { org: MyOrg4, mspid: MyOrg4MSP, configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrgWithAnchors.json }
+- channelName: mychannel
+  channelPolicies: |-
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "ANY Admins"
+  appPolicies: |-
+    LifecycleEndorsement:
+        Type: ImplicitMeta
+        Rule: "ANY Endorsement"
+    Endorsement:
+        Type: ImplicitMeta
+        Rule: "ANY Endorsement"
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "ANY Admins"
 
-    policies: |-
-      Readers:
-          Type: ImplicitMeta
-          Rule: "ANY Readers"
-      Writers:
-          Type: ImplicitMeta
-          Rule: "ANY Writers"
-      Admins:
-          Type: ImplicitMeta
-          Rule: "ANY Admins"
+  chaincodes:
+  - address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
+    name: mycc
+    port: 7052
+    version: "1.0"
+    image:
+      repository: substrafoundation/substra-chaincode
+      tag: hlf-2
+      pullPolicy: IfNotPresent
 
-    chaincodePolicy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
-    chaincodeName: mycc
-    chaincodeVersion: "1.0"
+  organizations:
+    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
+    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
+    - { org: MyOrg3, mspid: MyOrg3MSP, configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrgWithAnchors.json }
+    - { org: MyOrg4, mspid: MyOrg4MSP, configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrgWithAnchors.json }
 
 enrollments:
   creds:
     - { name: admin, secret: adminpwd, options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"}
     - { name: user, secret: pwd, options: "--id.type peer"}
-  csrHost: network-org-1-peer-1-hlf-peer.org-1
+  csrHost: network-org-1-peer-1-hlf-peer.org-1,network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
 
 
 toolbox:

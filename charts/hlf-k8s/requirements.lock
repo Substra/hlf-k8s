@@ -1,15 +1,18 @@
 dependencies:
 - name: hlf-ca
-  repository: https://kubernetes-charts.storage.googleapis.com/
+  repository: https://owkin.github.io/charts/
   version: 1.2.0
 - name: hlf-ord
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.4.1
+  repository: https://owkin.github.io/charts/
+  version: 2.0.0
 - name: hlf-peer
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.6.1
+  repository: https://owkin.github.io/charts/
+  version: 2.0.0
+- name: hlf-couchdb
+  repository: https://owkin.github.io/charts/
+  version: 1.0.7
 - name: nginx-ingress
-  repository: https://kubernetes-charts.storage.googleapis.com/
+  repository: https://charts.helm.sh/stable
   version: 1.29.7
-digest: sha256:1add98c07ce6a01ed23ec08da8e627e36fd5dbe2d0cdc424f72eb3c3fa5e228c
-generated: "2020-09-14T10:57:42.221305+02:00"
+digest: sha256:68138faef272ef577d63c80e759ff6d031882e8d67aea4ee65a3888267f2ca98
+generated: "2020-10-28T13:27:52.067189+01:00"

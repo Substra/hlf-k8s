@@ -12,10 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-image:
-  repository: substrafoundation/hlf-k8s
-  tag: latest
-  pullPolicy: IfNotPresent
+fabric-tools:
+  image:
+    repository: substrafoundation/fabric-tools
+    tag: latest
+    pullPolicy: IfNotPresent
+
+fabric-ca-tools:
+  image:
+    repository: substrafoundation/fabric-ca-tools
+    tag: latest
+    pullPolicy: IfNotPresent
 
 nginx-ingress:
   enabled: false
@@ -37,6 +44,17 @@ systemChannel:
     ## The organizations to add to the system channel
     #   - { org: Org1, mspid: Org1MSP, configUrl: peer-1-org-config-operator.org-1/config/configOrg.json }
     #   - { org: Org2, mspid: Org2MSP, configUrl: peer-2-org-config-operator.org-2/config/configOrg.json }
+  policies: |-
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
+
 
 appChannels:
 - channelName: mychannel
@@ -51,19 +69,45 @@ appChannels:
   # - { org: Org1, mspid: Org1MSP, proposalServerUrl: peer-1-org-appchannel-operator-mychannel.org-1/proposal/ }
   # - { org: Org2, mspid: Org2MSP, proposalServerUrl: peer-2-org-appchannel-operator-mychannel.org-2/proposal/ }
 
-  # chaincodePolicy: "OR('Org1MSP.member','Org2MSP.member')"
-  # chaincodeName: mycc
-  # chaincodeVersion: "1.0"
-  # policies: |-
-  #   Readers:
-  #       Type: ImplicitMeta
-  #       Rule: "ANY Readers"
-  #   Writers:
-  #       Type: ImplicitMeta
-  #       Rule: "ANY Writers"
-  #   Admins:
-  #       Type: ImplicitMeta
-  #       Rule: "ANY Admins"
+  channelPolicies: |-
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "ANY Admins"
+
+  appPolicies: |-
+    LifecycleEndorsement:
+        Type: ImplicitMeta
+        Rule: "ANY Endorsement"
+    Endorsement:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Endorsement"
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
+
+  chaincodes: []
+  # -
+  #   name: mycc
+  #   version: "1.0"
+  #   address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
+  #   port: "7052"
+  #   policy: "OR('Org1MSP.member','Org2MSP.member')"
+  #   image:
+  #     repository: substrafoundation/substra-chaincode
+  #     tag: hlf-2
+  #     pullPolicy: IfNotPresent
 
   ingress:
     enabled: false
@@ -107,13 +151,13 @@ hlf-ca:
   host: ca-hostname
   port: 7054
   image:
-    tag: 1.4.6
+    tag: 1.4.9
   caName: rca
   adminUsername: caAdmin
   adminPassword: caPassword
 
   config:
-    hlfToolsVersion: 1.4.6
+    hlfToolsVersion: 1.4.9
     csr:
       ca:
         pathlength: 1
@@ -137,7 +181,12 @@ hlf-ca:
     port: 7054
 
 hlf-peer:
+  docker:
+    enabled:
+      false
   peer:
+    databaseType: CouchDB
+    couchdbInstance: cdb-peer
     gossip:
       bootstrap: "127.0.0.1:7051"
     tls:
@@ -146,14 +195,16 @@ hlf-peer:
       client:
         enabled: "true"
     chaincode:
-      builder: hyperledger/fabric-ccenv:1.4.6
+      builder: hyperledger/fabric-ccenv:2.2.1
       runtime:
-        golang: hyperledger/fabric-baseos:0.4.16
+        golang: hyperledger/fabric-baseos:2.2.1
   enabled: true
   host: peer-hostname
   port: 7051
   image:
-    tag: 1.4.6
+    # Use our own fabric-peer images with external chaincode binaries
+    repository: substrafoundation/fabric-peer
+    tag: latest
   persistence:
     enabled: false
   discover-monitor:
@@ -186,6 +237,20 @@ hlf-peer:
     ## This should include the Orderer TLS 'cacert.pem'
     ordTlsRootCert: ord-tls-rootcert
 
+
+
+hlf-couchdb:
+  service:
+    port: 5984
+  image:
+    repository: hyperledger/fabric-couchdb
+    tag: 0.4.21
+  persistence:
+    size: 10Gi
+  couchdbUsername: couchdb
+  couchdbPassword: couchdbpwd
+
+
 hlf-ord:
   enabled: false
   host: orderer-hostname
@@ -193,11 +258,11 @@ hlf-ord:
   maxMessageCount: 10
   batchTimeout: 500ms
   image:
-    tag: 1.4.6
+    tag: 2.2.1
   persistence:
     enabled: false
   ord:
-    type: solo
+    type: etcdraft
     mspID: MyOrdererMSP
     tls:
       server:
@@ -232,19 +297,19 @@ hlf-ord:
     ## This is necessary to successfully join a channel
     adminKey: hlf-msp-key-admin
 
-chaincodes: []
-  # -
-  #   name: mycc
-  #   version: "1.0"
-  ## The chaincode source code can be provided one of 3 ways:
-  ## 1. Archive URL (Note: the archive name cannot contain the `/` character)
-  #   src: https://github.com/SubstraFoundation/substra-chaincode/archive/0.0.2.tar.gz
-  ## 2. A host path
-  #   hostPath: /home/johndoe/code/susbtra-chaincode
-  ## 3. A ConfigMap
-  #   configMap:
-  #     name: hlf-chaincode
-  #     fileName: chaincode.tar.gz
+  policies: |
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
+    BlockValidation:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
 
 users:
   admin:
@@ -306,9 +371,11 @@ hooks:
   serviceAccount:
     name: ""
     namespace: ""
+  # If we delete or not HLF crypto materials secrets
   deleteSecrets:
     enabled: true
-  uninstallChaincode:
+  # If we delete or not chaincode CCID secrets
+  deleteCCIDSecrets:
     enabled: true
 
 toolbox:

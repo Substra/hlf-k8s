@@ -38,8 +38,8 @@ spec:
       serviceAccountName: {{ template "substra.fullname" . }}
       containers:
       - name: fabric-tools
-        image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
-        imagePullPolicy: "{{ $.Values.image.pullPolicy }}"
+        image: {{ index $.Values "fabric-tools" "image" "repository" }}:{{ index $.Values "fabric-tools" "image" "tag" }}
+        imagePullPolicy: "{{ index $.Values "fabric-tools" "image" "pullPolicy" }}"
         command: ['sleep']
         args:
         - infinity
@@ -48,8 +48,6 @@ spec:
           value: /var/hyperledger/admin_msp
         - name: GODEBUG
           value: "netdns=go+1"
-        - name: GITHUB_TOKEN
-          value: 82943306e1c1408d3b4a78e33bfbac58ca4b798a
         resources:
           limits:
             cpu: 100m

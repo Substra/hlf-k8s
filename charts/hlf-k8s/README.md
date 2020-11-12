@@ -25,8 +25,11 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-peer.peer.mspID` | ID of MSP the Peer belongs to | `Org1MSP` |
 | `hlf-peer.discover-monitor.enabled` | If true, create a discover monitor pod (see [Monitoring pods](#monitoring-pods)) | `false` |
 | `hlf-peer.peer.gossip.externalEndpoint` | HLF peer gossip external endpoint | `""` |
+| `hlf-peer.peer.databaseType` | Database type to use (goleveldb or CouchDB) | `CouchDB` |
+| `hlf-peer.peer.couchdbInstance` | CouchDB chart name to use cdb-peer | `cdb-peer` |
 | `hlf-peer.host` | The Peers's host | `peer-hostname` |
 | `hlf-peer.port` | The Peers's port | `7051` |
+| `hlf-peer.docker.enabled` | If true, mount host docker socket in the peer container | `false` |
 | `hlf-peer.ingress.enabled` | If true, Ingress will be created for the Peer | `false` |
 | `hlf-peer.ingress.annotations` | Peer ingress annotations | (undefined) |
 | `hlf-peer.ingress.tls` | Peer ingress TLS configuration | (undefined) |
@@ -34,21 +37,21 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-peer.persistence.enabled` | If true, enable persistence for the Peer | `false` |
 | `hlf-peer.persistence.size` | Size of data volume | (undefined) |
 | `hlf-peer.persistence.storageClass` | Storage class of backing PVC | (undefined) |
-| `chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
-| `chaincodes[].name` | The name of the chaincode | (undefined) |
-| `chaincodes[].version` | The chaincode version | (undefined) |
-| `chaincodes[].src` | The URL to a chaincode archive (.tar.gz) | (undefined) |
-| `chaincodes[].hostPath` | A host path containing the chaincode source code | (undefined) |
-| `chaincodes[].configMap.name` | The name of a ConfigMap containing the chaincode source code (tar.gz) | (undefined) |
-| `chaincodes[].configMap.fileName` | The name of the archive within the ConfigMap | (undefined) |
 | `appChannels` | The application channels to create | `[{channelName: mychannel}]` |
 | `appChannels[].channelName` | The name of the application channel. Must be alphanumerical (9 characters max.) | (undefined) |
 | `appChannels[].organizations` | The organizations to add to the application channel. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | `[]` |
 | `appChannels[].proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
-| `appChannels[].chaincodePolicy` | The chaincode policy | (undefined) |
-| `appChannels[].chaincodeName` | The chaincode name | (undefined) |
-| `appChannels[].chaincodeVersion` | The chaincode version | (undefined) |
-| `appChannels[].policies` | This value, if set, will override the default HLF application channel policy. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | (undefined) |
+| `appChannels[].channelPolicies` | This value overrides the default HLF channel policy. | (defined in values.yaml) |
+| `appChannels[].appPolicies` | This value overrides the default HLF application policy. | (defined in values.yaml) |
+| `appChannels[].chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
+| `appChannels[].chaincodes[].name` | The name of the chaincode | (undefined) |
+| `appChannels[].chaincodes[].version` | The chaincode version | (undefined) |
+| `appChannels[].chaincodes[].address` | The URL to the chaincode service | (undefined) |
+| `appChannels[].chaincodes[].port` | The port to the chaincode service | (undefined) |
+| `appChannels[].chaincodes[].policy` | The chaincode policy | (undefined) |
+| `appChannels[].chaincodes[].image.repository` | `chaincode` image repository | (undefined) |
+| `appChannels[].chaincodes[].image.tag` | `chaincode` image tag | (undefined) |
+| `appChannels[].chaincodes[].image.pullPolicy` | Image pull policy | (undefined) |
 | `appChannels[].ingress.enabled` | If true, Ingress will be created for this application channel operator. | `false` |
 | `appChannels[].ingress.annotations` | Application channel operator ingress annotations | (undefined) |
 | `appChannels[].ingress.tls` | Application channel operator ingress TLS configuration | (undefined) |
@@ -58,10 +61,10 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `configOperator.ingress.tls` | Config operator ingress TLS configuration | (undefined) |
 | `configOperator.ingress.hosts` | Config operator ingress hosts | (undefined) |
 | `genesis.generate` | If true, generate a HLF genesis block and populate the `secrets.genesis` secret | `true` |
-| `hooks.uninstallChaincode.enabled` | If true, the chaincode will be automatically uninstalled when the chart is uninstalled | `true` |
 | **Orderer** |  |  |
 | `hlf-ord.enabled` | If true, a HLF Orderer will be installed | `false` |
 | `hlf-ord.host` | The hostname for the Orderer | `orderer-hostname` |
+| `hlf-ord.port` | The Orderer's port | `7050` |
 | `hlf-ord.ord.mspID` | ID of MSP the Orderer belongs to | `MyOrdererMSP` |
 | `hlf-ord.monitor.enabled` | If true, create a monitor pod (see [Monitoring pods](#monitoring-pods)) | `false` |
 | `hlf-ord.ingress.enabled` | If true, Ingress will be created for the Orderer | (undefined) |
@@ -74,16 +77,17 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `systemChannel.name` | The name of the system channel | `systemchannel` |
 | `systemChannel.organizations` | The organizations to add to the system channel. See [Add an organization to the system channel](#add-an-organization-to-the-system-channel). | `[]` |
 | **Common / Other** |  |  |
-| `image.repository` | `hlf-k8s` image repository | `substrafoundation/hlf-k8s` |
-| `image.tag` | `hlf-k8s` image tag | `latest` |
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `fabric-tools.image.repository` | `fabric-tools` image repository | `substrafoundation/fabric-tools` |
+| `fabric-tools.image.tag` | `fabric-tools` image tag | `latest` |
+| `fabric-tools.image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `fabric-ca-tools.image.repository` | `fabric-ca-tools` image repository | `substrafoundation/fabric-ca-tools` |
+| `fabric-ca-tools.image.tag` | `fabric-ca-tools` image tag | `latest` |
+| `fabric-ca-tools.image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `nodeSelector` | Node labels for pod assignment | `{}` |
 | `tolerations` | Toleration labels for pod assignment | `[]` |
 | `affinity` | Affinity settings for pod assignment | `{}` |
 | `organization.id` | The organization id | `MyOrganizationMSP` |
 | `organization.name` | The organization name | `MyOrganization` |
-| `hlf-ord.host` | The Orderer's host | `orderer-hostname` |
-| `hlf-ord.port` | The Orderer's port | `7050` |
 | `enrollments.creds` | The users to enroll with the CA | `[]` |
 | `enrollments.csrHost` | The value to pass to `--csr.hosts` when enrolling users to the CA | `service-hostname` |
 | `hlf-ca.caName` | Name of CA | `rca` |
@@ -101,7 +105,8 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `privateCa.enabled` | if true, use a private CA | `false` |
 | `privateCa.configMap.name` | The name of the ConfigMap containing the private CA certificate | `private-ca` |
 | `privateCa.configMap.fileName` | The CA certificate filename within the ConfigMap | `private-ca.crt` |
-| `hooks.deleteSecrets.enabled` | If true, the secrets created by the chart will be automatically deleted when the chart is uninstalled | `true` |
+| `hooks.deleteSecrets.enabled` | If true, the HLF crypto materials secrets created by the chart will be automatically deleted when the chart is uninstalled | `true` |
+| `hooks.deleteCCIDSecrets.enabled` | If true, the chaincode ccid secrets created by the chart will be automatically deleted when the chart is uninstalled | `true` |
 | `hooks.serviceAccount.name` | `serviceAccount` used for the post-delete hooks, must be able to delete secrets | `""` |
 | `hooks.serviceAccount.namespace` | namespace of the `serviceAccount` used for the post-delete hook, this will define the namespace in which the hook job run (if unset it will be replaced by the release namespace) | `""`
 | `toolbox.enabled` | If true, a "toolbox" pod will be created with pre-installed utilities and certificates | `false` |
@@ -120,14 +125,55 @@ Install a chaincode on a peer using the following values.
 On a peer:
 
 ```yaml
-chaincodes:
-  - name: mycc     # Chaincode name
-    version: "1.0" # Chaincode version
-    # Chaincode source code archive URL
-    src: https://github.com/SubstraFoundation/substra-chaincode/archive/0.0.2.tar.gz
+appChannels:
+  - channelName: mychannel
+    chaincodes:
+      - name: mycc
+        version: "1.0"
+        address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
+        port: "7052"
+        policy: "OR('Org1MSP.member','Org2MSP.member')"
+        image:
+          repository: substrafoundation/substra-chaincode
+          tag: hlf-2
+          pullPolicy: IfNotPresent
 ```
 
-You can also provide the chaincode source code using a ConfigMap or a host path (see: [Configuration](#Configuration))
+
+### Test hlf-k8s with your own chaincode
+
+
+Example with substra-chaincode
+
+```bash
+git clone git@github.com:SubstraFoundation/substra-chaincode.git
+```
+
+Make your edits to substra-chaincode.
+
+Then build substra-chaincode image:
+
+```bash
+docker build -t substrafoundation/substra-chaincode:my-tag ./
+```
+
+*Note: If you use minikube, you need to run `eval $(minikube -p minikube docker-env)` first*
+
+
+Finally, modify deployment values to use your chaincode image:
+
+For instance with `substrafoundation/substra-chaincode:my-tag`
+```yaml
+  chaincodes:
+  - address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+    name: mycc
+    port: 7052
+    version: "1.0"
+    image:
+      repository: substrafoundation/substra-chaincode
+      tag: my-tag
+```
 
 ### Add an organization to the system channel
 
@@ -205,7 +251,7 @@ Orderer configuration:
 ```yaml
 appChannels:
 - channelName: mychannel
-  policies: |
+  channelPolicies: |
      Readers:
            Type: ImplicitMeta
            Rule: "ANY Readers"

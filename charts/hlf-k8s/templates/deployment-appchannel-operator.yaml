@@ -13,7 +13,7 @@
 # limitations under the License.
 
 {{- if index $.Values "hlf-peer" "enabled" }}
-{{- range .Values.appChannels }}
+{{- range $index, $value :=.Values.appChannels }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -39,7 +39,8 @@ spec:
       serviceAccountName: {{ template "substra.fullname" $ }}
       containers:
       - name: fabric-tools
-        image: {{ $.Values.image.repository }}:{{ $.Values.image.tag }}
+        image: {{ index $.Values "fabric-tools" "image" "repository" }}:{{ index $.Values "fabric-tools" "image" "tag" }}
+        imagePullPolicy: "{{ index $.Values "fabric-tools" "image" "pullPolicy" }}"
         command: ['sh', '-c']
         args:
           - |
@@ -63,12 +64,28 @@ spec:
 
                 ## Create channel
                 configtxgen -profile OrgsChannel-{{ .channelName }} --outputCreateChannelTx channel.tx -channelID {{ .channelName }} -asOrg {{ $.Values.organization.name }}
-                peer channel create -f channel.tx --outputBlock channel.block -c {{ .channelName }} -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt 2> channel.created
+                peer channel create -f channel.tx \
+                  --outputBlock channel.block \
+                  -c {{ .channelName }} \
+                  --tls \
+                  --clientauth \
+                  --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                  --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                  --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                  -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} 2> channel.created
 
                 ## Create and add anchor
                 configtxgen -profile OrgsChannel-{{ .channelName }} --outputAnchorPeersUpdate anchor.tx -channelID {{ .channelName }} -asOrg {{ $.Values.organization.name }}
 
-                peer channel update -f anchor.tx -c {{ .channelName }} -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer channel update |
+                  -f anchor.tx |
+                  -c {{ .channelName }} \
+                  --tls \
+                  --clientauth \
+                  --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                  --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                  --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                  -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }}
 
                 sleep 1
               done
@@ -76,18 +93,37 @@ spec:
               ## Join Application Channel
               ## Fetch channel list
 
-              peer channel list -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > channel.list
+              peer channel list \
+                --tls \
+                --clientauth \
+                --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > channel.list
 
               until grep "{{ .channelName }}" channel.list > /dev/null; do
 
                 printf "[DEBUG] Fetching application channel block\n"
-                peer channel fetch oldest channeljoin.block -c {{ .channelName }} -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }}  --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer channel fetch oldest channeljoin.block \
+                  -c {{ .channelName }} \
+                  --tls \
+                  --clientauth \
+                  --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                  --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                  --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                  -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }}
 
                 printf "[DEBUG] Joining channel\n"
                 peer channel join -b channeljoin.block
 
                 ## Fetch channel list
-                peer channel list -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > channel.list
+                peer channel list \
+                  --tls \
+                  --clientauth \
+                  --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                  --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                  --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                  -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > channel.list
 
                 sleep 1
               done
@@ -103,10 +139,18 @@ spec:
                   channel-cfg.block \
                   channel-cfg.json
 
+
                 ## Fetch up-to-date channel configuration block
                 until [ -f "channel.block" ] && [ -s "channel.block" ]; do
                   printf "[DEBUG] Fetching the channel ({{ .channelName }}) configuration block\n"
-                  peer channel fetch config channel.block -c {{ .channelName }} -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt > /tmp/out.txt 2>&1 || cat /tmp/out.txt
+                  peer channel fetch config channel.block \
+                    -c {{ .channelName }} \
+                    --tls \
+                    --clientauth \
+                    --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                    --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                    --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > /tmp/out.txt 2>&1 || cat /tmp/out.txt
                   sleep 3
                 done
 
@@ -125,6 +169,22 @@ spec:
                   rm -f *-$org.*
                 fi
 
+                ## Fetch organization configuration
+                if ! [ -s "configOrg-$org.json" ]; then
+                  printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
+                  curl --fail -L --output ./configOrg-$org.json $configUrl || continue # continue to next org if curl fails
+
+                  if [ -s "configOrg-$org.json" ]; then
+                    printf "[DEBUG] Extract tls root certificate from the organization ($org) configuration file \n"
+                    jq -r .values.MSP.value.config.tls_root_certs[0] ./configOrg-$org.json | base64 -d > tlsRootCert-$org.crt
+
+                    printf "[DEBUG] Add the organization ($org) for endorsement \n"
+                    PEER_HOST=$(jq -r .values.AnchorPeers.value.anchor_peers[0].host configOrg-$org.json)
+                    PEER_PORT=$(jq -r .values.AnchorPeers.value.anchor_peers[0].port configOrg-$org.json)
+                    grep -qxF -e "--peerAddresses ${PEER_HOST}:${PEER_PORT} --tlsRootCertFiles tlsRootCert-$org.crt" endorsement.config || echo "--peerAddresses ${PEER_HOST}:${PEER_PORT} --tlsRootCertFiles tlsRootCert-$org.crt" >> endorsement.config
+                  fi
+                fi
+
                 ## Extract application channel configuration
                 until [ -f "channel-cfg.block" ] && [ -s "channel-cfg.block" ]; do
                   configtxlator proto_decode --input channel.block --type common.Block | jq .data.data[0].payload.data.config > channel-cfg.json
@@ -132,11 +192,6 @@ spec:
                   sleep 2
                 done
 
-                ## Fetch organization configuration
-                if ! ([ -f "configOrg-$org.json" ] && [ -s "configOrg-$org.json" ]); then
-                  printf "[DEBUG] Fetch the organization ($org) configuration from $configUrl\n"
-                  curl --fail -L --output ./configOrg-$org.json $configUrl || continue # continue to next org if curl fails
-                fi
 
                 ## Fetch update proposal from external orgs if exists
                 while IFS=" " read -r orgProposal mspidProposal proposalServerUrl ; do
@@ -172,7 +227,11 @@ spec:
                   configtxlator proto_encode --input new-channel-cfg-$org.json --type common.Config --output channelupdate-$org.block
 
                   ## Compute update between channel old configuration and the updated one
-                  configtxlator compute_update --channel_id {{ .channelName }} --original channel-cfg.block --updated channelupdate-$org.block | configtxlator proto_decode --type common.ConfigUpdate | jq . > compute_update-$org.json
+                  configtxlator compute_update \
+                    --channel_id {{ .channelName }} \
+                    --original channel-cfg.block \
+                    --updated channelupdate-$org.block \
+                    | configtxlator proto_decode --type common.ConfigUpdate | jq . > compute_update-$org.json
 
                   ## Create the update proposal
                   echo '{"payload":{"header":{"channel_header":{"channel_id": "{{ .channelName }}", "type":2}},"data":{"config_update":'$(cat compute_update-$org.json)'}}}' | jq . > proposal-$org.json
@@ -194,7 +253,14 @@ spec:
                 fi
 
                 ## Sign update proposal
-                peer channel signconfigtx -f proposal-$org.pb -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer channel signconfigtx \
+                  -f proposal-$org.pb \
+                  --tls \
+                  --clientauth \
+                  --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                  --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                  --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                  -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }}
 
                 ## Update proposal in /data
                 cp proposal-$org.pb /data/proposal-$org.pb
@@ -204,26 +270,116 @@ spec:
                 NUM_SIGNATURES=$(configtxlator proto_decode --input proposal-$org.pb --type common.Envelope | jq '.payload.data.signatures | map(.signature_header.creator.mspid) | unique | length')
                 NUM_APPLICATION_ORGS=$(wc -l /proposal/application-proposal-organizations | cut -c 1)
                 printf "[DEBUG] Submit channel update for '$org' with $NUM_SIGNATURES signatures (out of $NUM_APPLICATION_ORGS organizations)\n"
-                peer channel update -f proposal-$org.pb -c {{ .channelName }} -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+                peer channel update \
+                  -f proposal-$org.pb \
+                  -c {{ .channelName }} \
+                  --tls \
+                  --clientauth \
+                  --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                  --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                  --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                  -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }}
 
                 sleep 5
 
               done < /config/application-organizations
 
-              ## Instantiate chaincode
-              peer chaincode -C {{ .channelName }} list --instantiated > chaincode.list
 
-              until grep "{{ .chaincodeName }}" chaincode.list | grep "{{ .chaincodeVersion }}" > /dev/null; do
+              ## CHAINCODES
 
-                printf "[DEBUG] Instantiate chaincode {{ .chaincodeName }} {{ .chaincodeVersion }} on channel {{ .channelName }} with policy : {{ .chaincodePolicy }}\n"
-                peer chaincode instantiate -C {{ .channelName }} -n {{ .chaincodeName }} -v {{ .chaincodeVersion }} -c '{"Args":["init"]}' -P "{{ .chaincodePolicy }}" -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} --tls --clientauth --cafile /var/hyperledger/tls/ord/cert/cacert.pem --keyfile /var/hyperledger/tls/client/pair/tls.key --certfile /var/hyperledger/tls/client/pair/tls.crt
+              {{- range .chaincodes }}
+
+              ## Wait readiness
+
+              while true; do
+
+                # Chaincode commit
+                printf "[DEBUG] Wait chaincode ready {{ .name }} {{ .version }} on channel {{ $value.channelName }}\n"
+
+                peer lifecycle chaincode checkcommitreadiness \
+                  --signature-policy "{{ .policy}}" \
+                  --channelID {{ $value.channelName }} \
+                  --name {{ .name }} \
+                  --version {{ .version }} \
+                  --sequence 1 \
+                  --init-required \
+                  --tls \
+                  --clientauth \
+                  --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                  --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                  --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                  -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode.{{ .name }}.ready 2>&1
+
+                if ! grep "false" chaincode.{{ .name }}.ready > /dev/null; then
+                  break
+                fi
+
                 sleep 5
-
-                peer chaincode -C {{ .channelName }} list --instantiated > chaincode.list
 
               done
 
+              ## Commit chaincode
+
+              peer lifecycle chaincode querycommitted --channelID {{ $value.channelName }} > chaincode.{{ .name }}.list 2>&1
+
+              if ! grep "{{ .name }}" chaincode.{{ .name }}.list | grep "{{ .version }}" > /dev/null; then
+
+                # Chaincode commit
+                printf "[DEBUG] Commit chaincode {{ .name }} {{ .version }} on channel {{ $value.channelName }}\n"
+
+                ENDORSEMENT=$(cat endorsement.config| tr '\n' ' ')
+
+                peer lifecycle chaincode commit \
+                  --signature-policy "{{ .policy}}" \
+                  --channelID {{ $value.channelName }} \
+                  --name {{ .name }} \
+                  --version {{ .version }} \
+                  --sequence 1 --init-required \
+                  --tls \
+                  --clientauth \
+                  --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                  --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                  --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                  -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} \
+                  $ENDORSEMENT > chaincode.{{ .name }}.commit 2>&1
+
+                cat chaincode.{{ .name }}.commit
+
+                peer lifecycle chaincode querycommitted --channelID {{ $value.channelName }} > chaincode.{{ .name }}.list 2>&1
+
+                sleep 5
+
+              fi
+
+              ## Init chaincode
+
+              if [[ ! -e chaincode.{{ .name }}.init ]]; then
+                  touch chaincode.{{ .name }}.init
+              fi
+
+              if ! grep "already initialized" chaincode.{{ .name }}.init > /dev/null; then
+
+                printf "[DEBUG] Init chaincode {{ .name }} {{ .version }} on channel {{ $value.channelName }}\n"
+
+                peer chaincode invoke --isInit \
+                  --channelID {{ $value.channelName }} \
+                  --name {{ .name }} \
+                  --tls \
+                  --clientauth \
+                  --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                  --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                  --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                  -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} \
+                  -c '{"Args":["Init"]}' > chaincode.{{ .name }}.init 2>&1
+
+                sleep 5
+
+              fi
+
+              {{ end }}
+
               sleep 10
+
             done
         resources:
           {{- toYaml $.Values.resources | nindent 14 }}

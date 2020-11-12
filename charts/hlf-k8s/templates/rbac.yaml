@@ -42,7 +42,7 @@ rules:
     - watch
     - list
     - create
-    {{- if .Values.hooks.deleteSecrets.enabled }}
+    {{- if or .Values.hooks.deleteSecrets.enabled .Values.hooks.deleteCCIDSecrets.enabled }}
     - delete
     {{- end }}
 ---

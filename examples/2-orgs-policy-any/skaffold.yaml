@@ -16,14 +16,20 @@ apiVersion: skaffold/v1beta13
 kind: Config
 build:
   artifacts:
-    - image: substrafoundation/hlf-k8s
+    - image: substrafoundation/fabric-tools
       context: ../../
       docker:
-        dockerfile: images/hlf-k8s/Dockerfile
-      sync:
-        manual:
-          - src: ./bin/*
-            dest: /usr/local/bin/
+        dockerfile: images/fabric-tools/Dockerfile
+
+    - image: substrafoundation/fabric-ca-tools
+      context: ../../
+      docker:
+        dockerfile: images/fabric-ca-tools/Dockerfile
+
+    - image: substrafoundation/fabric-peer
+      context: ../../
+      docker:
+        dockerfile: images/fabric-peer/Dockerfile
 
 deploy:
   statusCheckDeadlineSeconds: 300
@@ -36,7 +42,8 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: substrafoundation/hlf-k8s
+          fabric-tools.image: substrafoundation/fabric-tools
+          fabric-ca-tools.image: substrafoundation/fabric-ca-tools
 
       - name: network-org-1-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -45,7 +52,9 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: substrafoundation/hlf-k8s
+          fabric-tools.image: substrafoundation/fabric-tools
+          fabric-ca-tools.image: substrafoundation/fabric-ca-tools
+          hlf-peer.image: substrafoundation/fabric-peer
 
 
       - name: network-org-2-peer-1
@@ -55,7 +64,9 @@ deploy:
         imageStrategy:
           helm: {}
         values:
-          image: substrafoundation/hlf-k8s
+          fabric-tools.image: substrafoundation/fabric-tools
+          fabric-ca-tools.image: substrafoundation/fabric-ca-tools
+          hlf-peer.image: substrafoundation/fabric-peer
 
     flags:
       install: ["--create-namespace"]

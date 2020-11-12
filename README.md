@@ -27,17 +27,11 @@ This will deploy hlf-k8s with:
 
 ### Install a custom chaincode
 
-By default, the `skaffold run` command will start a network using the default [substra-chaincode](https://github.com/SubstraFoundation/substra-chaincode).
+By default, the `skaffold run` command will start a network using the default [substra-chaincode](https://github.com/SubstraFoundation/substra-chaincode) image.
 
-To use a custom chaincode locally, replace the `chaincodes.src` fields to `chaincodes.hostPath` in [org-1-peer-1.yaml](./examples/2-orgs-policy-any/values/org-1-peer-1.yaml) and [org-2-peer-1.yaml](./examples/2-orgs-policy-any/values/org-2-peer-1.yaml) to point to your local clone of substra-chaincode, e.g.
+To use a custom chaincode locally, you need to build and replace the `chaincodes.image` fields to use your local image of substra-chaincode.
 
-- `deploy.helm.realease.name[network-peer-1].setValues.chaincodes[0].hostPath: /home/johndoe/code/substra-chaincode`
-- `deploy.helm.realease.name[network-peer-2].setValues.chaincodes[0].hostPath: /home/johndoe/code/substra-chaincode`
-
-The chaincode path must be accessible from your kubernetes cluster:
-
-- On Docker for Mac, go to Settings > File Sharing and make sure the chaincode folder is included in the mounted folders
-- On minikube, run `nohup minikube mount <chaincode-absolute-path>:<chaincode-absolute-path> &`
+You can check how to do it in the [helm chart documentation](./charts/hlf-k8s/README.md) in the `Test hlf-k8s with your own chaincode` section
 
 ### Production install / Changelog
 
