@@ -135,7 +135,7 @@ appChannels:
         policy: "OR('Org1MSP.member','Org2MSP.member')"
         image:
           repository: substrafoundation/substra-chaincode
-          tag: hlf-2
+          tag: 0.1.0
           pullPolicy: IfNotPresent
 ```
 
