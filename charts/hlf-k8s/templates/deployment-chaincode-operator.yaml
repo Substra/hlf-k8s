@@ -13,8 +13,7 @@
 # limitations under the License.
 
 {{- if index .Values "hlf-peer" "enabled" }}
-{{- range $index, $value :=.Values.appChannels }}
-{{- range .chaincodes }}
+{{- range .Values.chaincodes }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -122,14 +121,19 @@ spec:
 
                 ## Approve chaincode
 
+                {{ $chaincode := . }}
+                {{- range $channel := $.Values.appChannels }}
+                {{- if has $chaincode.name $channel.chaincodes }}
+
                 while true ; do
-                  printf "[DEBUG] Approving chaincode {{ .name }} {{ .version }} with ccid ${CHAINCODE_CCID}\n"
+
+                  printf "[DEBUG] Approving chaincode {{ $chaincode.name }} {{ $chaincode.version }} with ccid ${CHAINCODE_CCID} on channel {{ $channel.channelName }}\n"
 
                   peer lifecycle chaincode approveformyorg \
-                    --signature-policy "{{ .policy}}" \
-                    --channelID {{ $value.channelName }} \
-                    --name {{ .name }} \
-                    --version {{ .version }} \
+                    --signature-policy "{{ $chaincode.policy}}" \
+                    --channelID {{ $channel.channelName }} \
+                    --name {{ $chaincode.name }} \
+                    --version {{ $chaincode.version }} \
                     --package-id $CHAINCODE_CCID \
                     --sequence 1  \
                     --init-required \
@@ -141,8 +145,8 @@ spec:
                     -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > /dev/null 2>&1
 
                   peer lifecycle chaincode queryapproved \
-                    --channelID {{ $value.channelName }} \
-                    --name {{ .name }} \
+                    --channelID {{ $channel.channelName }} \
+                    --name {{ $chaincode.name }} \
                     --sequence 1 \
                     --tls \
                     --clientauth \
@@ -156,11 +160,14 @@ spec:
                     break
                   fi
 
-                  printf "[DEBUG] Chaincode {{ .name }} {{ .version }} with ccid ${CHAINCODE_CCID} is not approved\n"
+                  printf "[DEBUG] Chaincode {{ .name }} {{ .version }} with ccid ${CHAINCODE_CCID} is not approved on channel {{ $channel.channelname }}\n"
 
                   sleep 5
 
                 done
+
+                {{- end }}
+                {{- end }}
 
                 sleep 10
               done
@@ -280,6 +287,5 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-{{- end }}
 {{- end }}
 {{- end }}

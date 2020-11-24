@@ -287,9 +287,19 @@ spec:
 
               ## CHAINCODES
 
-              {{- range .chaincodes }}
+              {{- range $ccName := .chaincodes }}
 
-              ## Wait readiness
+              {{/* Find associated chaincode */}}
+              {{ $chaincode := "" }}
+              {{- range $.Values.chaincodes }}
+                {{- if eq .name $ccName }}
+                  - {{ $chaincode = . }}
+                {{- end }}
+              {{- end }}
+
+              {{ with $chaincode }}
+
+              ## Wait readiness: {{ .name }}
 
               while true; do
 
@@ -318,7 +328,7 @@ spec:
 
               done
 
-              ## Commit chaincode
+              ## Commit chaincode {{ .name }}
 
               peer lifecycle chaincode querycommitted --channelID {{ $value.channelName }} > chaincode.{{ .name }}.list 2>&1
 
@@ -351,7 +361,7 @@ spec:
 
               fi
 
-              ## Init chaincode
+              ## Init chaincode {{ .name }}
 
               if [[ ! -e chaincode.{{ .name }}.init ]]; then
                   touch chaincode.{{ .name }}.init
@@ -376,6 +386,7 @@ spec:
 
               fi
 
+              {{ end }}
               {{ end }}
 
               sleep 10
