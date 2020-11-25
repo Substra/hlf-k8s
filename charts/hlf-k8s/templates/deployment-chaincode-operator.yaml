@@ -123,16 +123,17 @@ spec:
 
                 {{ $chaincode := . }}
                 {{- range $channel := $.Values.appChannels }}
-                {{- if has $chaincode.name $channel.chaincodes }}
+                {{- range $channel.chaincodes }}
+                {{- if eq .name $chaincode.name }}
 
                 while true ; do
 
-                  printf "[DEBUG] Approving chaincode {{ $chaincode.name }} {{ $chaincode.version }} with ccid ${CHAINCODE_CCID} on channel {{ $channel.channelName }}\n"
+                  printf "[DEBUG] Approving chaincode {{ .name }} {{ $chaincode.version }} with ccid ${CHAINCODE_CCID} on channel {{ $channel.channelName }}\n"
 
                   peer lifecycle chaincode approveformyorg \
-                    --signature-policy "{{ $chaincode.policy}}" \
+                    --signature-policy "{{ .policy}}" \
                     --channelID {{ $channel.channelName }} \
-                    --name {{ $chaincode.name }} \
+                    --name {{ .name }} \
                     --version {{ $chaincode.version }} \
                     --package-id $CHAINCODE_CCID \
                     --sequence 1  \
@@ -146,7 +147,7 @@ spec:
 
                   peer lifecycle chaincode queryapproved \
                     --channelID {{ $channel.channelName }} \
-                    --name {{ $chaincode.name }} \
+                    --name {{ .name }} \
                     --sequence 1 \
                     --tls \
                     --clientauth \
@@ -166,6 +167,7 @@ spec:
 
                 done
 
+                {{- end }}
                 {{- end }}
                 {{- end }}
 

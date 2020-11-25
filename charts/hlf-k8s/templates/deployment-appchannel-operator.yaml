@@ -287,12 +287,12 @@ spec:
 
               ## CHAINCODES
 
-              {{- range $ccName := .chaincodes }}
+              {{- range $cc := .chaincodes }}
 
               {{/* Find associated chaincode */}}
               {{ $chaincode := "" }}
               {{- range $.Values.chaincodes }}
-                {{- if eq .name $ccName }}
+                {{- if eq .name $cc.name }}
                   - {{ $chaincode = . }}
                 {{- end }}
               {{- end }}
@@ -307,7 +307,7 @@ spec:
                 printf "[DEBUG] Wait chaincode ready {{ .name }} {{ .version }} on channel {{ $value.channelName }}\n"
 
                 peer lifecycle chaincode checkcommitreadiness \
-                  --signature-policy "{{ .policy}}" \
+                  --signature-policy "{{ $cc.policy }}" \
                   --channelID {{ $value.channelName }} \
                   --name {{ .name }} \
                   --version {{ .version }} \
@@ -340,7 +340,7 @@ spec:
                 ENDORSEMENT=$(cat endorsement.config| tr '\n' ' ')
 
                 peer lifecycle chaincode commit \
-                  --signature-policy "{{ .policy}}" \
+                  --signature-policy "{{ $cc.policy }}" \
                   --channelID {{ $value.channelName }} \
                   --name {{ .name }} \
                   --version {{ .version }} \

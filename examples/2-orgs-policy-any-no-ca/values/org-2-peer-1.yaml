@@ -32,7 +32,6 @@ hlf-peer:
 chaincodes:
   - name: mycc
     address: network-org-2-peer-1-hlf-k8s-chaincode-mycc.org-2
-    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
     port: 7052
     version: "1.0"
     image:
@@ -41,7 +40,6 @@ chaincodes:
       pullPolicy: IfNotPresent
   - name: yourcc
     address: network-org-2-peer-1-hlf-k8s-chaincode-yourcc.org-2
-    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
     port: 7052
     version: "1.0"
     image:
@@ -79,7 +77,9 @@ appChannels:
         Type: ImplicitMeta
         Rule: "ANY Admins"
 
-  chaincodes: [mycc]
+  chaincodes:
+  - name: mycc
+    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
 
 - channelName: yourchannel
   channelPolicies: |-
@@ -109,7 +109,9 @@ appChannels:
         Type: ImplicitMeta
         Rule: "ANY Admins"
 
-  chaincodes: [yourcc]
+  chaincodes:
+  - name: yourcc
+    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
 
 enrollments:
   creds:

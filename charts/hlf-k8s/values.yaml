@@ -60,7 +60,6 @@ systemChannel:
 #   version: "1.0"
 #   address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
 #   port: "7052"
-#   policy: "OR('Org1MSP.member','Org2MSP.member')"
 #   image:
 #     repository: substrafoundation/substra-chaincode
 #     tag: 0.1.0
@@ -108,8 +107,9 @@ appChannels:
         Type: ImplicitMeta
         Rule: "MAJORITY Admins"
 
-  # chaincodes: [mycc]
   chaincodes: []
+  # - name: mycc
+  #   policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
 
   ingress:
     enabled: false
