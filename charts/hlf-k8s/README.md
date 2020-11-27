@@ -43,6 +43,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `appChannels[].proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
 | `appChannels[].channelPolicies` | This value overrides the default HLF channel policy. | (defined in values.yaml) |
 | `appChannels[].appPolicies` | This value overrides the default HLF application policy. | (defined in values.yaml) |
+| `appChannels[].chaincode` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | (undefined) |
 | `appChannels[].chaincodes[].name` | The name of the chaincode | (undefined) |
 | `appChannels[].chaincodes[].policy` | The chaincode policy for this channel | (undefined) |
 | `appChannels[].ingress.enabled` | If true, Ingress will be created for this application channel operator. | `false` |
@@ -126,18 +127,21 @@ Install a chaincode on a peer using the following values.
 On a peer:
 
 ```yaml
+chaincodes:
+  - name: mycc
+    version: "1.0"
+    address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
+    port: "7052"
+    image:
+      repository: substrafoundation/substra-chaincode
+      tag: 0.1.0
+      pullPolicy: IfNotPresent
+
 appChannels:
   - channelName: mychannel
     chaincodes:
       - name: mycc
-        version: "1.0"
-        address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
-        port: "7052"
         policy: "OR('Org1MSP.member','Org2MSP.member')"
-        image:
-          repository: substrafoundation/substra-chaincode
-          tag: 0.1.0
-          pullPolicy: IfNotPresent
 ```
 
 
