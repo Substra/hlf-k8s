@@ -1,6 +1,6 @@
 # Upgrade
 
-## 4.x.x
+## 4.0.0
 
 - Peer use now couchdb as default instead of goleveldb
 - Orderer is now under etcdraft type and not solo anymore
