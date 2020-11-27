@@ -55,7 +55,7 @@ systemChannel:
         Type: ImplicitMeta
         Rule: "MAJORITY Admins"
 
-# chaincodes:
+chaincodes: []
 # - name: mycc
 #   version: "1.0"
 #   address: "chaincode-org-0-substra-chaincode-chaincode.org-0"

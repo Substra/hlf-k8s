@@ -43,19 +43,20 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `appChannels[].proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
 | `appChannels[].channelPolicies` | This value overrides the default HLF channel policy. | (defined in values.yaml) |
 | `appChannels[].appPolicies` | This value overrides the default HLF application policy. | (defined in values.yaml) |
-| `appChannels[].chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
 | `appChannels[].chaincodes[].name` | The name of the chaincode | (undefined) |
-| `appChannels[].chaincodes[].version` | The chaincode version | (undefined) |
-| `appChannels[].chaincodes[].address` | The URL to the chaincode service | (undefined) |
-| `appChannels[].chaincodes[].port` | The port to the chaincode service | (undefined) |
-| `appChannels[].chaincodes[].policy` | The chaincode policy | (undefined) |
-| `appChannels[].chaincodes[].image.repository` | `chaincode` image repository | (undefined) |
-| `appChannels[].chaincodes[].image.tag` | `chaincode` image tag | (undefined) |
-| `appChannels[].chaincodes[].image.pullPolicy` | Image pull policy | (undefined) |
+| `appChannels[].chaincodes[].policy` | The chaincode policy for this channel | (undefined) |
 | `appChannels[].ingress.enabled` | If true, Ingress will be created for this application channel operator. | `false` |
 | `appChannels[].ingress.annotations` | Application channel operator ingress annotations | (undefined) |
 | `appChannels[].ingress.tls` | Application channel operator ingress TLS configuration | (undefined) |
 | `appChannels[].ingress.hosts` | Application channel operator ingress hosts | (undefined) |
+| `chaincodes` | The chaincodes to install on the peer | (undefined) |
+| `chaincodes[].name` | The name of the chaincode | (undefined) |
+| `chaincodes[].version` | The chaincode version | (undefined) |
+| `chaincodes[].address` | The URL to the chaincode service | (undefined) |
+| `chaincodes[].port` | The port to the chaincode service | (undefined) |
+| `chaincodes[].image.repository` | `chaincode` image repository | (undefined) |
+| `chaincodes[].image.tag` | `chaincode` image tag | (undefined) |
+| `chaincodes[].image.pullPolicy` | Image pull policy | (undefined) |
 | `configOperator.ingress.enabled` | If true, Ingress will be created for the config operator. | `false` |
 | `configOperator.ingress.annotations` | Config operator ingress annotations | (undefined) |
 | `configOperator.ingress.tls` | Config operator ingress TLS configuration | (undefined) |
