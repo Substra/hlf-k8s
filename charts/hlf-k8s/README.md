@@ -43,14 +43,14 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `appChannels[].proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
 | `appChannels[].channelPolicies` | This value overrides the default HLF channel policy. | (defined in values.yaml) |
 | `appChannels[].appPolicies` | This value overrides the default HLF application policy. | (defined in values.yaml) |
-| `appChannels[].chaincode` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | (undefined) |
+| `appChannels[].chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
 | `appChannels[].chaincodes[].name` | The name of the chaincode | (undefined) |
 | `appChannels[].chaincodes[].policy` | The chaincode policy for this channel | (undefined) |
 | `appChannels[].ingress.enabled` | If true, Ingress will be created for this application channel operator. | `false` |
 | `appChannels[].ingress.annotations` | Application channel operator ingress annotations | (undefined) |
 | `appChannels[].ingress.tls` | Application channel operator ingress TLS configuration | (undefined) |
 | `appChannels[].ingress.hosts` | Application channel operator ingress hosts | (undefined) |
-| `chaincodes` | The chaincodes to install on the peer | (undefined) |
+| `chaincodes` | The chaincodes to install on the peer | `[]` |
 | `chaincodes[].name` | The name of the chaincode | (undefined) |
 | `chaincodes[].version` | The chaincode version | (undefined) |
 | `chaincodes[].address` | The URL to the chaincode service | (undefined) |
