@@ -1,44 +1,32 @@
 # Changelog
 
-
 # 5.0.0
 
-Chaincode properties have been moved from `appChannels[].chaincodes[]` to `chaincodes[]`, which the exception of the `policy` and `name` fields.
-
-Example:
-
-```yaml
-chaincodes:
-  - name: mycc
-    address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
-    port: 7052
-    version: "1.0"
-    image:
-      repository: substrafoundation/substra-chaincode
-      tag: 0.1.1
-      pullPolicy: IfNotPresent
-
-
-appChannels:
-- channelName: mychannel
-  chaincodes:
-  - name: mycc
-    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-```
+- Add support for using the same chaincode on multiple channels.
+- This changes the structure of the `appChannels` value. Please see [`UPDGRADE.md`](./UPGRADE.md).
 
 ## 4.0.0
 
+- Bump hyperledger fabric to 2.x. Please update values accordingly.
+- Use couchdb instead of goleveldb
+- Remove docker dependency and add chaincode pod
 
-Peer use now couchdb as default instead of goleveldb
-Orderer is now under etcdraft type and not solo anymore
-Policies are mandatory and need to be set for : SystemChannel, Application and Channel
+## 3.0.2
 
+- Added `genesis.generate` (defaults to `true` - behavior unchanged)
 
-hlf-k8s appChannels field expose now :
- - application policies
- - channel policies
- - chaincodes, which is not isolated anymore
+## 3.0.1
 
-Rename images from hlf-k8s to fabric-tools and fabric-ca-tools
+- Bump `hlf-peer` chart to `v1.6.0`
 
-/!\ As we use TLS for chaincode and peer communications, you need to add chaincode fqdn in the csrHost of the CA enrollement
+## 3.0.0
+
+- Switched to Helm3
+- Added `hooks.serviceAccount.name` to specify the serviceAccount used by the post-delete hook `<release>-hook-delete-secrets`
+- Added `hooks.serviceAccount.namespace` to specify the serviceAccount namespace (this will also set `<release>-hook-delete-secrets` namespace)
+
+## 1.5.0
+
+- `appChannel` changed to `appChannels` (list)
+- `appChannel.name` renamed to `appChannels[].channelName`
+- `applicationChannelOperator.ingress` moved to `appChannels[].ingress`
