@@ -1,5 +1,19 @@
 # Chaincode upgrade procedure
 
+## Disclaimer
+
+The guide demonstrates a very simple upgrade process on a test environment.
+
+It should only serve as a first step, to be further expanded upon.
+
+In particular, this guide lacks information about:
+
+- Chaincode approval process for large consortiums (here we only test with 2 orgs)
+- Dealing with various chaincode upgrade policies
+- Running the init function for the new chaincode
+
+These aspects shall be detailed in future versions of this guide.
+
 ## Prepare the upgrade
 
 ### Prerequisites
