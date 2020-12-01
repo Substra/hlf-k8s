@@ -110,6 +110,7 @@ appChannels:
   chaincodes: []
   # - name: mycc
   #   policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+  #   version: "1.0"
 
   ingress:
     enabled: false

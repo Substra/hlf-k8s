@@ -142,6 +142,7 @@ appChannels:
     chaincodes:
       - name: mycc
         policy: "OR('Org1MSP.member','Org2MSP.member')"
+        version: "1.0"
 ```
 
 
@@ -169,15 +170,14 @@ Finally, modify deployment values to use your chaincode image:
 
 For instance with `substrafoundation/substra-chaincode:my-tag`
 ```yaml
-  chaincodes:
-  - address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
-    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-    name: mycc
-    port: 7052
-    version: "1.0"
-    image:
-      repository: substrafoundation/substra-chaincode
-      tag: my-tag
+chaincodes:
+- address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+  name: mycc
+  port: 7052
+  version: "1.0"
+  image:
+    repository: substrafoundation/substra-chaincode
+    tag: my-tag
 ```
 
 ### Add an organization to the system channel

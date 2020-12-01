@@ -124,7 +124,7 @@ spec:
                 {{ $chaincode := . }}
                 {{- range $channel := $.Values.appChannels }}
                 {{- range $channel.chaincodes }}
-                {{- if eq .name $chaincode.name }}
+                {{- if and (eq .name $chaincode.name) (eq .version $chaincode.version) }}
 
                 while true ; do
 

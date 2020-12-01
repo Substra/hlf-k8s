@@ -24,6 +24,7 @@ appChannels:
   chaincodes:
   - name: mycc
     policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+    version: "1.0"
 ```
 
 ## 4.0.0

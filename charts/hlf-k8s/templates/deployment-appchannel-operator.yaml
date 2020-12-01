@@ -292,7 +292,7 @@ spec:
               {{/* Find associated chaincode */}}
               {{ $chaincode := "" }}
               {{- range $.Values.chaincodes }}
-                {{- if eq .name $cc.name }}
+                {{- if and (eq .name $cc.name) (eq .version $cc.version) }}
                   - {{ $chaincode = . }}
                 {{- end }}
               {{- end }}
