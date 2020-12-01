@@ -1,4 +1,6 @@
-# Changelog
+# Upgrade
+
+For instructions on how to perform a chaincode upgrade, see [UPGRADE_CHAINCODE.md](./UPGRADE_CHAINCODE.md)
 
 
 # 5.0.0
