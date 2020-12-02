@@ -77,8 +77,8 @@ spec:
                 ## Create and add anchor
                 configtxgen -profile OrgsChannel-{{ .channelName }} --outputAnchorPeersUpdate anchor.tx -channelID {{ .channelName }} -asOrg {{ $.Values.organization.name }}
 
-                peer channel update |
-                  -f anchor.tx |
+                peer channel update \
+                  -f anchor.tx \
                   -c {{ .channelName }} \
                   --tls \
                   --clientauth \
