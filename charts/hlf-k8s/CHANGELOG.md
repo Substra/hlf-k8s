@@ -1,5 +1,9 @@
 # Changelog
 
+# 5.0.0
+
+- Add support for using the same chaincode on multiple channels.
+- This changes the structure of the `appChannels` value. Please see [`UPDGRADE.md`](./UPGRADE.md).
 
 ## 4.0.0
 

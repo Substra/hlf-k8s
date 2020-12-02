@@ -46,16 +46,19 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `appChannels[].chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
 | `appChannels[].chaincodes[].name` | The name of the chaincode | (undefined) |
 | `appChannels[].chaincodes[].version` | The chaincode version | (undefined) |
-| `appChannels[].chaincodes[].address` | The URL to the chaincode service | (undefined) |
-| `appChannels[].chaincodes[].port` | The port to the chaincode service | (undefined) |
-| `appChannels[].chaincodes[].policy` | The chaincode policy | (undefined) |
-| `appChannels[].chaincodes[].image.repository` | `chaincode` image repository | (undefined) |
-| `appChannels[].chaincodes[].image.tag` | `chaincode` image tag | (undefined) |
-| `appChannels[].chaincodes[].image.pullPolicy` | Image pull policy | (undefined) |
+| `appChannels[].chaincodes[].policy` | The chaincode policy for this channel | (undefined) |
 | `appChannels[].ingress.enabled` | If true, Ingress will be created for this application channel operator. | `false` |
 | `appChannels[].ingress.annotations` | Application channel operator ingress annotations | (undefined) |
 | `appChannels[].ingress.tls` | Application channel operator ingress TLS configuration | (undefined) |
 | `appChannels[].ingress.hosts` | Application channel operator ingress hosts | (undefined) |
+| `chaincodes` | The chaincodes to install on the peer | `[]` |
+| `chaincodes[].name` | The name of the chaincode | (undefined) |
+| `chaincodes[].version` | The chaincode version | (undefined) |
+| `chaincodes[].address` | The URL to the chaincode service | (undefined) |
+| `chaincodes[].port` | The port to the chaincode service | (undefined) |
+| `chaincodes[].image.repository` | `chaincode` image repository | (undefined) |
+| `chaincodes[].image.tag` | `chaincode` image tag | (undefined) |
+| `chaincodes[].image.pullPolicy` | Image pull policy | (undefined) |
 | `configOperator.ingress.enabled` | If true, Ingress will be created for the config operator. | `false` |
 | `configOperator.ingress.annotations` | Config operator ingress annotations | (undefined) |
 | `configOperator.ingress.tls` | Config operator ingress TLS configuration | (undefined) |
@@ -125,18 +128,22 @@ Install a chaincode on a peer using the following values.
 On a peer:
 
 ```yaml
+chaincodes:
+  - name: mycc
+    version: "1.0"
+    address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
+    port: "7052"
+    image:
+      repository: substrafoundation/substra-chaincode
+      tag: 0.1.1
+      pullPolicy: IfNotPresent
+
 appChannels:
   - channelName: mychannel
     chaincodes:
       - name: mycc
-        version: "1.0"
-        address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
-        port: "7052"
         policy: "OR('Org1MSP.member','Org2MSP.member')"
-        image:
-          repository: substrafoundation/substra-chaincode
-          tag: 0.1.0
-          pullPolicy: IfNotPresent
+        version: "1.0"
 ```
 
 
@@ -164,15 +171,14 @@ Finally, modify deployment values to use your chaincode image:
 
 For instance with `substrafoundation/substra-chaincode:my-tag`
 ```yaml
-  chaincodes:
-  - address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
-    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-    name: mycc
-    port: 7052
-    version: "1.0"
-    image:
-      repository: substrafoundation/substra-chaincode
-      tag: my-tag
+chaincodes:
+- address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+  name: mycc
+  port: 7052
+  version: "1.0"
+  image:
+    repository: substrafoundation/substra-chaincode
+    tag: my-tag
 ```
 
 ### Add an organization to the system channel

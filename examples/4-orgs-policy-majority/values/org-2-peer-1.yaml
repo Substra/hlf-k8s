@@ -27,6 +27,16 @@ hlf-peer:
   discover-monitor:
     enabled: true
 
+chaincodes:
+  - name: mycc
+    address: network-org-2-peer-1-hlf-k8s-chaincode-mycc.org-2
+    port: 7052
+    version: "1.0"
+    image:
+      repository: substrafoundation/substra-chaincode
+      tag: 0.1.1
+      pullPolicy: IfNotPresent
+
 appChannels:
 - channelName: mychannel
   channelPolicies: |-
@@ -57,15 +67,9 @@ appChannels:
         Rule: "MAJORITY Admins"
 
   chaincodes:
-  - address: network-org-2-peer-1-hlf-k8s-chaincode-mycc.org-2
+  - name: mycc
     policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
-    name: mycc
-    port: 7052
     version: "1.0"
-    image:
-      repository: substrafoundation/substra-chaincode
-      tag: 0.1.0
-      pullPolicy: IfNotPresent
 
   organizations:
     - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }

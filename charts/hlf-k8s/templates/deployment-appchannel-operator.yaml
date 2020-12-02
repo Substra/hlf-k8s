@@ -287,9 +287,19 @@ spec:
 
               ## CHAINCODES
 
-              {{- range .chaincodes }}
+              {{- range $cc := .chaincodes }}
 
-              ## Wait readiness
+              {{/* Find associated chaincode */}}
+              {{ $chaincode := "" }}
+              {{- range $.Values.chaincodes }}
+                {{- if and (eq .name $cc.name) (eq .version $cc.version) }}
+                  - {{ $chaincode = . }}
+                {{- end }}
+              {{- end }}
+
+              {{ with $chaincode }}
+
+              ## Wait readiness: {{ .name }}
 
               while true; do
 
@@ -297,7 +307,7 @@ spec:
                 printf "[DEBUG] Wait chaincode ready {{ .name }} {{ .version }} on channel {{ $value.channelName }}\n"
 
                 peer lifecycle chaincode checkcommitreadiness \
-                  --signature-policy "{{ .policy}}" \
+                  --signature-policy "{{ $cc.policy }}" \
                   --channelID {{ $value.channelName }} \
                   --name {{ .name }} \
                   --version {{ .version }} \
@@ -318,7 +328,7 @@ spec:
 
               done
 
-              ## Commit chaincode
+              ## Commit chaincode {{ .name }}
 
               peer lifecycle chaincode querycommitted --channelID {{ $value.channelName }} > chaincode.{{ .name }}.list 2>&1
 
@@ -330,7 +340,7 @@ spec:
                 ENDORSEMENT=$(cat endorsement.config| tr '\n' ' ')
 
                 peer lifecycle chaincode commit \
-                  --signature-policy "{{ .policy}}" \
+                  --signature-policy "{{ $cc.policy }}" \
                   --channelID {{ $value.channelName }} \
                   --name {{ .name }} \
                   --version {{ .version }} \
@@ -351,7 +361,7 @@ spec:
 
               fi
 
-              ## Init chaincode
+              ## Init chaincode {{ .name }}
 
               if [[ ! -e chaincode.{{ .name }}.init ]]; then
                   touch chaincode.{{ .name }}.init
@@ -376,6 +386,7 @@ spec:
 
               fi
 
+              {{ end }}
               {{ end }}
 
               sleep 10
