@@ -215,18 +215,31 @@ spec:
                   # Chaincode commit
                   printf "[DEBUG] Commit chaincode {{ .name }} {{ .version }} on channel {{ $channel.channelName }}\n"
 
+                  DISCOVERY_PEER=$(discover peers --channel=mychannel --server=network-org-1-peer-1-hlf-peer.org-1:7051 --tlsKey=/var/hyperledger/tls/client/pair/tls.key --tlsCert=/var/hyperledger/tls/client/pair/tls.crt --peerTLSCA=/var/hyperledger/tls/client/cert/cacert.pem --userKey=/var/hyperledger/msp/keystore/key.pem --userCert=/var/hyperledger/msp/signcerts/cert.pem --MSP MyOrg1MSP)
+                  DISCOVERY_CONFIG=$(discover config --channel=mychannel --server=network-org-1-peer-1-hlf-peer.org-1:7051 --tlsKey=/var/hyperledger/tls/client/pair/tls.key --tlsCert=/var/hyperledger/tls/client/pair/tls.crt --peerTLSCA=/var/hyperledger/tls/client/cert/cacert.pem --userKey=/var/hyperledger/msp/keystore/key.pem --userCert=/var/hyperledger/msp/signcerts/cert.pem --MSP MyOrg1MSP)
+
+                  ENDORSEMENT="";
+
+                  while read -r mspId; do
+                      TLS_ROOT_CERT=$(echo "$DISCOVERY_CONFIG" | jq -r ".msps.${mspId}.tls_root_certs[0]");
+                      ENDPOINT=$(echo "$DISCOVERY_PEER" | jq -r ".[] | select( .MSPID == \"$mspId\" ) | .Endpoint");
+                      echo "${TLS_ROOT_CERT}" | base64 -d > "tlsroot-${mspId}.crt";
+                      ENDORSEMENT="${ENDORSEMENT} --peerAddresses=${ENDPOINT} --tlsRootCertFiles=tlsroot-${mspId}.crt";
+                  done < <(echo "$DISCOVERY_PEER" | jq -r '.[].MSPID')
+
                   peer lifecycle chaincode commit \
-                    --signature-policy "{{ .policy }}" \
-                    --channelID {{ $channel.channelName }} \
-                    --name {{ .name }} \
-                    --version {{ .version }} \
-                    --sequence 1 --init-required \
-                    --tls \
-                    --clientauth \
-                    --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
-                    --keyfile /var/hyperledger/tls/client/pair/tls.key \
-                    --certfile /var/hyperledger/tls/client/pair/tls.crt \
-                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} 2>&1
+                      --signature-policy "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')" \
+                      --channelID mychannel \
+                      --name mycc \
+                      --version 1.0 \
+                      --sequence 1 --init-required \
+                      --tls \
+                      --clientauth \
+                      --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                      --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                      --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                      -o network-orderer-hlf-ord.orderer:7050 \
+                      $ENDORSEMENT 2>&1
 
                   cat chaincode.{{ .name }}.commit
 
