@@ -3,7 +3,7 @@
 
 # 5.0.0
 
-Chaincode properties have been moved from `appChannels[].chaincodes[]` to `chaincodes[]`, which the exception of the `policy` and `name` fields.
+Chaincode properties have been moved from `appChannels[].chaincodes[]` to `chaincodes[]`, which the exception of the `policy`, `name` and `version` fields.
 
 Example:
 
