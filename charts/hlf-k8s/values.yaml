@@ -111,6 +111,7 @@ appChannels:
   # - name: mycc
   #   policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
   #   version: "1.0"
+  #   sequence: "1"
 
   ingress:
     enabled: false

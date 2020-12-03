@@ -71,6 +71,7 @@ appChannels:
   - name: mycc
     policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member','MyOrg4MSP.member')"
     version: "1.0"
+    sequence: "1"
 
 enrollments:
   creds:

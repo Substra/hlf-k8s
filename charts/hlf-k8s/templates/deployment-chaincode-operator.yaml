@@ -145,7 +145,7 @@ spec:
                     --name {{ .name }} \
                     --version {{ .version }} \
                     --package-id $CHAINCODE_CCID \
-                    --sequence 1  \
+                    --sequence {{ .sequence }}  \
                     --init-required \
                     --tls \
                     --clientauth \
@@ -157,7 +157,7 @@ spec:
                   peer lifecycle chaincode queryapproved \
                     --channelID {{ $channel.channelName }} \
                     --name {{ .name }} \
-                    --sequence 1 \
+                    --sequence {{ .sequence }} \
                     --tls \
                     --clientauth \
                     --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
@@ -184,7 +184,7 @@ spec:
                     --channelID {{ $channel.channelName }} \
                     --name {{ .name }} \
                     --version {{ .version }} \
-                    --sequence 1 \
+                    --sequence {{ .sequence }} \
                     --init-required \
                     --tls \
                     --clientauth \
@@ -224,7 +224,8 @@ spec:
                       --channelID {{ $channel.channelName  }} \
                       --name {{ .name }} \
                       --version {{ .version }} \
-                      --sequence 1 --init-required \
+                      --sequence {{ .sequence }} \
+                      --init-required \
                       --tls \
                       --clientauth \
                       --cafile /var/hyperledger/tls/ord/cert/cacert.pem \

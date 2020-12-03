@@ -70,6 +70,7 @@ appChannels:
   - name: mycc
     policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member','MyOrg3MSP.member')"
     version: "1.0"
+    sequence: "1"
 
   organizations:
     - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
