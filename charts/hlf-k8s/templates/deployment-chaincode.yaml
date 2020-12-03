@@ -32,7 +32,7 @@ spec:
             - name: CHAINCODE_CCID
               valueFrom:
                 secretKeyRef:
-                  name: chaincode-ccid-{{ .name }}
+                  name: chaincode-ccid-{{ .name }}-{{ .version }}
                   key: ccid
             - name: CHAINCODE_ADDRESS
               value: "0.0.0.0:{{ .port }}"
