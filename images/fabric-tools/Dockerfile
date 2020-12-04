@@ -2,7 +2,7 @@ FROM hyperledger/fabric-tools:2.2.1
 
 # Install curl and netcat
 RUN apk update && \
-  apk add curl netcat-openbsd vim
+  apk add curl vim
 
 # Install kubectl
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.16.6/bin/linux/amd64/kubectl && \
