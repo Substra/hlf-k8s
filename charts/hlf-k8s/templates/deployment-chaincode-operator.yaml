@@ -67,6 +67,12 @@ spec:
 
                 peer lifecycle chaincode queryinstalled -O json > chaincode.list 2>/dev/null
 
+                while ! [ -s chaincode.list ]; do
+                  printf "[DEBUG] chaincode.list file is empty, retry in 5s\n"
+                  sleep 5
+                  peer lifecycle chaincode queryinstalled -O json > chaincode.list 2>/dev/null
+                done
+
                 until jq -e '.installed_chaincodes[] | select(.label=="{{ .name }}")' chaincode.list > /dev/null; do
                   printf "[DEBUG] Chaincode {{ .name }} not installed\n"
                   printf "[DEBUG] Installing chaincode {{ .name }}\n"
