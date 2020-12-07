@@ -62,7 +62,9 @@ spec:
                 sleep 5
               done
 
-              ## Install chaincode on peer
+
+              ## Install chaincode
+
               while true; do
 
                 peer lifecycle chaincode queryinstalled -O json > chaincode.list 2>/dev/null
@@ -120,10 +122,11 @@ spec:
 
                 CHAINCODE_CCID=$(jq '.installed_chaincodes[] | select(.label=="{{ .name }}")' chaincode.list | jq -r .package_id)
 
-                until kubectl get secret chaincode-ccid-{{ .name }} > /dev/null; do
-                    printf "[DEBUG] Create chaincode ccid secret for {{ .name }}\n"
-                    kubectl create secret generic chaincode-ccid-{{ .name }} --from-literal=ccid=$CHAINCODE_CCID
+                until kubectl get secret chaincode-ccid-{{ .name }}-{{ .version }} > /dev/null; do
+                    printf "[DEBUG] Create chaincode ccid secret for {{ .name }} {{ .version }}\n"
+                    kubectl create secret generic chaincode-ccid-{{ .name }}-{{ .version }} --from-literal=ccid=$CHAINCODE_CCID
                 done
+
 
                 ## Approve chaincode
 
@@ -134,13 +137,13 @@ spec:
 
                 while true ; do
 
-                  printf "[DEBUG] Approving chaincode {{ .name }} {{ $chaincode.version }} with ccid ${CHAINCODE_CCID} on channel {{ $channel.channelName }}\n"
+                  printf "[DEBUG] Approving chaincode {{ .name }} {{ .version }} with ccid ${CHAINCODE_CCID} on channel {{ $channel.channelName }}\n"
 
                   peer lifecycle chaincode approveformyorg \
                     --signature-policy "{{ .policy}}" \
                     --channelID {{ $channel.channelName }} \
                     --name {{ .name }} \
-                    --version {{ $chaincode.version }} \
+                    --version {{ .version }} \
                     --package-id $CHAINCODE_CCID \
                     --sequence 1  \
                     --init-required \
@@ -172,6 +175,105 @@ spec:
                   sleep 5
 
                 done
+
+
+                ## Check chaincode commit readiness
+
+                while true; do
+
+                  printf "[DEBUG] Check chaincode readiness {{ .name }} {{ .version }} on channel {{ $channel.channelName }}\n"
+
+                  peer lifecycle chaincode checkcommitreadiness \
+                    --signature-policy "{{ .policy }}" \
+                    --channelID {{ $channel.channelName }} \
+                    --name {{ .name }} \
+                    --version {{ .version }} \
+                    --sequence 1 \
+                    --init-required \
+                    --tls \
+                    --clientauth \
+                    --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                    --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                    --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode.{{ .name }}.ready 2>&1
+
+                  if ! grep "false" chaincode.{{ .name }}.ready > /dev/null; then
+                    break
+                  fi
+
+                  sleep 5
+
+                done
+
+
+                ## Commit chaincode
+
+                peer lifecycle chaincode querycommitted --channelID {{ $channel.channelName }} > chaincode.{{ .name }}.list 2>&1
+
+                if ! grep "{{ .name }}" chaincode.{{ .name }}.list | grep "{{ .version }}" > /dev/null; then
+
+                  # Chaincode commit
+                  printf "[DEBUG] Commit chaincode {{ .name }} {{ .version }} on channel {{ $channel.channelName }}\n"
+
+                  DISCOVERY_PEER=$(discover peers --channel={{ $channel.channelName }} --server={{ index $.Values "hlf-peer" "host" }}:{{ index $.Values "hlf-peer" "port" }} --tlsKey=/var/hyperledger/tls/client/pair/tls.key --tlsCert=/var/hyperledger/tls/client/pair/tls.crt --peerTLSCA=/var/hyperledger/tls/client/cert/cacert.pem --userKey=/var/hyperledger/msp/keystore/key.pem --userCert=/var/hyperledger/msp/signcerts/cert.pem --MSP {{ $.Values.organization.id }})
+                  DISCOVERY_CONFIG=$(discover config --channel={{ $channel.channelName }} --server={{ index $.Values "hlf-peer" "host" }}:{{ index $.Values "hlf-peer" "port" }} --tlsKey=/var/hyperledger/tls/client/pair/tls.key --tlsCert=/var/hyperledger/tls/client/pair/tls.crt --peerTLSCA=/var/hyperledger/tls/client/cert/cacert.pem --userKey=/var/hyperledger/msp/keystore/key.pem --userCert=/var/hyperledger/msp/signcerts/cert.pem --MSP {{ $.Values.organization.id }})
+
+                  ENDORSEMENT="";
+
+                  while read -r mspId; do
+                      TLS_ROOT_CERT=$(echo "$DISCOVERY_CONFIG" | jq -r ".msps.${mspId}.tls_root_certs[0]");
+                      ENDPOINT=$(echo "$DISCOVERY_PEER" | jq -r ".[] | select( .MSPID == \"$mspId\" ) | .Endpoint");
+                      echo "${TLS_ROOT_CERT}" | base64 -d > "tlsroot-${mspId}.crt";
+                      ENDORSEMENT="${ENDORSEMENT} --peerAddresses=${ENDPOINT} --tlsRootCertFiles=tlsroot-${mspId}.crt";
+                  done < <(echo "$DISCOVERY_PEER" | jq -r '.[].MSPID')
+
+                  peer lifecycle chaincode commit \
+                      --signature-policy "{{ .policy }}" \
+                      --channelID {{ $channel.channelName  }} \
+                      --name {{ .name }} \
+                      --version {{ .version }} \
+                      --sequence 1 --init-required \
+                      --tls \
+                      --clientauth \
+                      --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                      --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                      --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                      -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} \
+                      $ENDORSEMENT > chaincode.{{ .name }}-{{ .version }}.commit 2>&1
+
+                  cat chaincode.{{ .name }}-{{ .version }}.commit
+
+                  peer lifecycle chaincode querycommitted --channelID {{ $channel.channelName }} > chaincode.{{ .name }}.list 2>&1
+
+                  sleep 5
+
+                fi
+
+
+                ## Init chaincode
+
+                if [[ ! -e chaincode.{{ .name }}-{{ .version }}.init ]]; then
+                    touch chaincode.{{ .name }}-{{ .version }}.init
+                fi
+
+                if ! grep "already initialized" chaincode.{{ .name }}-{{ .version }}.init > /dev/null; then
+
+                  printf "[DEBUG] Init chaincode {{ .name }} {{ .version }} on channel {{ $channel.channelName }}\n"
+
+                  peer chaincode invoke --isInit \
+                    --channelID {{ $channel.channelName }} \
+                    --name {{ .name }} \
+                    --tls \
+                    --clientauth \
+                    --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
+                    --keyfile /var/hyperledger/tls/client/pair/tls.key \
+                    --certfile /var/hyperledger/tls/client/pair/tls.crt \
+                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} \
+                    -c '{"Args":["Init"]}' > chaincode.{{ .name }}-{{ .version }}.init 2>&1
+
+                  sleep 5
+
+                fi
 
                 {{- end }}
                 {{- end }}
