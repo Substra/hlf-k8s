@@ -85,7 +85,7 @@ enrollments:
   creds:
     - { name: admin, secret: adminpwd, options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"}
     - { name: user, secret: pwd, options: "--id.type peer"}
-  csrHost: network-org-1-peer-1-hlf-peer.org-1,network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+  csrHost: "*.org-1"
 
 
 toolbox:
