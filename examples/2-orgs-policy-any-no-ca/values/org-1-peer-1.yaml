@@ -36,7 +36,7 @@ chaincodes:
     version: "1.0"
     image:
       repository: substrafoundation/substra-chaincode
-      tag: 0.1.1
+      tag: 0.2.0
       pullPolicy: IfNotPresent
   - name: yourcc
     address: network-org-1-peer-1-hlf-k8s-chaincode-yourcc.org-1
@@ -44,7 +44,7 @@ chaincodes:
     version: "1.0"
     image:
       repository: substrafoundation/substra-chaincode
-      tag: 0.1.1
+      tag: 0.2.0
       pullPolicy: IfNotPresent
 
 
