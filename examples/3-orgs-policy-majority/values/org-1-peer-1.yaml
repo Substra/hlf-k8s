@@ -34,7 +34,7 @@ chaincodes:
     version: "1.0"
     image:
       repository: substrafoundation/substra-chaincode
-      tag: 0.1.1
+      tag: 0.2.0
       pullPolicy: IfNotPresent
 
 appChannels:
