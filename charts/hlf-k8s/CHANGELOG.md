@@ -1,5 +1,9 @@
 # Changelog
 
+# 6.0.0
+
+- Add sequence field to the structure of the `appChannels.chaincodes` value. Please see [`UPDGRADE.md`](./UPGRADE.md).
+
 ## 5.1.3
 
 ### Fixed

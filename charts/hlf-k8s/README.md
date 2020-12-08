@@ -1,14 +1,14 @@
 # HLF k8s
 
-HLF-k8s is a network of [Hyperledger Fabric](https://hyperledger-fabric.readthedocs.io/en/release-1.4) orderers and peers, forming a permissioned blockchain.
+HLF-k8s is a network of [Hyperledger Fabric](https://hyperledger-fabric.readthedocs.io/en/release-2.2/) orderers and peers, forming a permissioned blockchain.
 
 The network is formed of multiple nodes (peers/orderers). Each node is installed using the same chart, but with different configurations (see [Usage](#usage)).
 
-Hlf-k8s runs Hyperledger Fabric v1.4.
+Hlf-k8s runs Hyperledger Fabric v2.x
 
 ## Prerequisites
 
-- Kubernetes 1.14+
+- Kubernetes 1.16+
 
 ## Changelog
 
@@ -46,6 +46,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `appChannels[].chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
 | `appChannels[].chaincodes[].name` | The name of the chaincode | (undefined) |
 | `appChannels[].chaincodes[].version` | The chaincode version | (undefined) |
+| `appChannels[].chaincodes[].sequence` | The chaincode sequence | (undefined) |
 | `appChannels[].chaincodes[].policy` | The chaincode policy for this channel | (undefined) |
 | `appChannels[].ingress.enabled` | If true, Ingress will be created for this application channel operator. | `false` |
 | `appChannels[].ingress.annotations` | Application channel operator ingress annotations | (undefined) |
