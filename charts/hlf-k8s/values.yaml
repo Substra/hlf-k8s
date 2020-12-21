@@ -184,10 +184,10 @@ hlf-ca:
     port: 7054
 
 hlf-peer:
-  docker:
-    enabled:
-      false
   peer:
+    docker:
+      enabled:
+        false
     databaseType: CouchDB
     couchdbInstance: cdb-peer
     gossip:
