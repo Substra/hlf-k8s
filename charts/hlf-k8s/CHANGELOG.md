@@ -1,5 +1,10 @@
 # Changelog
 
+# 5.1.1
+
+### Fixed
+- moved `hlf-peer.docker.enabled` to `hlf-peer.peer.docker.enabled` to correctly disable docker socket mount.
+
 # 5.0.0
 
 - Add support for using the same chaincode on multiple channels.
