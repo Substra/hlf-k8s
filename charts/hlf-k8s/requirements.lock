@@ -4,7 +4,7 @@ dependencies:
   version: 1.2.0
 - name: hlf-ord
   repository: https://owkin.github.io/charts/
-  version: 2.0.0
+  version: 2.0.1
 - name: hlf-peer
   repository: https://owkin.github.io/charts/
   version: 2.0.0
@@ -14,5 +14,5 @@ dependencies:
 - name: nginx-ingress
   repository: https://charts.helm.sh/stable
   version: 1.29.7
-digest: sha256:68138faef272ef577d63c80e759ff6d031882e8d67aea4ee65a3888267f2ca98
-generated: "2020-10-28T13:27:52.067189+01:00"
+digest: sha256:43a29200c19ef9b16e8e1ed102cc49373beecf3a6755957f04331941eb1f9f27
+generated: "2021-01-06T17:42:10.746198+01:00"
