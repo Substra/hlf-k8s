@@ -175,7 +175,7 @@ spec:
 
                 ## Check chaincode commit readiness
 
-                while true; do
+                until grep -q "true" chaincode.{{ .name }}.ready; do
 
                   printf "[DEBUG] Check chaincode readiness {{ .name }} {{ .version }} on channel {{ $channel.channelName }}\n"
 
@@ -193,10 +193,6 @@ spec:
                     --certfile /var/hyperledger/tls/client/pair/tls.crt \
                     -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode.{{ .name }}.ready 2>&1
 
-                  if ! grep "false" chaincode.{{ .name }}.ready > /dev/null; then
-                    break
-                  fi
-
                   sleep 5
 
                 done
@@ -206,7 +202,7 @@ spec:
 
                 peer lifecycle chaincode querycommitted --channelID {{ $channel.channelName }} > chaincode.{{ .name }}.list 2>&1
 
-                if ! grep "{{ .name }}" chaincode.{{ .name }}.list | grep "{{ .version }}" > /dev/null; then
+                if ! grep "{{ .name }}" chaincode.{{ .name }}.list | grep -q "{{ .version }}"; then
 
                   # Chaincode commit
                   printf "[DEBUG] Commit chaincode {{ .name }} {{ .version }} on channel {{ $channel.channelName }}\n"
