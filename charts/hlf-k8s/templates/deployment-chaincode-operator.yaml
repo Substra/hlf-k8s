@@ -135,7 +135,7 @@ spec:
                 {{- range $channel.chaincodes }}
                 {{- if and (eq .name $chaincode.name) (eq .version $chaincode.version) }}
 
-                until grep -q "${CHAINCODE_CCID}" chaincode.approve; do
+                until grep -q "${CHAINCODE_CCID}" chaincode_{{.name}}_{{.version}}.approve; do
 
                   printf "[DEBUG] Approving chaincode {{ .name }} {{ .version }} with ccid ${CHAINCODE_CCID} on channel {{ $channel.channelName }}\n"
 
@@ -163,9 +163,9 @@ spec:
                     --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
                     --keyfile /var/hyperledger/tls/client/pair/tls.key \
                     --certfile /var/hyperledger/tls/client/pair/tls.crt \
-                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode.approve 2>&1
+                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode_{{.name}}_{{.version}}.approve 2>&1
 
-                  if ! grep -q "${CHAINCODE_CCID}" chaincode.approve; then
+                  if ! grep -q "${CHAINCODE_CCID}" chaincode_{{.name}}_{{.version}}.approve; then
                     printf "[DEBUG] Chaincode {{ .name }} {{ .version }} with ccid ${CHAINCODE_CCID} is not approved on channel {{ $channel.channelname }}\n"
                     sleep 5
                   fi
@@ -175,7 +175,7 @@ spec:
 
                 ## Check chaincode commit readiness
 
-                until grep -q "true" chaincode.{{ .name }}.ready; do
+                until grep -q "true" chaincode_{{ .name }}_{{.version}}.ready; do
 
                   printf "[DEBUG] Check chaincode readiness {{ .name }} {{ .version }} on channel {{ $channel.channelName }}\n"
 
@@ -191,7 +191,7 @@ spec:
                     --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
                     --keyfile /var/hyperledger/tls/client/pair/tls.key \
                     --certfile /var/hyperledger/tls/client/pair/tls.crt \
-                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode.{{ .name }}.ready 2>&1
+                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode_{{ .name }}_{{.version}}.ready 2>&1
 
                   sleep 5
 
