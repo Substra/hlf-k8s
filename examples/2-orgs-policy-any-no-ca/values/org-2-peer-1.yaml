@@ -81,6 +81,7 @@ appChannels:
   - name: mycc
     policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
     version: "1.0"
+    sequence: "1"
 
 - channelName: yourchannel
   channelPolicies: |-
@@ -114,6 +115,7 @@ appChannels:
   - name: yourcc
     policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
     version: "1.0"
+    sequence: "1"
 
 enrollments:
   creds:
