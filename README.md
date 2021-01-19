@@ -25,7 +25,16 @@ This will deploy hlf-k8s with:
 - 1 orderer `MyOrderer`
 - 2 organizations: `MyOrg1` and `MyOrg2`
 
-### Install a custom chaincode
+### Running a specific version
+
+To deploy locally a specific version of hlf-k8s, the recommended way is the following:
+```bash
+SUBSTRA_HLF_VERSION=0.0.16
+git checkout $SUBSTRA_HLF_VERSION
+skaffold deploy --images substrafoundation/fabric-tools:$SUBSTRA_HLF_VERSION --images substrafoundation/fabric-peer:$SUBSTRA_HLF_VERSION
+```
+
+## Install a custom chaincode
 
 By default, the `skaffold run` command will start a network using the default [substra-chaincode](https://github.com/SubstraFoundation/substra-chaincode) image.
 
@@ -33,11 +42,10 @@ To use a custom chaincode locally, you need to build and replace the `chaincodes
 
 You can check how to do it in the [helm chart documentation](./charts/hlf-k8s/README.md) in the `Test hlf-k8s with your own chaincode` section
 
-### Production install / Changelog
+## Production install / Changelog
 
 Please refer to the [helm chart documentation](./charts/hlf-k8s/README.md).
 
 ## License
 
 This project is developed under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](./LICENSE) file.
-
