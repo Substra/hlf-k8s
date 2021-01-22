@@ -1,0 +1,138 @@
+organization:
+  id: MyOrg1MSP
+  name: MyOrg1
+
+nginx-ingress:
+  enabled: true
+  controller:
+    scope:
+      enabled: true
+
+hlf-ca:
+  enabled: false
+  caName: rcaOrg1
+  host: network-org-1-peer-1-hlf-ca.org-1
+  orderer:
+    host: network-orderer-hlf-ca.orderer
+
+hlf-ord:
+  host: network-orderer-hlf-ord.orderer
+
+hlf-peer:
+  host: network-org-1-peer-1-hlf-peer.org-1
+  peer:
+    couchdbInstance: network-org-1-peer-1
+    mspID: MyOrg1MSP
+    gossip:
+      externalEndpoint: network-org-1-peer-1-hlf-peer.org-1:7051
+  discover-monitor:
+    enabled: true
+
+
+chaincodes:
+  - name: mycc
+    address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+    port: 7052
+    version: "1.0"
+    image:
+      repository: substrafoundation/substra-chaincode
+      tag: 0.2.0
+      pullPolicy: IfNotPresent
+
+
+appChannels:
+- channelName: mychannel
+  channelPolicies: |-
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "ANY Admins"
+  appPolicies: |-
+    LifecycleEndorsement:
+        Type: ImplicitMeta
+        Rule: "ANY Endorsement"
+    Endorsement:
+        Type: ImplicitMeta
+        Rule: "ANY Endorsement"
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "ANY Admins"
+
+  chaincodes:
+  - name: mycc
+    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+    version: "1.0"
+    sequence: "1"
+
+  organizations:
+    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
+    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
+
+- channelName: yourchannel
+  channelPolicies: |-
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "ANY Admins"
+  appPolicies: |-
+    LifecycleEndorsement:
+        Type: ImplicitMeta
+        Rule: "ANY Endorsement"
+    Endorsement:
+        Type: ImplicitMeta
+        Rule: "ANY Endorsement"
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "ANY Admins"
+
+  chaincodes:
+  - name: mycc
+    policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+    version: "1.0"
+    sequence: "1"
+
+  organizations:
+    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
+    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
+
+
+enrollments:
+  creds:
+    - { name: admin, secret: adminpwd, options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"}
+    - { name: user, secret: pwd, options: "--id.type peer"}
+  # csrHost is set for peer and chaincodes communications
+  csrHost: "*.org-1"
+
+
+toolbox:
+  enabled: true
+
+hooks:
+  deleteSecrets:
+    enabled: false
+
+  # Name used for chaincode delete secret
+  serviceAccount:
+    name: substra-delete-hook
