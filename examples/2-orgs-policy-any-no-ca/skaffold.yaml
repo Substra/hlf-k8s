@@ -31,7 +31,7 @@ deploy:
   helm:
     releases:
       - name: network-orderer
-        chartPath: ../../charts/fabric-tools
+        chartPath: ../../charts/hlf-k8s
         namespace: orderer
         valuesFiles: [values/orderer.yaml]
         imageStrategy:
@@ -40,7 +40,7 @@ deploy:
           fabric-tools.image: substrafoundation/fabric-tools
 
       - name: network-org-1-peer-1
-        chartPath: ../../charts/fabric-tools
+        chartPath: ../../charts/hlf-k8s
         namespace: org-1
         valuesFiles: [values/org-1-peer-1.yaml]
         imageStrategy:
@@ -50,7 +50,7 @@ deploy:
           hlf-peer.image: substrafoundation/fabric-peer
 
       - name: network-org-2-peer-1
-        chartPath: ../../charts/fabric-tools
+        chartPath: ../../charts/hlf-k8s
         namespace: org-2
         valuesFiles: [values/org-2-peer-1.yaml]
         imageStrategy:
@@ -65,8 +65,11 @@ deploy:
 
   kubectl:
     manifests:
-      - examples/secrets/secrets-orderer-genesis.yaml
-      - examples/secrets/secrets-orderer.yaml
-      - examples/secrets/secrets-org-1.yaml
-      - examples/secrets/secrets-org-2.yaml
+      - ../secrets/secrets-orderer-genesis.yaml
+      - ../secrets/secrets-orderer.yaml
+      - ../secrets/secrets-org-1.yaml
+      - ../secrets/secrets-org-2.yaml
+      # For chaincode secrets deletion
+      - ../serviceAccounts/serviceAccount-org-1.yaml
+      - ../serviceAccounts/serviceAccount-org-2.yaml
 

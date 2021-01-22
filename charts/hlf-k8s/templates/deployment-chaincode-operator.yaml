@@ -135,7 +135,7 @@ spec:
                 {{- range $channel.chaincodes }}
                 {{- if and (eq .name $chaincode.name) (eq .version $chaincode.version) }}
 
-                until grep -q "${CHAINCODE_CCID}" chaincode_{{.name}}_{{.version}}.approve; do
+                until grep -q "${CHAINCODE_CCID}" chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.approve; do
 
                   printf "[DEBUG] Approving chaincode {{ .name }} {{ .version }} with ccid ${CHAINCODE_CCID} on channel {{ $channel.channelName }}\n"
 
@@ -163,9 +163,9 @@ spec:
                     --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
                     --keyfile /var/hyperledger/tls/client/pair/tls.key \
                     --certfile /var/hyperledger/tls/client/pair/tls.crt \
-                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode_{{.name}}_{{.version}}.approve 2>&1
+                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.approve 2>&1
 
-                  if ! grep -q "${CHAINCODE_CCID}" chaincode_{{.name}}_{{.version}}.approve; then
+                  if ! grep -q "${CHAINCODE_CCID}" chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.approve; then
                     printf "[DEBUG] Chaincode {{ .name }} {{ .version }} with ccid ${CHAINCODE_CCID} is not approved on channel {{ $channel.channelname }}\n"
                     sleep 5
                   fi
@@ -174,8 +174,9 @@ spec:
 
 
                 ## Check chaincode commit readiness
+                ## chaincode must be commit ready or, if already committed, return an ask for new definition sequence
 
-                until grep -q "true" chaincode_{{ .name }}_{{.version}}.ready; do
+                until grep -q -e "true" -e "new definition must be sequence" chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.ready; do
 
                   printf "[DEBUG] Check chaincode readiness {{ .name }} {{ .version }} on channel {{ $channel.channelName }}\n"
 
@@ -191,7 +192,7 @@ spec:
                     --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
                     --keyfile /var/hyperledger/tls/client/pair/tls.key \
                     --certfile /var/hyperledger/tls/client/pair/tls.crt \
-                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode_{{ .name }}_{{.version}}.ready 2>&1
+                    -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.ready 2>&1
 
                   sleep 5
 
@@ -200,9 +201,9 @@ spec:
 
                 ## Commit chaincode
 
-                peer lifecycle chaincode querycommitted --channelID {{ $channel.channelName }} > chaincode.{{ .name }}.list 2>&1
+                peer lifecycle chaincode querycommitted --channelID {{ $channel.channelName }} > chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.committed 2>&1
 
-                if ! grep "{{ .name }}" chaincode.{{ .name }}.list | grep -q "{{ .version }}"; then
+                if ! grep "Name: {{ .name }}" chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.committed | grep -q "Version: {{ .version }}" | grep -q "Sequence: {{ .sequence }}"; then
 
                   # Chaincode commit
                   printf "[DEBUG] Commit chaincode {{ .name }} {{ .version }} on channel {{ $channel.channelName }}\n"
@@ -232,11 +233,11 @@ spec:
                       --keyfile /var/hyperledger/tls/client/pair/tls.key \
                       --certfile /var/hyperledger/tls/client/pair/tls.crt \
                       -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} \
-                      $ENDORSEMENT > chaincode.{{ .name }}-{{ .version }}.commit 2>&1
+                      $ENDORSEMENT > chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.commit 2>&1
 
-                  cat chaincode.{{ .name }}-{{ .version }}.commit
+                  cat chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.commit
 
-                  peer lifecycle chaincode querycommitted --channelID {{ $channel.channelName }} > chaincode.{{ .name }}.list 2>&1
+                  peer lifecycle chaincode querycommitted --channelID {{ $channel.channelName }} > chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.committed 2>&1
 
                   sleep 5
 
@@ -245,11 +246,11 @@ spec:
 
                 ## Init chaincode
 
-                if [[ ! -e chaincode.{{ .name }}-{{ .version }}.init ]]; then
-                    touch chaincode.{{ .name }}-{{ .version }}.init
+                if [[ ! -e chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.init ]]; then
+                    touch chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.init
                 fi
 
-                if ! grep "already initialized" chaincode.{{ .name }}-{{ .version }}.init > /dev/null; then
+                if ! grep "already initialized" chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.init > /dev/null; then
 
                   printf "[DEBUG] Init chaincode {{ .name }} {{ .version }} on channel {{ $channel.channelName }}\n"
 
@@ -262,7 +263,7 @@ spec:
                     --keyfile /var/hyperledger/tls/client/pair/tls.key \
                     --certfile /var/hyperledger/tls/client/pair/tls.crt \
                     -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} \
-                    -c '{"Args":["Init"]}' > chaincode.{{ .name }}-{{ .version }}.init 2>&1
+                    -c '{"Args":["Init"]}' > chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.init 2>&1
 
                   sleep 5
 

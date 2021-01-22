@@ -1,5 +1,11 @@
 # Changelog
 
+# 6.1.0
+
+- Bug fix chaincode operator if same chaincode is used over multiple channels.
+- Fix examples
+- Add new example 2 orgs 2 channels 1 chaincode
+
 # 6.0.0
 
 - Add sequence field to the structure of the `appChannels.chaincodes` value. Please see [`UPDGRADE.md`](./UPGRADE.md).
