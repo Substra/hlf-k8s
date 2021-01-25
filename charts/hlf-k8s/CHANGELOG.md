@@ -1,5 +1,10 @@
 # Changelog
 
+
+# 6.2.0
+
+- Set persistence value for each service to true by default
+
 # 6.1.0
 
 - Bug fix chaincode operator if same chaincode is used over multiple channels.
