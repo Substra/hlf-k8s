@@ -175,9 +175,9 @@ hlf-ca:
       substra: [paris, nantes]
 
   persistence:
-    enabled: false
-    # size: 20Gi
-    # storageClass: ""4
+    enabled: true
+    size: 5Gi
+    # storageClass: ""
 
   orderer:
     scheme: http
@@ -210,7 +210,8 @@ hlf-peer:
     repository: substrafoundation/fabric-peer
     tag: latest
   persistence:
-    enabled: false
+    enabled: true
+    size: 10Gi
   discover-monitor:
     enabled: false
   secrets:
@@ -250,6 +251,7 @@ hlf-couchdb:
     repository: hyperledger/fabric-couchdb
     tag: 0.4.21
   persistence:
+    enabled: true
     size: 10Gi
   couchdbUsername: couchdb
   couchdbPassword: couchdbpwd
@@ -264,7 +266,8 @@ hlf-ord:
   image:
     tag: 2.2.1
   persistence:
-    enabled: false
+    enabled: true
+    size: 10Gi
   ord:
     type: etcdraft
     mspID: MyOrdererMSP

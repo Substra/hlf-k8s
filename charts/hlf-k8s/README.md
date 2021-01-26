@@ -34,8 +34,8 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-peer.ingress.annotations` | Peer ingress annotations | (undefined) |
 | `hlf-peer.ingress.tls` | Peer ingress TLS configuration | (undefined) |
 | `hlf-peer.ingress.hosts` | Peer ingress hosts | (undefined) |
-| `hlf-peer.persistence.enabled` | If true, enable persistence for the Peer | `false` |
-| `hlf-peer.persistence.size` | Size of data volume | (undefined) |
+| `hlf-peer.persistence.enabled` | If true, enable persistence for the Peer | `true` |
+| `hlf-peer.persistence.size` | Size of data volume | `10Gi` |
 | `hlf-peer.persistence.storageClass` | Storage class of backing PVC | (undefined) |
 | `appChannels` | The application channels to create | `[{channelName: mychannel}]` |
 | `appChannels[].channelName` | The name of the application channel. Must be alphanumerical (9 characters max.) | (undefined) |
@@ -75,8 +75,8 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-ord.ingress.annotations` | Orderer ingress annotations | (undefined) |
 | `hlf-ord.ingress.tls` | Orderer ingress TLS configuration | (undefined) |
 | `hlf-ord.ingress.hosts` | Orderer ingress hosts | (undefined) |
-| `hlf-ord.persistence.enabled` | If true, enable persistence for the Orderer | `false` |
-| `hlf-ord.persistence.size` | Size of data volume | (undefined) |
+| `hlf-ord.persistence.enabled` | If true, enable persistence for the Orderer | `true` |
+| `hlf-ord.persistence.size` | Size of data volume | `10Gi` |
 | `hlf-ord.persistence.storageClass` | Storage class of backing PVC | (undefined) |
 | `systemChannel.name` | The name of the system channel | `systemchannel` |
 | `systemChannel.organizations` | The organizations to add to the system channel. See [Add an organization to the system channel](#add-an-organization-to-the-system-channel). | `[]` |
@@ -101,9 +101,18 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-ca.orderer.scheme` | Orderer's CA scheme | `http` |
 | `hlf-ca.orderer.host` | Orderer's CA host | `orderer-ca-hostname` |
 | `hlf-ca.orderer.port` | Orderer's CA port | `7054` |
-| `hlf-ca.persistence.enabled` | If true, enable persistence for the CA | `false` |
-| `hlf-ca.persistence.size` | Size of data volume | (undefined) |
+| `hlf-ca.persistence.enabled` | If true, enable persistence for the CA | `true` |
+| `hlf-ca.persistence.size` | Size of data volume | `5Gi` |
 | `hlf-ca.persistence.storageClass` | Storage class of backing PVC | (undefined) |
+| `hlf-couchdb.image.repository` | `hlf-couchdb` image repository | `hyperledger/fabric-couchdb` |
+| `hlf-couchdb.image.tag`| `hlf-couchdb` image tag | `0.4.21` |
+| `hlf-couchdb.image.pullPolicy`| Image pull policy| `IfNotPresent` |
+| `hlf-couchdb.service.port`| TCP port   | `5984` |
+| `hlf-couchdb.service.type`| K8S service type exposing ports, e.g. `ClusterIP`| `ClusterIP` |
+| `hlf-couchdb.persistence.size`| Size of data volume (adjust for production!) | `10Gi` |
+| `hlf-couchdb.persistence.storageClass`| Storage class of backing PVC | `default` |
+| `hlf-couchdb.couchdbUsername`| Username for CouchDB| `couchdb` |
+| `hlf-couchdb.couchdbPassword`| Password for CouchDB  | `couchdbpwd` |
 | `nginx-ingress.enabled` | If true, an nginx Ingress controller will be created | `false` |
 | `nginx-ingress.controller.nginx-ingress.extraArgs` | Additional controller arguments | `enable-ssl-passthrough: ""` |
 | `privateCa.enabled` | if true, use a private CA | `false` |
