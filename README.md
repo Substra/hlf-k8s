@@ -1,6 +1,6 @@
 # HLF k8s [![Helm](https://github.com/SubstraFoundation/hlf-k8s/workflows/Helm/badge.svg)](https://github.com/SubstraFoundation/hlf-k8s/actions?query=workflow%3AHelm)
 
-HLF-k8s is a network of [Hyperledger Fabric](https://hyperledger-fabric.readthedocs.io/en/release-1.4) orderers and peers forming a permissioned blockchain.
+HLF-k8s is a network of [Hyperledger Fabric](https://hyperledger-fabric.readthedocs.io/en/latest/) orderers and peers forming a permissioned blockchain.
 
 It is part of the [Substra project](https://github.com/SubstraFoundation/substra).
 
