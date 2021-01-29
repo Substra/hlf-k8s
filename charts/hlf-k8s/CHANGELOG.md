@@ -1,6 +1,11 @@
 # Changelog
 
 
+# 6.2.1
+### Fixed
+- `jq` does not fail anymore on mspid containing a special character in the chaincode operator.
+- The condition to enter the chaincode commit process in the chaincode operator was always true, now we enter only if the chaincode is not already commited.
+
 # 6.2.0
 
 - Set persistence value for each service to true by default

@@ -203,7 +203,7 @@ spec:
 
                 peer lifecycle chaincode querycommitted --channelID {{ $channel.channelName }} > chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.committed 2>&1
 
-                if ! grep "Name: {{ .name }}" chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.committed | grep -q "Version: {{ .version }}" | grep -q "Sequence: {{ .sequence }}"; then
+                if ! grep "Name: {{ .name }}" chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.committed | grep "Version: {{ .version }}" | grep -q "Sequence: {{ .sequence }}"; then
 
                   # Chaincode commit
                   printf "[DEBUG] Commit chaincode {{ .name }} {{ .version }} on channel {{ $channel.channelName }}\n"
@@ -214,7 +214,7 @@ spec:
                   ENDORSEMENT="";
 
                   while read -r mspId; do
-                      TLS_ROOT_CERT=$(echo "$DISCOVERY_CONFIG" | jq -r ".msps.${mspId}.tls_root_certs[0]");
+                      TLS_ROOT_CERT=$(echo "$DISCOVERY_CONFIG" | jq -r ".msps | .\"${mspId}\" | .tls_root_certs[0]");
                       ENDPOINT=$(echo "$DISCOVERY_PEER" | jq -r ".[] | select( .MSPID == \"$mspId\" ) | .Endpoint");
                       echo "${TLS_ROOT_CERT}" | base64 -d > "tlsroot-${mspId}.crt";
                       ENDORSEMENT="${ENDORSEMENT} --peerAddresses=${ENDPOINT} --tlsRootCertFiles=tlsroot-${mspId}.crt";
