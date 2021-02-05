@@ -270,7 +270,7 @@ spec:
                   --certfile /var/hyperledger/tls/client/pair/tls.crt \
                   -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }}
 
-                sleep 5
+                sleep 1
 
               done < /config/application-organizations
               sleep 10
