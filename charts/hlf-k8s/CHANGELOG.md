@@ -1,5 +1,8 @@
 # Changelog
 
+# 6.2.2
+
+- Reduce the delay between each "add organization" operation in the appchannel operator from 5 secs to 1 sec
 
 # 6.2.1
 ### Fixed
