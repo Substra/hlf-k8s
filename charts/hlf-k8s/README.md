@@ -113,8 +113,6 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-couchdb.persistence.storageClass`| Storage class of backing PVC | `default` |
 | `hlf-couchdb.couchdbUsername`| Username for CouchDB| `couchdb` |
 | `hlf-couchdb.couchdbPassword`| Password for CouchDB  | `couchdbpwd` |
-| `nginx-ingress.enabled` | If true, an nginx Ingress controller will be created | `false` |
-| `nginx-ingress.controller.nginx-ingress.extraArgs` | Additional controller arguments | `enable-ssl-passthrough: ""` |
 | `privateCa.enabled` | if true, use a private CA | `false` |
 | `privateCa.configMap.name` | The name of the ConfigMap containing the private CA certificate | `private-ca` |
 | `privateCa.configMap.fileName` | The CA certificate filename within the ConfigMap | `private-ca.crt` |
@@ -307,16 +305,24 @@ Note that the monitor pod also shows the orgs that are part of the **system chan
 
 To enable the **monitor pod**, on the orderer:
 
-```
+```yaml
 monitor:
    enabled: true
 ```
 
 To enable the **discover monitor pod**, on the peer:
 
-```
+```yaml
 discover-monitor:
    enabled: true
+```
+
+### Installing behind an ingress
+
+As Hyperledger Fabric uses mutual TLS to authenticate between components, you need the ingress to keep the information encrypted when it sends it to the peer or orderer.
+In order to achieve this for example with an nginx ingress you need to set the following value in your ingress controller configuration:
+```yaml
+controller.extraArgs.enable-ssl-passthrough: ""
 ```
 
 

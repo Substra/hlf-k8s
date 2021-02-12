@@ -11,8 +11,5 @@ dependencies:
 - name: hlf-couchdb
   repository: https://owkin.github.io/charts/
   version: 1.0.7
-- name: nginx-ingress
-  repository: https://charts.helm.sh/stable
-  version: 1.29.7
-digest: sha256:43a29200c19ef9b16e8e1ed102cc49373beecf3a6755957f04331941eb1f9f27
-generated: "2021-02-12T16:34:15.568704+01:00"
+digest: sha256:2f67aa66f9a63caa607ddf05c295ac238ffdca9b993f3b3dc44bcc67d356a6f4
+generated: "2021-02-12T16:38:10.49856+01:00"

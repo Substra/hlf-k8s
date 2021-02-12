@@ -43,10 +43,7 @@ dependencies:
     version: 1.0.7
     repository: https://owkin.github.io/charts/
     condition: hlf-peer.enabled
-  - name: nginx-ingress
-    repository: https://charts.helm.sh/stable
-    version: ~1.29.2
-    condition: nginx-ingress.enabled
 annotations:
   artifacthub.io/changes: |
     - Charts using API v2 now, officially dropping support form Helm v2
+    - Remove nginx-ingress dependency
