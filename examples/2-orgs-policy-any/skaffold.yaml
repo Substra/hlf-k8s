@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-apiVersion: skaffold/v1beta13
+apiVersion: skaffold/v2beta12
 kind: Config
 build:
   artifacts:
@@ -38,20 +38,22 @@ deploy:
       - name: network-orderer
         chartPath: ../../charts/hlf-k8s
         namespace: orderer
+        createNamespace: true
         valuesFiles: [values/orderer.yaml]
         imageStrategy:
           helm: {}
-        values:
+        artifactOverrides:
           fabric-tools.image: substrafoundation/fabric-tools
           fabric-ca-tools.image: substrafoundation/fabric-ca-tools
 
       - name: network-org-1-peer-1
         chartPath: ../../charts/hlf-k8s
         namespace: org-1
+        createNamespace: true
         valuesFiles: [values/org-1-peer-1.yaml]
         imageStrategy:
           helm: {}
-        values:
+        artifactOverrides:
           fabric-tools.image: substrafoundation/fabric-tools
           fabric-ca-tools.image: substrafoundation/fabric-ca-tools
           hlf-peer.image: substrafoundation/fabric-peer
@@ -60,16 +62,15 @@ deploy:
       - name: network-org-2-peer-1
         chartPath: ../../charts/hlf-k8s
         namespace: org-2
+        createNamespace: true
         valuesFiles: [values/org-2-peer-1.yaml]
         imageStrategy:
           helm: {}
-        values:
+        artifactOverrides:
           fabric-tools.image: substrafoundation/fabric-tools
           fabric-ca-tools.image: substrafoundation/fabric-ca-tools
           hlf-peer.image: substrafoundation/fabric-peer
 
-    flags:
-      install: ["--create-namespace"]
   # We create the serviceAccounts with the kubectl deployer to ensure the serviceAccounts will stay present for the Helm deletion hooks
   # By design Skaffold create and delete ressources in a fixed order (Helm > kubectl > kustomize)
   # Ref: https://github.com/GoogleContainerTools/skaffold/blob/dedd545/pkg/skaffold/runner/new.go#L191-L214 (func getDeployer)
