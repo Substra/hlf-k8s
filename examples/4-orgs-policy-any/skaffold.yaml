@@ -18,7 +18,7 @@
 #   application channel policy. A chosen node (here MyOrg1) is responsible
 #   for adding all the other nodes to the application channel.
 ---
-apiVersion: skaffold/v1beta13
+apiVersion: skaffold/v2beta12
 kind: Config
 build:
   artifacts:
@@ -44,20 +44,22 @@ deploy:
       - name: network-orderer
         chartPath: ../../charts/hlf-k8s
         namespace: orderer
+        createNamespace: true
         valuesFiles: [values/orderer.yaml]
         imageStrategy:
           helm: {}
-        values:
+        artifactOverrides:
           fabric-tools.image: substrafoundation/fabric-tools
           fabric-ca-tools.image: substrafoundation/fabric-ca-tools
 
       - name: network-org-1-peer-1
         chartPath: ../../charts/hlf-k8s
         namespace: org-1
+        createNamespace: true
         valuesFiles: [values/org-1-peer-1.yaml]
         imageStrategy:
           helm: {}
-        values:
+        artifactOverrides:
           fabric-tools.image: substrafoundation/fabric-tools
           fabric-ca-tools.image: substrafoundation/fabric-ca-tools
           hlf-peer.image: substrafoundation/fabric-peer
@@ -65,10 +67,11 @@ deploy:
       - name: network-org-2-peer-1
         chartPath: ../../charts/hlf-k8s
         namespace: org-2
+        createNamespace: true
         valuesFiles: [values/org-2-peer-1.yaml]
         imageStrategy:
           helm: {}
-        values:
+        artifactOverrides:
           fabric-tools.image: substrafoundation/fabric-tools
           fabric-ca-tools.image: substrafoundation/fabric-ca-tools
           hlf-peer.image: substrafoundation/fabric-peer
@@ -76,10 +79,11 @@ deploy:
       - name: network-org-3-peer-1
         chartPath: ../../charts/hlf-k8s
         namespace: org-3
+        createNamespace: true
         valuesFiles: [values/org-3-peer-1.yaml]
         imageStrategy:
           helm: {}
-        values:
+        artifactOverrides:
           fabric-tools.image: substrafoundation/fabric-tools
           fabric-ca-tools.image: substrafoundation/fabric-ca-tools
           hlf-peer.image: substrafoundation/fabric-peer
@@ -87,16 +91,15 @@ deploy:
       - name: network-org-4-peer-1
         chartPath: ../../charts/hlf-k8s
         namespace: org-4
+        createNamespace: true
         valuesFiles: [values/org-4-peer-1.yaml]
         imageStrategy:
           helm: {}
-        values:
+        artifactOverrides:
           fabric-tools.image: substrafoundation/fabric-tools
           fabric-ca-tools.image: substrafoundation/fabric-ca-tools
           hlf-peer.image: substrafoundation/fabric-peer
 
-    flags:
-      install: ["--create-namespace"]
   kubectl:
     manifests:
       - ../serviceAccounts/serviceAccount-orderer.yaml

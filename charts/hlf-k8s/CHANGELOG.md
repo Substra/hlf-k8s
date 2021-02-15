@@ -1,5 +1,11 @@
 # Changelog
 
+# 7.0.0
+### Changed
+- Charts using API v2 now, officially dropping support form Helm v2
+### Removed
+- Remove `nginx-ingress` dependency
+
 # 6.2.2
 
 - Reduce the delay between each "add organization" operation in the appchannel operator from 5 secs to 1 sec
