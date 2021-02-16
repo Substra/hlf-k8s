@@ -12,7 +12,7 @@ It is part of the [Substra project](https://github.com/SubstraFoundation/substra
 
 ## Local install
 
-Use [skaffold](https://github.com/GoogleContainerTools/skaffold) v1.14+.
+Use [skaffold](https://github.com/GoogleContainerTools/skaffold) v1.20+.
 
 To start hlf-k8s, run:
 
