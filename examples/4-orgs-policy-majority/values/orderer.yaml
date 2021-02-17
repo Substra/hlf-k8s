@@ -4,9 +4,6 @@ organization:
   id: MyOrdererMSP
   name: MyOrderer
 
-nginx-ingress:
-  enabled: true
-
 hlf-peer:
   enabled: false
 

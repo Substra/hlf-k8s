@@ -2,12 +2,6 @@ organization:
   id: MyOrg1MSP
   name: MyOrg1
 
-nginx-ingress:
-  enabled: true
-  controller:
-    scope:
-      enabled: true
-
 hlf-ca:
   caName: rcaOrg1
   host: network-org-1-peer-1-hlf-ca.org-1
