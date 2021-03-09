@@ -25,7 +25,7 @@ for i in `seq $NUM_ORGS`; do
         --cafile /var/hyperledger/tls/ord/cert/cacert.pem \
         --certfile /var/hyperledger/tls/server/pair/tls.crt \
         --keyfile /var/hyperledger/tls/server/pair/tls.key \
-        -o network-orderer-hlf-ord.orderer:7050 \
+        -o network-orderer-hlf-ord.orderer.svc.cluster.local:7050 \
         -c '{\"Args\":[\"queryTraintuples\"]}'"
     echo '-----------'
 done

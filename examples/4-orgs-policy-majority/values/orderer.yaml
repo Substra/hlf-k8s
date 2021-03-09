@@ -9,9 +9,9 @@ hlf-peer:
 
 hlf-ca:
   caName: rcaOrderer
-  host: network-orderer-hlf-ca.orderer
+  host: network-orderer-hlf-ca.orderer.svc.cluster.local
   orderer:
-    host: network-orderer-hlf-ca.orderer
+    host: network-orderer-hlf-ca.orderer.svc.cluster.local
 
 hlf-ord:
   enabled: true
@@ -26,16 +26,16 @@ appChannels:
 
 systemChannel:
   organizations:
-    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrg.json }
-    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrg.json }
-    - { org: MyOrg3, mspid: MyOrg3MSP, configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrg.json }
-    - { org: MyOrg4, mspid: MyOrg4MSP, configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrg.json }
+    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1.svc.cluster.local/config/configOrg.json }
+    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2.svc.cluster.local/config/configOrg.json }
+    - { org: MyOrg3, mspid: MyOrg3MSP, configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3.svc.cluster.local/config/configOrg.json }
+    - { org: MyOrg4, mspid: MyOrg4MSP, configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4.svc.cluster.local/config/configOrg.json }
 
 enrollments:
   creds:
   - { name: admin, secret: adminpwd, options: "--id.attrs admin=true:ecert"}
   - { name: user, secret: pwd, options: "--id.type orderer"}
-  csrHost: network-orderer-hlf-ord.orderer
+  csrHost: "network-orderer-hlf-ord.orderer.svc.cluster.local"
 
 toolbox:
   enabled: true

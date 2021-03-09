@@ -4,26 +4,26 @@ organization:
 
 hlf-ca:
   caName: rcaOrg2
-  host: network-org-2-peer-1-hlf-ca.org-2
+  host: network-org-2-peer-1-hlf-ca.org-2.svc.cluster.local
   orderer:
-    host: network-orderer-hlf-ca.orderer
+    host: network-orderer-hlf-ca.orderer.svc.cluster.local
 
 hlf-ord:
-  host: network-orderer-hlf-ord.orderer
+  host: network-orderer-hlf-ord.orderer.svc.cluster.local
 
 hlf-peer:
-  host: network-org-2-peer-1-hlf-peer.org-2
+  host: network-org-2-peer-1-hlf-peer.org-2.svc.cluster.local
   peer:
     couchdbInstance: network-org-2-peer-1
     mspID: MyOrg2MSP
     gossip:
-      externalEndpoint: network-org-2-peer-1-hlf-peer.org-2:7051
+      externalEndpoint: network-org-2-peer-1-hlf-peer.org-2.svc.cluster.local:7051
   discover-monitor:
     enabled: true
 
 chaincodes:
   - name: mycc
-    address: network-org-2-peer-1-hlf-k8s-chaincode-mycc.org-2
+    address: network-org-2-peer-1-hlf-k8s-chaincode-mycc.org-2.svc.cluster.local
     port: 7052
     version: "1.0"
     image:
@@ -67,23 +67,23 @@ appChannels:
     sequence: "1"
 
   organizations:
-    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
-    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
-    - { org: MyOrg3, mspid: MyOrg3MSP, configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3/config/configOrgWithAnchors.json }
-    - { org: MyOrg4, mspid: MyOrg4MSP, configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4/config/configOrgWithAnchors.json }
+    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1.svc.cluster.local/config/configOrgWithAnchors.json }
+    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2.svc.cluster.local/config/configOrgWithAnchors.json }
+    - { org: MyOrg3, mspid: MyOrg3MSP, configUrl: network-org-3-peer-1-hlf-k8s-config-operator.org-3.svc.cluster.local/config/configOrgWithAnchors.json }
+    - { org: MyOrg4, mspid: MyOrg4MSP, configUrl: network-org-4-peer-1-hlf-k8s-config-operator.org-4.svc.cluster.local/config/configOrgWithAnchors.json }
 
   proposalOrganizations:
-    - { org: MyOrg1, mspid: MyOrg1MSP, proposalServerUrl: network-org-1-peer-1-hlf-k8s-appchannel-operator-mychannel.org-1/proposal/ }
-    - { org: MyOrg2, mspid: MyOrg2MSP, proposalServerUrl: network-org-2-peer-1-hlf-k8s-appchannel-operator-mychannel.org-2/proposal/ }
-    - { org: MyOrg3, mspid: MyOrg3MSP, proposalServerUrl: network-org-3-peer-1-hlf-k8s-appchannel-operator-mychannel.org-3/proposal/ }
-    - { org: MyOrg4, mspid: MyOrg4MSP, proposalServerUrl: network-org-4-peer-1-hlf-k8s-appchannel-operator-mychannel.org-4/proposal/ }
+    - { org: MyOrg1, mspid: MyOrg1MSP, proposalServerUrl: network-org-1-peer-1-hlf-k8s-appchannel-operator-mychannel.org-1.svc.cluster.local/proposal/ }
+    - { org: MyOrg2, mspid: MyOrg2MSP, proposalServerUrl: network-org-2-peer-1-hlf-k8s-appchannel-operator-mychannel.org-2.svc.cluster.local/proposal/ }
+    - { org: MyOrg3, mspid: MyOrg3MSP, proposalServerUrl: network-org-3-peer-1-hlf-k8s-appchannel-operator-mychannel.org-3.svc.cluster.local/proposal/ }
+    - { org: MyOrg4, mspid: MyOrg4MSP, proposalServerUrl: network-org-4-peer-1-hlf-k8s-appchannel-operator-mychannel.org-4.svc.cluster.local/proposal/ }
 
 
 enrollments:
   creds:
     - { name: admin, secret: adminpwd, options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"}
     - { name: user, secret: pwd, options: "--id.type peer"}
-  csrHost: "*.org-2"
+  csrHost: "*.org-2.svc.cluster.local"
 
 
 toolbox:
