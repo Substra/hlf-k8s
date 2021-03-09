@@ -70,7 +70,7 @@ enrollments:
   creds:
     - { name: admin, secret: adminpwd, options: "--id.attrs hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"}
     - { name: user, secret: pwd, options: "--id.type peer"}
-  csrHost: "*.org-3,*.org-3.svc.cluster.local"
+  csrHost: "*.org-3.svc.cluster.local"
 
 
 toolbox:
