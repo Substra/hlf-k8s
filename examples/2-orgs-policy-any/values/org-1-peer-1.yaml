@@ -4,26 +4,26 @@ organization:
 
 hlf-ca:
   caName: rcaOrg1
-  host: network-org-1-peer-1-hlf-ca.org-1
+  host: network-org-1-peer-1-hlf-ca.org-1.svc.cluster.local
   orderer:
-    host: network-orderer-hlf-ca.orderer
+    host: network-orderer-hlf-ca.orderer.svc.cluster.local
 
 hlf-ord:
-  host: network-orderer-hlf-ord.orderer
+  host: network-orderer-hlf-ord.orderer.svc.cluster.local
 
 hlf-peer:
-  host: network-org-1-peer-1-hlf-peer.org-1
+  host: network-org-1-peer-1-hlf-peer.org-1.svc.cluster.local
   peer:
     couchdbInstance: network-org-1-peer-1
     mspID: MyOrg1MSP
     gossip:
-      externalEndpoint: network-org-1-peer-1-hlf-peer.org-1:7051
+      externalEndpoint: network-org-1-peer-1-hlf-peer.org-1.svc.cluster.local:7051
   discover-monitor:
     enabled: true
 
 chaincodes:
   - name: mycc
-    address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+    address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1.svc.cluster.local
     port: 7052
     version: "1.0"
     image:
@@ -31,7 +31,7 @@ chaincodes:
       tag: 0.2.0
       pullPolicy: IfNotPresent
   - name: yourcc
-    address: network-org-1-peer-1-hlf-k8s-chaincode-yourcc.org-1
+    address: network-org-1-peer-1-hlf-k8s-chaincode-yourcc.org-1.svc.cluster.local
     port: 7052
     version: "1.0"
     image:
@@ -75,8 +75,8 @@ appChannels:
     sequence: "1"
 
   organizations:
-    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
-    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
+    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1.svc.cluster.local/config/configOrgWithAnchors.json }
+    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2.svc.cluster.local/config/configOrgWithAnchors.json }
 
 - channelName: yourchannel
   channelPolicies: |-
@@ -113,8 +113,8 @@ appChannels:
     sequence: "1"
 
   organizations:
-    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1/config/configOrgWithAnchors.json }
-    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2/config/configOrgWithAnchors.json }
+    - { org: MyOrg1, mspid: MyOrg1MSP, configUrl: network-org-1-peer-1-hlf-k8s-config-operator.org-1.svc.cluster.local/config/configOrgWithAnchors.json }
+    - { org: MyOrg2, mspid: MyOrg2MSP, configUrl: network-org-2-peer-1-hlf-k8s-config-operator.org-2.svc.cluster.local/config/configOrgWithAnchors.json }
 
 
 enrollments:

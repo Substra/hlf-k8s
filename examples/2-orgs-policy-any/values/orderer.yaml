@@ -9,9 +9,9 @@ hlf-peer:
 
 hlf-ca:
   caName: rcaOrderer
-  host: network-orderer-hlf-ca.orderer
+  host: network-orderer-hlf-ca.orderer.svc.cluster.local
   orderer:
-    host: network-orderer-hlf-ca.orderer
+    host: network-orderer-hlf-ca.orderer.svc.cluster.local
 
 hlf-ord:
   enabled: true
