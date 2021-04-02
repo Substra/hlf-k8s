@@ -34,8 +34,8 @@ systemChannel:
   name: systemchannel
   organizations:
     ## The organizations to add to the system channel
-    #   - { org: Org1, mspid: Org1MSP, configUrl: peer-1-org-config-operator.org-1/config/configOrg.json }
-    #   - { org: Org2, mspid: Org2MSP, configUrl: peer-2-org-config-operator.org-2/config/configOrg.json }
+    #   - { org: Org1, mspid: Org1MSP, configUrl: peer-1-org-config-operator.org-1.svc.cluster.local/config/configOrg.json }
+    #   - { org: Org2, mspid: Org2MSP, configUrl: peer-2-org-config-operator.org-2.svc.cluster.local/config/configOrg.json }
   policies: |-
     Readers:
         Type: ImplicitMeta
@@ -50,7 +50,7 @@ systemChannel:
 chaincodes: []
 # - name: mycc
 #   version: "1.0"
-#   address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
+#   address: "chaincode-org-0-substra-chaincode-chaincode.org-0.svc.cluster.local"
 #   port: "7052"
 #   image:
 #     repository: substrafoundation/substra-chaincode
@@ -63,13 +63,13 @@ appChannels:
 
   ## The organizations to add to the application channel (see README)
   organizations: []
-  # - { org: Org1, mspid: Org1MSP, configUrl: peer-1-org-config-operator.org-1/config/configOrgWithAnchors.json }
-  # - { org: Org2, mspid: Org2MSP, configUrl: peer-2-org-config-operator.org-2/config/configOrgWithAnchors.json }
+  # - { org: Org1, mspid: Org1MSP, configUrl: peer-1-org-config-operator.org-1.svc.cluster.local/config/configOrgWithAnchors.json }
+  # - { org: Org2, mspid: Org2MSP, configUrl: peer-2-org-config-operator.org-2.svc.cluster.local/config/configOrgWithAnchors.json }
 
   ## The organizations to fetch signed proposals from (see README)
   proposalOrganizations: []
-  # - { org: Org1, mspid: Org1MSP, proposalServerUrl: peer-1-org-appchannel-operator-mychannel.org-1/proposal/ }
-  # - { org: Org2, mspid: Org2MSP, proposalServerUrl: peer-2-org-appchannel-operator-mychannel.org-2/proposal/ }
+  # - { org: Org1, mspid: Org1MSP, proposalServerUrl: peer-1-org-appchannel-operator-mychannel.org-1.svc.cluster.local/proposal/ }
+  # - { org: Org2, mspid: Org2MSP, proposalServerUrl: peer-2-org-appchannel-operator-mychannel.org-2.svc.cluster.local/proposal/ }
 
   channelPolicies: |-
     Readers:
