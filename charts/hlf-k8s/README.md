@@ -139,7 +139,7 @@ On a peer:
 chaincodes:
   - name: mycc
     version: "1.0"
-    address: "chaincode-org-0-substra-chaincode-chaincode.org-0"
+    address: "chaincode-org-1-substra-chaincode-chaincode.org-1.svc.cluster.local"
     port: "7052"
     image:
       repository: substrafoundation/substra-chaincode
@@ -180,7 +180,7 @@ Finally, modify deployment values to use your chaincode image:
 For instance with `substrafoundation/substra-chaincode:my-tag`
 ```yaml
 chaincodes:
-- address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+- address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1.svc.cluster.local
   name: mycc
   port: 7052
   version: "1.0"

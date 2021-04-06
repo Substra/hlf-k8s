@@ -10,7 +10,7 @@ Example:
 ```yaml
 chaincodes:
   - name: mycc
-    address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+    address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1.svc.cluster.local
     port: 7052
     version: "1.0"
     image:
@@ -37,7 +37,7 @@ Example:
 ```yaml
 chaincodes:
   - name: mycc
-    address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1
+    address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1.svc.cluster.local
     port: 7052
     version: "1.0"
     image:
