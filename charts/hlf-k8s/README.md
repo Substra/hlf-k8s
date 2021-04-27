@@ -143,7 +143,7 @@ chaincodes:
     port: "7052"
     image:
       repository: substrafoundation/substra-chaincode
-      tag: 0.2.0
+      tag: 0.3.0
       pullPolicy: IfNotPresent
 
 appChannels:
