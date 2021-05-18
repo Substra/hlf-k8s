@@ -101,7 +101,7 @@ spec:
                 --certfile /var/hyperledger/tls/client/pair/tls.crt \
                 -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} > channel.list
 
-              until grep "{{ .channelName }}" channel.list > /dev/null; do
+              until grep "^{{ .channelName }}$" channel.list > /dev/null; do
 
                 printf "[DEBUG] Fetching application channel block\n"
                 peer channel fetch oldest channeljoin.block \

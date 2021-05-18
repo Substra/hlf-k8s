@@ -1,5 +1,9 @@
 # Changelog
 
+# 7.0.1
+### Fixed
+- The application channel operator doesn't misbehave anymore when a peer joins 2 channels with overlapping names
+
 # 7.0.0
 ### Changed
 - Charts using API v2 now, officially dropping support form Helm v2
