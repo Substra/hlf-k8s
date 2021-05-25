@@ -41,6 +41,7 @@ deploy:
           fabric-tools.image: substrafoundation/fabric-tools
 
       - name: network-org-1-peer-1
+        skipBuildDependencies: true # deps already built by orderer release
         chartPath: charts/hlf-k8s
         namespace: org-1
         createNamespace: true
@@ -52,6 +53,7 @@ deploy:
           hlf-peer.image: substrafoundation/fabric-peer
 
       - name: network-org-2-peer-1
+        skipBuildDependencies: true # deps already built by orderer release
         chartPath: charts/hlf-k8s
         namespace: org-2
         createNamespace: true
@@ -72,3 +74,10 @@ deploy:
       # For chaincode secrets deletion
       - examples/serviceAccounts/serviceAccount-org-1.yaml
       - examples/serviceAccounts/serviceAccount-org-2.yaml
+
+profiles:
+- name: nodeps
+  patches:
+    - op: add
+      path: /deploy/helm/releases/0/skipBuildDependencies
+      value: true
