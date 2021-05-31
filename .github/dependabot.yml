@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/images/fabric-ca-tools"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/images/fabric-peer"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/images/fabric-tools"
+    schedule:
+      interval: "daily"
