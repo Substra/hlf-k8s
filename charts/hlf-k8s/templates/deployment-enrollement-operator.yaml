@@ -37,8 +37,8 @@ spec:
       serviceAccountName: {{ template "substra.fullname" . }}
       containers:
         - name: fabric-tools
-          image: {{ index $.Values "fabric-ca-tools" "image" "repository" }}:{{ index $.Values "fabric-ca-tools" "image" "tag" }}
-          imagePullPolicy: "{{ index $.Values "fabric-ca-tools" "image" "pullPolicy" }}"
+          image: {{ index $.Values "fabric-tools" "image" "repository" }}:{{ index $.Values "fabric-tools" "image" "tag" }}
+          imagePullPolicy: "{{ index $.Values "fabric-tools" "image" "pullPolicy" }}"
           command: ['sh', '-c']
           args:
             - |

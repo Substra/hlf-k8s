@@ -5,10 +5,6 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "docker"
-    directory: "/images/fabric-ca-tools"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "docker"
     directory: "/images/fabric-peer"
     schedule:
       interval: "daily"

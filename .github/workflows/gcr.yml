@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        docker-image: [fabric-ca-tools, fabric-peer, fabric-tools]
+        docker-image: [fabric-peer, fabric-tools]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
