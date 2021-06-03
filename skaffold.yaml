@@ -81,3 +81,15 @@ profiles:
     - op: add
       path: /deploy/helm/releases/0/skipBuildDependencies
       value: true
+- name: single-org
+  patches:
+    - op: remove
+      path: /deploy/helm/releases/2
+
+    # Removes the org-2 manifests, at indexes 3 and 5.
+    # we remove index 5 first because starting with index 3 turns index 5 into index 4 and that's
+    # confusing.
+    - op: remove
+      path: /deploy/kubectl/manifests/5
+    - op: remove
+      path: /deploy/kubectl/manifests/3
