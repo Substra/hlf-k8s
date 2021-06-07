@@ -25,8 +25,10 @@ if [ ! -f "$CHAINCODE_SOURCE_DIR/connection.json" ]; then
 fi
 
 # simply copy the endpoint information to specified output location
-cp $CHAINCODE_SOURCE_DIR/connection.json $BUILD_OUTPUT_DIR/connection.json
+cp -af $CHAINCODE_SOURCE_DIR/connection.json $BUILD_OUTPUT_DIR/connection.json
+sync
 
 if [ -d "$CHAINCODE_SOURCE_DIR/metadata" ]; then
-    cp -a $CHAINCODE_SOURCE_DIR/metadata $BUILD_OUTPUT_DIR/metadata
+    cp -af $CHAINCODE_SOURCE_DIR/metadata $BUILD_OUTPUT_DIR/metadata
+    sync
 fi

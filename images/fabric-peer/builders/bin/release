@@ -23,8 +23,8 @@ RELEASE_OUTPUT_DIR="$2"
 #external chaincodes expect artifacts to be placed under "$RELEASE_OUTPUT_DIR"/chaincode/server
 if [ -f $BUILD_OUTPUT_DIR/connection.json ]; then
    mkdir -p "$RELEASE_OUTPUT_DIR"/chaincode/server
-   cp $BUILD_OUTPUT_DIR/connection.json "$RELEASE_OUTPUT_DIR"/chaincode/server
-
+   cp -af $BUILD_OUTPUT_DIR/connection.json "$RELEASE_OUTPUT_DIR"/chaincode/server
+   sync
    #if tls_required is true, copy TLS files (using above example, the fully qualified path for these fils would be "$RELEASE_OUTPUT_DIR"/chaincode/server/tls)
 
    exit 0
