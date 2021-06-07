@@ -84,9 +84,6 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `fabric-tools.image.repository` | `fabric-tools` image repository | `substrafoundation/fabric-tools` |
 | `fabric-tools.image.tag` | `fabric-tools` image tag | `latest` |
 | `fabric-tools.image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `fabric-ca-tools.image.repository` | `fabric-ca-tools` image repository | `substrafoundation/fabric-ca-tools` |
-| `fabric-ca-tools.image.tag` | `fabric-ca-tools` image tag | `latest` |
-| `fabric-ca-tools.image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `nodeSelector` | Node labels for pod assignment | `{}` |
 | `tolerations` | Toleration labels for pod assignment | `[]` |
 | `affinity` | Affinity settings for pod assignment | `{}` |

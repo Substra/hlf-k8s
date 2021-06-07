@@ -1,5 +1,11 @@
 # Changelog
 
+# 7.1.0
+### Changed
+- Update HLF images to 2.4
+### Removed
+- Remove `fabric-ca-tools` dependency and replace it by `fabric-tools`
+
 # 7.0.1
 ### Fixed
 - The application channel operator doesn't misbehave anymore when a peer joins 2 channels with overlapping names
