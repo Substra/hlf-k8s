@@ -23,7 +23,7 @@ jobs:
           version: "v3.5.0"
         id: install
       - name: Build dependencies
-        run: helm dep build charts/hlf-k8s
+        run: helm dep update charts/hlf-k8s
       - name: Lint Chart
         run: helm lint charts/hlf-k8s
   publish:
@@ -46,7 +46,7 @@ jobs:
           HARBOR_AUTH_TOKEN: ${{ secrets.HARBOR_AUTH_TOKEN }}
           HARBOR_AUTH_USER: "robot$connect-hlf-k8s+connect-hlf-k8s-pusher"
         run: |
-          helm dep build charts/hlf-k8s
+          helm dep update charts/hlf-k8s
           helm package charts/hlf-k8s
           helm repo add --username=$HARBOR_AUTH_USER --password=$HARBOR_AUTH_TOKEN owkin-priv https://core.harbor.tooling.owkin.com/chartrepo/connect-hlf-k8s
           helm push hlf-k8s-$(yq eval .version charts/hlf-k8s/Chart.yaml).tgz owkin-priv
