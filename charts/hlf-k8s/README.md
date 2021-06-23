@@ -31,39 +31,39 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-peer.port` | The Peers's port | `7051` |
 | `hlf-peer.peer.docker.enabled` | If true, mount host docker socket in the peer container | `false` |
 | `hlf-peer.ingress.enabled` | If true, Ingress will be created for the Peer | `false` |
-| `hlf-peer.ingress.annotations` | Peer ingress annotations | (undefined) |
-| `hlf-peer.ingress.tls` | Peer ingress TLS configuration | (undefined) |
-| `hlf-peer.ingress.hosts` | Peer ingress hosts | (undefined) |
+| `hlf-peer.ingress.annotations` | Peer ingress annotations | `nil` |
+| `hlf-peer.ingress.tls` | Peer ingress TLS configuration | `nil` |
+| `hlf-peer.ingress.hosts` | Peer ingress hosts | `nil` |
 | `hlf-peer.persistence.enabled` | If true, enable persistence for the Peer | `true` |
 | `hlf-peer.persistence.size` | Size of data volume | `10Gi` |
-| `hlf-peer.persistence.storageClass` | Storage class of backing PVC | (undefined) |
+| `hlf-peer.persistence.storageClass` | Storage class of backing PVC | `nil` |
 | `appChannels` | The application channels to create | `[{channelName: mychannel}]` |
-| `appChannels[].channelName` | The name of the application channel. Must be alphanumerical (9 characters max.) | (undefined) |
+| `appChannels[].channelName` | The name of the application channel. Must be alphanumerical (9 characters max.) | `nil` |
 | `appChannels[].organizations` | The organizations to add to the application channel. See [Add an organization to the application channel](#add-an-organization-to-the-application-channel). | `[]` |
 | `appChannels[].proposalOrganizations` | The organizations to fetch signed application channel update proposals from. | `[]` |
 | `appChannels[].channelPolicies` | This value overrides the default HLF channel policy. | (defined in values.yaml) |
 | `appChannels[].appPolicies` | This value overrides the default HLF application policy. | (defined in values.yaml) |
 | `appChannels[].chaincodes` | The chaincodes to install on the Peer. See [Install a chaincode](#install-a-chaincode). | `[]` |
-| `appChannels[].chaincodes[].name` | The name of the chaincode | (undefined) |
-| `appChannels[].chaincodes[].version` | The chaincode version | (undefined) |
-| `appChannels[].chaincodes[].sequence` | The chaincode sequence | (undefined) |
-| `appChannels[].chaincodes[].policy` | The chaincode policy for this channel | (undefined) |
+| `appChannels[].chaincodes[].name` | The name of the chaincode | `nil` |
+| `appChannels[].chaincodes[].version` | The chaincode version | `nil` |
+| `appChannels[].chaincodes[].sequence` | The chaincode sequence | `nil` |
+| `appChannels[].chaincodes[].policy` | The chaincode policy for this channel | `nil` |
 | `appChannels[].ingress.enabled` | If true, Ingress will be created for this application channel operator. | `false` |
-| `appChannels[].ingress.annotations` | Application channel operator ingress annotations | (undefined) |
-| `appChannels[].ingress.tls` | Application channel operator ingress TLS configuration | (undefined) |
-| `appChannels[].ingress.hosts` | Application channel operator ingress hosts | (undefined) |
+| `appChannels[].ingress.annotations` | Application channel operator ingress annotations | `nil` |
+| `appChannels[].ingress.tls` | Application channel operator ingress TLS configuration | `nil` |
+| `appChannels[].ingress.hosts` | Application channel operator ingress hosts | `nil` |
 | `chaincodes` | The chaincodes to install on the peer | `[]` |
-| `chaincodes[].name` | The name of the chaincode | (undefined) |
-| `chaincodes[].version` | The chaincode version | (undefined) |
-| `chaincodes[].address` | The URL to the chaincode service | (undefined) |
-| `chaincodes[].port` | The port to the chaincode service | (undefined) |
-| `chaincodes[].image.repository` | `chaincode` image repository | (undefined) |
-| `chaincodes[].image.tag` | `chaincode` image tag | (undefined) |
-| `chaincodes[].image.pullPolicy` | Image pull policy | (undefined) |
+| `chaincodes[].name` | The name of the chaincode | `nil` |
+| `chaincodes[].version` | The chaincode version | `nil` |
+| `chaincodes[].address` | The URL to the chaincode service | `nil` |
+| `chaincodes[].port` | The port to the chaincode service | `nil` |
+| `chaincodes[].image.repository` | `chaincode` image repository | `nil` |
+| `chaincodes[].image.tag` | `chaincode` image tag | `nil` |
+| `chaincodes[].image.pullPolicy` | Image pull policy | `nil` |
 | `configOperator.ingress.enabled` | If true, Ingress will be created for the config operator. | `false` |
-| `configOperator.ingress.annotations` | Config operator ingress annotations | (undefined) |
-| `configOperator.ingress.tls` | Config operator ingress TLS configuration | (undefined) |
-| `configOperator.ingress.hosts` | Config operator ingress hosts | (undefined) |
+| `configOperator.ingress.annotations` | Config operator ingress annotations | `nil` |
+| `configOperator.ingress.tls` | Config operator ingress TLS configuration | `nil` |
+| `configOperator.ingress.hosts` | Config operator ingress hosts | `nil` |
 | `genesis.generate` | If true, generate a HLF genesis block and populate the `secrets.genesis` secret | `true` |
 | **Orderer** |  |  |
 | `hlf-ord.enabled` | If true, a HLF Orderer will be installed | `false` |
@@ -71,13 +71,13 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-ord.port` | The Orderer's port | `7050` |
 | `hlf-ord.ord.mspID` | ID of MSP the Orderer belongs to | `MyOrdererMSP` |
 | `hlf-ord.monitor.enabled` | If true, create a monitor pod (see [Monitoring pods](#monitoring-pods)) | `false` |
-| `hlf-ord.ingress.enabled` | If true, Ingress will be created for the Orderer | (undefined) |
-| `hlf-ord.ingress.annotations` | Orderer ingress annotations | (undefined) |
-| `hlf-ord.ingress.tls` | Orderer ingress TLS configuration | (undefined) |
-| `hlf-ord.ingress.hosts` | Orderer ingress hosts | (undefined) |
+| `hlf-ord.ingress.enabled` | If true, Ingress will be created for the Orderer | `nil` |
+| `hlf-ord.ingress.annotations` | Orderer ingress annotations | `nil` |
+| `hlf-ord.ingress.tls` | Orderer ingress TLS configuration | `nil` |
+| `hlf-ord.ingress.hosts` | Orderer ingress hosts | `nil` |
 | `hlf-ord.persistence.enabled` | If true, enable persistence for the Orderer | `true` |
 | `hlf-ord.persistence.size` | Size of data volume | `10Gi` |
-| `hlf-ord.persistence.storageClass` | Storage class of backing PVC | (undefined) |
+| `hlf-ord.persistence.storageClass` | Storage class of backing PVC | `nil` |
 | `systemChannel.name` | The name of the system channel | `systemchannel` |
 | `systemChannel.organizations` | The organizations to add to the system channel. See [Add an organization to the system channel](#add-an-organization-to-the-system-channel). | `[]` |
 | **Common / Other** |  |  |
@@ -100,7 +100,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-ca.orderer.port` | Orderer's CA port | `7054` |
 | `hlf-ca.persistence.enabled` | If true, enable persistence for the CA | `true` |
 | `hlf-ca.persistence.size` | Size of data volume | `5Gi` |
-| `hlf-ca.persistence.storageClass` | Storage class of backing PVC | (undefined) |
+| `hlf-ca.persistence.storageClass` | Storage class of backing PVC | `nil` |
 | `hlf-couchdb.image.repository` | `hlf-couchdb` image repository | `hyperledger/fabric-couchdb` |
 | `hlf-couchdb.image.tag`| `hlf-couchdb` image tag | `0.4.21` |
 | `hlf-couchdb.image.pullPolicy`| Image pull policy| `IfNotPresent` |
