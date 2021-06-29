@@ -23,6 +23,10 @@ spec:
         app.kubernetes.io/name: {{ template "substra.name" $ }}-chaincode-{{ .name }}
         app.kubernetes.io/instance: {{ $.Release.Name }}
     spec:
+      {{- if .image.pullImageSecret }}
+      imagePullSecrets:
+        - name: {{ .image.pullImageSecret }}
+      {{- end }}
       containers:
         - name: substra-chaincode-{{ .name }}
           image: {{ .image.repository }}:{{ .image.tag }}

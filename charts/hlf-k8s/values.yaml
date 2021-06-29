@@ -14,9 +14,10 @@
 
 fabric-tools:
   image:
-    repository: substrafoundation/fabric-tools
-    tag: latest
+    repository: gcr.io/connect-314908/fabric-tools
+    tag: master
     pullPolicy: IfNotPresent
+    # pullImageSecret: registry-secret
 
 nodeSelector: {}
 
@@ -50,6 +51,7 @@ chaincodes: []
 #     repository: substrafoundation/substra-chaincode
 #     tag: 0.3.0
 #     pullPolicy: IfNotPresent
+#     pullImageSecret: registry-secret
 
 
 appChannels:
@@ -176,6 +178,7 @@ hlf-peer:
       enabled:
         false
     databaseType: CouchDB
+    couchdbSecret: cdb-peer-hlf-couchdb
     couchdbInstance: cdb-peer
     gossip:
       bootstrap: "127.0.0.1:7051"
@@ -193,8 +196,9 @@ hlf-peer:
   port: 7051
   image:
     # Use our own fabric-peer images with external chaincode binaries
-    repository: substrafoundation/fabric-peer
-    tag: latest
+    repository: gcr.io/connect-314908/fabric-peer
+    tag: master
+    # pullImageSecret: registry-secret
   persistence:
     enabled: true
     size: 10Gi

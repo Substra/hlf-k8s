@@ -4,6 +4,10 @@ organization:
   id: MyOrdererMSP
   name: MyOrderer
 
+fabric-tools:
+  image:
+    pullImageSecret: docker-config
+
 hlf-peer:
   enabled: false
 

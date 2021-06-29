@@ -2,6 +2,10 @@ organization:
   id: MyOrg2MSP
   name: MyOrg2
 
+fabric-tools:
+  image:
+    pullImageSecret: docker-config
+
 hlf-ca:
   caName: rcaOrg2
   host: network-org-2-peer-1-hlf-ca.org-2.svc.cluster.local
@@ -13,7 +17,10 @@ hlf-ord:
 
 hlf-peer:
   host: network-org-2-peer-1-hlf-peer.org-2.svc.cluster.local
+  image:
+    pullImageSecret: docker-config
   peer:
+    couchdbSecret: network-org-2-peer-1-hlf-couchdb
     couchdbInstance: network-org-2-peer-1
     mspID: MyOrg2MSP
     gossip:
@@ -27,9 +34,10 @@ chaincodes:
     port: 7052
     version: "1.0"
     image:
-      repository: substrafoundation/substra-chaincode
-      tag: 0.3.0
+      repository: gcr.io/connect-314908/connect-chaincode
+      tag: latest
       pullPolicy: IfNotPresent
+      pullImageSecret: docker-config
 
 appChannels:
 - channelName: mychannel

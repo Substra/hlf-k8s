@@ -37,6 +37,10 @@ spec:
         app.kubernetes.io/instance: {{ $.Release.Name }}
     spec:
       serviceAccountName: {{ template "substra.fullname" $ }}
+      {{- if index $.Values "fabric-tools" "image" "pullImageSecret" }}
+      imagePullSecrets:
+        - name: {{ index $.Values "fabric-tools" "image" "pullImageSecret" }}
+      {{- end }}
       containers:
       - name: fabric-tools
         image: {{ index $.Values "fabric-tools" "image" "repository" }}:{{ index $.Values "fabric-tools" "image" "tag" }}
@@ -208,6 +212,10 @@ spec:
         app.kubernetes.io/instance: {{ $.Release.Name }}
     spec:
       serviceAccountName: {{ template "substra.fullname" $ }}
+      {{- if index $.Values "fabric-tools" "image" "pullImageSecret" }}
+      imagePullSecrets:
+        - name: {{ index $.Values "fabric-tools" "image" "pullImageSecret" }}
+      {{- end }}
       containers:
       - name: fabric-tools
         image: {{ index $.Values "fabric-tools" "image" "repository" }}:{{ index $.Values "fabric-tools" "image" "tag" }}

@@ -1,5 +1,13 @@
 # Changelog
 
+# 8.0.0
+### Added
+- pullImageSecret on fabric-tools and chaincode images
+- Update `hlf-peer` chart to 3.2.0
+
+### Breaking changes
+- add `hlf-peer.peer.couchdbSecret` to make the value explicit
+
 # 7.1.0
 ### Changed
 - Update HLF images to 2.4

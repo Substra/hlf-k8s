@@ -26,6 +26,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-peer.discover-monitor.enabled` | If true, create a discover monitor pod (see [Monitoring pods](#monitoring-pods)) | `false` |
 | `hlf-peer.peer.gossip.externalEndpoint` | HLF peer gossip external endpoint | `""` |
 | `hlf-peer.peer.databaseType` | Database type to use (goleveldb or CouchDB) | `CouchDB` |
+| `hlf-peer.peer.couchdbSecret` | Secret holding the couchdb credentials | `cdb-peer-hlf-couchdb` |
 | `hlf-peer.peer.couchdbInstance` | CouchDB chart name to use cdb-peer | `cdb-peer` |
 | `hlf-peer.host` | The Peers's host | `peer-hostname` |
 | `hlf-peer.port` | The Peers's port | `7051` |
@@ -60,6 +61,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `chaincodes[].image.repository` | `chaincode` image repository | `nil` |
 | `chaincodes[].image.tag` | `chaincode` image tag | `nil` |
 | `chaincodes[].image.pullPolicy` | Image pull policy | `nil` |
+| `chaincodes[].image.pullImageSecret` | Image pull secret name | `nil` |
 | `configOperator.ingress.enabled` | If true, Ingress will be created for the config operator. | `false` |
 | `configOperator.ingress.annotations` | Config operator ingress annotations | `nil` |
 | `configOperator.ingress.tls` | Config operator ingress TLS configuration | `nil` |
@@ -81,9 +83,10 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `systemChannel.name` | The name of the system channel | `systemchannel` |
 | `systemChannel.organizations` | The organizations to add to the system channel. See [Add an organization to the system channel](#add-an-organization-to-the-system-channel). | `[]` |
 | **Common / Other** |  |  |
-| `fabric-tools.image.repository` | `fabric-tools` image repository | `substrafoundation/fabric-tools` |
-| `fabric-tools.image.tag` | `fabric-tools` image tag | `latest` |
+| `fabric-tools.image.repository` | `fabric-tools` image repository | `gcr.io/connect-314908/fabric-tools` |
+| `fabric-tools.image.tag` | `fabric-tools` image tag | `master` |
 | `fabric-tools.image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `fabric-tools.image.pullImageSecret` | Image pull secret name | nil |
 | `nodeSelector` | Node labels for pod assignment | `{}` |
 | `tolerations` | Toleration labels for pod assignment | `[]` |
 | `affinity` | Affinity settings for pod assignment | `{}` |
