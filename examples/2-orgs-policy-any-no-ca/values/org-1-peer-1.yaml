@@ -38,7 +38,7 @@ chaincodes:
     image:
       repository: gcr.io/connect-314908/connect-chaincode
       tag: latest
-      pullPolicy: IfNotPresent
+      pullPolicy: Always
       pullImageSecret: docker-config
 
   - name: yourcc
@@ -48,7 +48,7 @@ chaincodes:
     image:
       repository: gcr.io/connect-314908/connect-chaincode
       tag: latest
-      pullPolicy: IfNotPresent
+      pullPolicy: Always
       pullImageSecret: docker-config
 
 
