@@ -5,7 +5,7 @@ RUN apk update && \
   apk add curl netcat-openbsd vim
 
 # Install fabric-ca-client
-RUN curl -SL https://github.com/hyperledger/fabric-ca/releases/download/v1.5.0/hyperledger-fabric-ca-linux-amd64-1.5.0.tar.gz | tar xz --strip-components=1 && \
+RUN curl -SL https://github.com/hyperledger/fabric-ca/releases/download/v1.5.1/hyperledger-fabric-ca-linux-amd64-1.5.1.tar.gz | tar xz --strip-components=1 && \
   mv ./fabric-ca-client /bin
 
 # Install kubectl
