@@ -2,7 +2,7 @@ FROM hyperledger/fabric-tools:2.4
 
 # Install curl and netcat
 RUN apk update && \
-  apk add curl netcat-openbsd vim
+  apk add curl netcat-openbsd vim libc6-compat
 
 # Install fabric-ca-client
 RUN curl -SL https://github.com/hyperledger/fabric-ca/releases/download/v1.5.1/hyperledger-fabric-ca-linux-amd64-1.5.1.tar.gz | tar xz --strip-components=1 && \
