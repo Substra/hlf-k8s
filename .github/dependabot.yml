@@ -5,10 +5,10 @@ updates:
     schedule:
       interval: "monthly"
   - package-ecosystem: "docker"
-    directory: "/images/fabric-peer"
+    directory: "/docker/fabric-peer"
     schedule:
       interval: "monthly"
   - package-ecosystem: "docker"
-    directory: "/images/fabric-tools"
+    directory: "/docker/fabric-tools"
     schedule:
       interval: "monthly"
