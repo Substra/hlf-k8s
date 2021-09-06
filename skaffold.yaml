@@ -19,12 +19,12 @@ build:
     - image: substrafoundation/fabric-tools
       context: .
       docker:
-        dockerfile: images/fabric-tools/Dockerfile
+        dockerfile: docker/fabric-tools/Dockerfile
 
     - image: substrafoundation/fabric-peer
       context: .
       docker:
-        dockerfile: images/fabric-peer/Dockerfile
+        dockerfile: docker/fabric-peer/Dockerfile
 
 deploy:
   statusCheckDeadlineSeconds: 300
