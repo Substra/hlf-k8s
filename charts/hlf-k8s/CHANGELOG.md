@@ -1,5 +1,13 @@
 # Changelog
 
+# 9.0.0
+
+### Added
+- Support for Kubernetes 1.22
+
+### Removed
+- Support for Kubernetes versions inferior to 1.19
+
 # 8.0.0
 ### Added
 - pullImageSecret on fabric-tools and chaincode images

@@ -103,8 +103,9 @@ appChannels:
 
   ingress:
     enabled: false
+    # ingressClassName:
+    # pathType: ImplementationSpecific
     # annotations:
-    #   kubernetes.io/ingress.class: nginx
     #   cert-manager.io/cluster-issuer: letsencrypt-prod
     #   cert-manager.io/http01-edit-in-place: "true"
     #   nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
@@ -119,6 +120,8 @@ appChannels:
 configOperator:
   ingress:
     enabled: false
+    ingressClassName:
+    pathType: ImplementationSpecific
     # annotations:
     #   kubernetes.io/ingress.class: nginx
     #   cert-manager.io/cluster-issuer: letsencrypt-prod

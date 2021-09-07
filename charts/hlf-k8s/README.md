@@ -19,7 +19,7 @@ See [CHANGELOG.md](./CHANGELOG.md)
 The following table lists the configurable parameters of the hlf-k8s chart and default values.
 
 | Parameter                          | Description                                     | Default                                                    |
-| ---------------------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
+| ---------------------------------- | ----------------------------------------------- | ---------------------------------------------------------- |
 | **Peer** |  |  |
 | `hlf-peer.enabled` | If true, a HLF Peer will be installed | `true` |
 | `hlf-peer.peer.mspID` | ID of MSP the Peer belongs to | `Org1MSP` |
@@ -53,6 +53,8 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `appChannels[].ingress.annotations` | Application channel operator ingress annotations | `nil` |
 | `appChannels[].ingress.tls` | Application channel operator ingress TLS configuration | `nil` |
 | `appChannels[].ingress.hosts` | Application channel operator ingress hosts | `nil` |
+| `appChannels[].ingress.ingressClassName` | Ingress class that will be used for the ingress | `nil` |
+| `appChannels[].ingress.pathType` | Ingress path type | `nil` |
 | `chaincodes` | The chaincodes to install on the peer | `[]` |
 | `chaincodes[].name` | The name of the chaincode | `nil` |
 | `chaincodes[].version` | The chaincode version | `nil` |
@@ -66,6 +68,8 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `configOperator.ingress.annotations` | Config operator ingress annotations | `nil` |
 | `configOperator.ingress.tls` | Config operator ingress TLS configuration | `nil` |
 | `configOperator.ingress.hosts` | Config operator ingress hosts | `nil` |
+| `configOperator.ingress.ingressClassName` | Ingress class that will be used for the ingress | `nil` |
+| `configOperator.ingress.pathType` | Ingress path type | `ImplementationSpecific` |
 | `genesis.generate` | If true, generate a HLF genesis block and populate the `secrets.genesis` secret | `true` |
 | **Orderer** |  |  |
 | `hlf-ord.enabled` | If true, a HLF Orderer will be installed | `false` |

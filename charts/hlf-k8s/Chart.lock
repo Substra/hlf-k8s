@@ -1,15 +1,15 @@
 dependencies:
 - name: hlf-ca
   repository: https://owkin.github.io/charts/
-  version: 1.2.0
+  version: 2.0.0
 - name: hlf-ord
   repository: https://owkin.github.io/charts/
-  version: 2.0.1
+  version: 3.0.0
 - name: hlf-peer
   repository: https://owkin.github.io/charts/
-  version: 3.2.0
+  version: 4.0.0
 - name: hlf-couchdb
   repository: https://owkin.github.io/charts/
-  version: 1.0.7
-digest: sha256:568ac117be006765d8b86d46b7d98a936b3fa278731145c39c9d27170ecb85c3
-generated: "2021-06-23T15:32:39.119794+02:00"
+  version: 2.0.0
+digest: sha256:b73e4434f40696db49b7987eef34d1270bf15d9828edc095c55bf96f98bb3ad5
+generated: "2021-09-06T17:14:10.47684+02:00"

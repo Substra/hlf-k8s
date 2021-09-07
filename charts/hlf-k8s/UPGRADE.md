@@ -1,5 +1,8 @@
 # Changelog
 
+# 9.0.0
+
+This is a major verision since we drop compatibility with kubernetes versions before `1.19` but there is no big change to the values. The only thing you should pay attention to is the new `PathType` key for the `appChannels` ingresses.
 
 # 6.0.0
 
