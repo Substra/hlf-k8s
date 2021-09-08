@@ -155,6 +155,10 @@ spec:
               name: private-ca
               subPath: {{ .Values.privateCa.configMap.fileName }}
             {{- end }}
+      {{- if index $.Values "fabric-tools" "image" "pullImageSecret" }}
+      imagePullSecrets:
+        - name: {{ index $.Values "fabric-tools" "image" "pullImageSecret" }}
+      {{- end }}
       volumes:
         - name: fabric-config
           configMap:

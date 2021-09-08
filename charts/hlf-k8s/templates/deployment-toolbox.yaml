@@ -93,6 +93,10 @@ spec:
           name: cacert
         - mountPath: /var/hyperledger/admin_msp/admincerts
           name: admin-cert
+      {{- if index $.Values "fabric-tools" "image" "pullImageSecret" }}
+      imagePullSecrets:
+        - name: {{ index $.Values "fabric-tools" "image" "pullImageSecret" }}
+      {{- end }}
       volumes:
       - name: fabric-config
         configMap:

@@ -17,4 +17,3 @@ RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.16.6/b
 RUN wget https://github.com/fullstorydev/grpcurl/releases/download/v1.3.0/grpcurl_1.3.0_linux_x86_64.tar.gz && \
   tar xvzf grpcurl_1.3.0_linux_x86_64.tar.gz && \
   mv grpcurl /bin
-

@@ -36,9 +36,9 @@ chaincodes:
     port: 7052
     version: "1.0"
     image:
-      repository: gcr.io/connect-314908/connect-chaincode
+      repository: gcr.io/connect-314908/orchestrator-chaincode
       tag: latest
-      pullPolicy: Always
+      pullPolicy: IfNotPresent
       pullImageSecret: docker-config
 
 appChannels:

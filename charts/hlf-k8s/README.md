@@ -60,6 +60,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `chaincodes[].version` | The chaincode version | `nil` |
 | `chaincodes[].address` | The URL to the chaincode service | `nil` |
 | `chaincodes[].port` | The port to the chaincode service | `nil` |
+| `chaincodes[].logLevel` | The log level for the chaincode process | `nil`|
 | `chaincodes[].image.repository` | `chaincode` image repository | `nil` |
 | `chaincodes[].image.tag` | `chaincode` image tag | `nil` |
 | `chaincodes[].image.pullPolicy` | Image pull policy | `nil` |

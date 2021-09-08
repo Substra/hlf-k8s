@@ -33,6 +33,8 @@ spec:
           imagePullPolicy: "{{ .image.pullPolicy }}"
           command: ['./chaincode']
           env:
+            - name: LOG_LEVEL
+              value: DEBUG
             - name: CHAINCODE_CCID
               valueFrom:
                 secretKeyRef:
@@ -46,6 +48,10 @@ spec:
               value: "/var/hyperledger/tls/client/pair/tls.key"
             - name: TLS_ROOTCERT_FILE
               value: "/var/hyperledger/tls/client/cert/cacert.pem"
+            {{- if .logLevel }}
+            - name: LOG_LEVEL
+              value: {{ .logLevel }}
+            {{- end }}
           volumeMounts:
             - mountPath: /var/hyperledger/tls/client/pair
               name: tls-client

@@ -267,7 +267,7 @@ spec:
                     --keyfile /var/hyperledger/tls/client/pair/tls.key \
                     --certfile /var/hyperledger/tls/client/pair/tls.crt \
                     -o {{ index $.Values "hlf-ord" "host" }}:{{ index $.Values "hlf-ord" "port" }} \
-                    -c '{"Args":["Init"]}' > chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.init 2>&1
+                    -c '{"Args":[""]}' > chaincode_{{ .name }}_{{ .version }}_{{ $channel.channelName }}.init 2>&1
 
                   sleep 5
 
