@@ -1,5 +1,10 @@
 # Changelog
 
+# 9.1.1
+
+### Added
+- Support for 1.19.x pre-releases
+
 # 9.1.0
 
 ### Added
