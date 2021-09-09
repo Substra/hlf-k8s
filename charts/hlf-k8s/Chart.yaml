@@ -16,7 +16,7 @@ apiVersion: v2
 name: hlf-k8s
 description: Substra tools to configure the network
 type: application
-version: 9.0.0
+version: 9.1.0
 kubeVersion: ">= 1.19.0"
 home: https://substra.org/
 icon: https://avatars1.githubusercontent.com/u/38098422?s=200&v=4

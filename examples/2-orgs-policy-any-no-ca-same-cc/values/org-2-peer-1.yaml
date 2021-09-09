@@ -40,6 +40,10 @@ chaincodes:
       tag: latest
       pullPolicy: IfNotPresent
       pullImageSecret: docker-config
+    init:
+      image:
+        repository: gcr.io/connect-314908/orchestrator-chaincode-init
+        tag: latest
 
 appChannels:
 - channelName: mychannel

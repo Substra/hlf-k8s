@@ -40,6 +40,10 @@ chaincodes:
       tag: latest
       pullPolicy: IfNotPresent
       pullImageSecret: docker-config
+    init:
+      image:
+        repository: gcr.io/connect-314908/orchestrator-chaincode-init
+        tag: latest
   - name: yourcc
     address: network-org-2-peer-1-hlf-k8s-chaincode-yourcc.org-2.svc.cluster.local
     port: 7052
@@ -49,6 +53,10 @@ chaincodes:
       tag: latest
       pullPolicy: IfNotPresent
       pullImageSecret: docker-config
+    init:
+      image:
+        repository: gcr.io/connect-314908/orchestrator-chaincode-init
+        tag: latest
 
 
 appChannels:

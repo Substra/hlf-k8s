@@ -1,5 +1,10 @@
 # Changelog
 
+# 9.1.0
+
+### Added
+- Support for chaincode init containers
+
 # 9.0.0
 
 ### Added

@@ -27,6 +27,33 @@ spec:
       imagePullSecrets:
         - name: {{ .image.pullImageSecret }}
       {{- end }}
+      {{- if .init }}
+      initContainers:
+        - name: substra-chaincode-{{ .name }}-init
+          image: {{ .init.image.repository }}:{{ .init.image.tag }}
+          imagePullPolicy: "{{ .image.pullPolicy }}"
+          envFrom:
+            - secretRef:
+                name: {{ template "substra.fullname" $ }}-couchdb-credentials
+          env:
+            - name: CHAINCODE_NAME
+              value: {{ .name }}
+            - name: COUCHDB_INSTANCE
+              value: {{ index $.Values "hlf-peer" "peer" "couchdbInstance" }}-hlf-couchdb:5984
+            - name: CHANNELS
+              {{- $channels := list }}
+              {{- $ccName := .name }}
+              {{- range $.Values.appChannels }}
+              {{- $channelChaincodes := list }}
+              {{- range .chaincodes }}
+              {{- $channelChaincodes = append $channelChaincodes .name }}
+              {{- end }}
+              {{- if has $ccName $channelChaincodes }}
+              {{- $channels = append $channels .channelName }}
+              {{- end }}
+              {{- end }}
+              value: {{ join "," $channels }}
+      {{- end }}
       containers:
         - name: substra-chaincode-{{ .name }}
           image: {{ .image.repository }}:{{ .image.tag }}

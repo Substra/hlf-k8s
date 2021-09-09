@@ -65,6 +65,8 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `chaincodes[].image.tag` | `chaincode` image tag | `nil` |
 | `chaincodes[].image.pullPolicy` | Image pull policy | `nil` |
 | `chaincodes[].image.pullImageSecret` | Image pull secret name | `nil` |
+| `chaincodes[].init.image.repository` | optional chaincode's `initContainer` image repository | `nil` |
+| `chaincodes[].init.image.tag` | optional chaincode's `initContainer` image tag | `nil` |
 | `configOperator.ingress.enabled` | If true, Ingress will be created for the config operator. | `false` |
 | `configOperator.ingress.annotations` | Config operator ingress annotations | `nil` |
 | `configOperator.ingress.tls` | Config operator ingress TLS configuration | `nil` |
