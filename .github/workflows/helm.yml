@@ -67,4 +67,4 @@ jobs:
           helm dep build charts/hlf-k8s
           helm package charts/hlf-k8s
           helm repo add --username=$HARBOR_AUTH_USER --password=$HARBOR_AUTH_TOKEN owkin-priv https://core.harbor.tooling.owkin.com/chartrepo/connect-hlf-k8s
-          helm push hlf-k8s-$(yq eval .version charts/hlf-k8s/Chart.yaml).tgz owkin-priv
+          helm cm-push hlf-k8s-$(yq eval .version charts/hlf-k8s/Chart.yaml).tgz owkin-priv
