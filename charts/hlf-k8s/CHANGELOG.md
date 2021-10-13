@@ -1,5 +1,10 @@
 # Changelog
 
+# 9.1.2
+
+### Changed
+- Update chart's logo
+
 # 9.1.1
 
 ### Added
