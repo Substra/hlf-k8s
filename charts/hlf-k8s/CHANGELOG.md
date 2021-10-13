@@ -1,5 +1,9 @@
 # Changelog
 
+# 7.0.2
+### Changed
+- update chart's logo
+
 # 7.0.1
 ### Fixed
 - The application channel operator doesn't misbehave anymore when a peer joins 2 channels with overlapping names
