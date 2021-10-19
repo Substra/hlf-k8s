@@ -64,6 +64,7 @@ jobs:
           HARBOR_AUTH_USER: "robot$connect-hlf-k8s+connect-hlf-k8s-pusher"
         run: |
           helm repo add owkin https://owkin.github.io/charts/
+          helm repo add couchdb https://apache.github.io/couchdb-helm
           helm dep build charts/hlf-k8s
           helm package charts/hlf-k8s
           helm repo add --username=$HARBOR_AUTH_USER --password=$HARBOR_AUTH_TOKEN owkin-priv https://core.harbor.tooling.owkin.com/chartrepo/connect-hlf-k8s
