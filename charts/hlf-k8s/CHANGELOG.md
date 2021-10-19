@@ -1,5 +1,10 @@
 # Changelog
 
+# 10.0.0
+
+### Changed
+- Use couchdb chart instead of hlf-couchdb
+
 # 9.1.2
 
 ### Changed

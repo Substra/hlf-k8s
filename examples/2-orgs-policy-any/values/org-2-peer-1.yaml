@@ -20,8 +20,8 @@ hlf-peer:
   image:
     pullImageSecret: docker-config
   peer:
-    couchdbSecret: network-org-2-peer-1-hlf-couchdb
-    couchdbInstance: network-org-2-peer-1
+    couchdbSecret: network-org-2-peer-1-hlf-k8s-couchdb-credentials
+    couchdbService: network-org-2-peer-1-svc-couchdb.org-2.svc.cluster.local
     mspID: MyOrg2MSP
     gossip:
       externalEndpoint: network-org-2-peer-1-hlf-peer.org-2.svc.cluster.local:7051

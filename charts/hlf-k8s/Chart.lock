@@ -7,9 +7,9 @@ dependencies:
   version: 3.0.1
 - name: hlf-peer
   repository: https://owkin.github.io/charts/
-  version: 4.0.1
-- name: hlf-couchdb
-  repository: https://owkin.github.io/charts/
-  version: 2.0.1
-digest: sha256:b1aa3584159d10210e3f3d002c7480a771427918718d4b66eb04d3a8f1f2f2ae
-generated: "2021-09-09T10:43:30.751333+02:00"
+  version: 5.0.0
+- name: couchdb
+  repository: https://apache.github.io/couchdb-helm
+  version: 3.3.4
+digest: sha256:17a8a3fb275c3787552ad94d174a3bef9551dd4db7843b88e651846d17b1dcc0
+generated: "2021-10-19T14:23:51.790739+02:00"

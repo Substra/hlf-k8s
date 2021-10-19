@@ -186,8 +186,8 @@ hlf-peer:
       enabled:
         false
     databaseType: CouchDB
-    couchdbSecret: cdb-peer-hlf-couchdb
-    couchdbInstance: cdb-peer
+    couchdbSecret: hlf-couchdb-credentials
+    couchdbService: cdb-peer
     gossip:
       bootstrap: "127.0.0.1:7051"
     tls:
@@ -242,17 +242,22 @@ hlf-peer:
 
 
 
-hlf-couchdb:
+couchdb:
+  clusterSize: 1
   service:
-    port: 5984
+    externalPort: 5984
   image:
     repository: couchdb
     tag: 3.1.1
-  persistence:
+  persistentVolume:
     enabled: true
     size: 10Gi
-  couchdbUsername: couchdb
-  couchdbPassword: couchdbpwd
+  adminUsername: couchdb
+  adminPassword: couchdbpwd
+  couchdbConfig:
+    couchdb:
+      # Since version 3.0.0 setting the CouchDB server instance UUID is mandatory
+      uuid: d3cefce1-8736-41ef-8468-27bf6cd035ec # should be replaced in production
 
 
 hlf-ord:

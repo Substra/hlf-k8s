@@ -16,7 +16,7 @@ apiVersion: v2
 name: hlf-k8s
 description: Substra tools to configure the network
 type: application
-version: 9.1.2
+version: 10.0.0
 kubeVersion: ">= 1.19.0-0"
 home: https://substra.org/
 icon: https://avatars.githubusercontent.com/u/84009910?s=200&v=4
@@ -37,10 +37,10 @@ dependencies:
     repository: https://owkin.github.io/charts/
     condition: hlf-ord.enabled
   - name: hlf-peer
-    version: 4.0.1
+    version: 5.0.0
     repository: https://owkin.github.io/charts/
     condition: hlf-peer.enabled
-  - name: hlf-couchdb
-    version: 2.0.1
-    repository: https://owkin.github.io/charts/
+  - name: couchdb
+    version: 3.3.4
+    repository: https://apache.github.io/couchdb-helm
     condition: hlf-peer.enabled

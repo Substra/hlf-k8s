@@ -26,7 +26,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-peer.discover-monitor.enabled` | If true, create a discover monitor pod (see [Monitoring pods](#monitoring-pods)) | `false` |
 | `hlf-peer.peer.gossip.externalEndpoint` | HLF peer gossip external endpoint | `""` |
 | `hlf-peer.peer.databaseType` | Database type to use (goleveldb or CouchDB) | `CouchDB` |
-| `hlf-peer.peer.couchdbSecret` | Secret holding the couchdb credentials | `cdb-peer-hlf-couchdb` |
+| `hlf-peer.peer.couchdbSecret` | Secret holding the couchdb credentials | `cdb-peer-hlf-k8s-couchdb-credentials` |
 | `hlf-peer.peer.couchdbInstance` | CouchDB chart name to use cdb-peer | `cdb-peer` |
 | `hlf-peer.host` | The Peers's host | `peer-hostname` |
 | `hlf-peer.port` | The Peers's port | `7051` |
@@ -111,15 +111,15 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `hlf-ca.persistence.enabled` | If true, enable persistence for the CA | `true` |
 | `hlf-ca.persistence.size` | Size of data volume | `5Gi` |
 | `hlf-ca.persistence.storageClass` | Storage class of backing PVC | `nil` |
-| `hlf-couchdb.image.repository` | `hlf-couchdb` image repository | `hyperledger/fabric-couchdb` |
-| `hlf-couchdb.image.tag`| `hlf-couchdb` image tag | `0.4.21` |
-| `hlf-couchdb.image.pullPolicy`| Image pull policy| `IfNotPresent` |
-| `hlf-couchdb.service.port`| TCP port   | `5984` |
-| `hlf-couchdb.service.type`| K8S service type exposing ports, e.g. `ClusterIP`| `ClusterIP` |
-| `hlf-couchdb.persistence.size`| Size of data volume (adjust for production!) | `10Gi` |
-| `hlf-couchdb.persistence.storageClass`| Storage class of backing PVC | `default` |
-| `hlf-couchdb.couchdbUsername`| Username for CouchDB| `couchdb` |
-| `hlf-couchdb.couchdbPassword`| Password for CouchDB  | `couchdbpwd` |
+| `couchdb.image.repository` | `couchdb` image repository | `hyperledger/fabric-couchdb` |
+| `couchdb.image.tag`| `couchdb` image tag | `0.4.21` |
+| `couchdb.image.pullPolicy`| Image pull policy| `IfNotPresent` |
+| `couchdb.service.port`| TCP port   | `5984` |
+| `couchdb.service.type`| K8S service type exposing ports, e.g. `ClusterIP`| `ClusterIP` |
+| `couchdb.persistence.size`| Size of data volume (adjust for production!) | `10Gi` |
+| `couchdb.persistence.storageClass`| Storage class of backing PVC | `default` |
+| `couchdb.couchdbUsername`| Username for CouchDB| `couchdb` |
+| `couchdb.couchdbPassword`| Password for CouchDB  | `couchdbpwd` |
 | `privateCa.enabled` | if true, use a private CA | `false` |
 | `privateCa.configMap.name` | The name of the ConfigMap containing the private CA certificate | `private-ca` |
 | `privateCa.configMap.fileName` | The CA certificate filename within the ConfigMap | `private-ca.crt` |

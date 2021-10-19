@@ -39,7 +39,8 @@ spec:
             - name: CHAINCODE_NAME
               value: {{ .name }}
             - name: COUCHDB_INSTANCE
-              value: {{ index $.Values "hlf-peer" "peer" "couchdbInstance" }}-hlf-couchdb:5984
+
+              value: {{ index $.Values "hlf-peer" "peer" "couchdbService" }}:{{ index $.Values "hlf-peer" "peer" "couchdbPort" }}
             - name: CHANNELS
               {{- $channels := list }}
               {{- $ccName := .name }}
