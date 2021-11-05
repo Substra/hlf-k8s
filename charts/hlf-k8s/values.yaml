@@ -321,14 +321,6 @@ hlf-ord:
         Type: ImplicitMeta
         Rule: "ANY Writers"
 
-users:
-  admin:
-      username: admin
-      password: adminpwd
-  user:
-      username: user
-      password: pwd
-
 # Secrets names
 secrets:
   # Certificate, saved under key 'cert.pem'
