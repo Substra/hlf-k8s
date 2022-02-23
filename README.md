@@ -1,3 +1,9 @@
+**This repository is inactive.**
+
+The Substra project is under active development as a closed-source solution. There are ongoing strategic discussions regarding the possibility of open-sourcing newer versions, but no conclusion has been reached yet.
+
+---
+
 # HLF k8s [![Helm](https://github.com/SubstraFoundation/hlf-k8s/workflows/Helm/badge.svg)](https://github.com/SubstraFoundation/hlf-k8s/actions?query=workflow%3AHelm)
 
 HLF-k8s is a network of [Hyperledger Fabric](https://hyperledger-fabric.readthedocs.io/en/latest/) orderers and peers forming a permissioned blockchain.
