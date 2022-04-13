@@ -17,7 +17,7 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: azure/setup-helm@v1
         with:
           version: "v3.5.0"
@@ -49,7 +49,7 @@ jobs:
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     needs: test
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: azure/setup-helm@v1
         with:
           version: "v3.5.0"
