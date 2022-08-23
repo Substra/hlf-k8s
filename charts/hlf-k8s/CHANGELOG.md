@@ -1,9 +1,15 @@
 # Changelog
 
+## 10.1.1
+
+### Added
+- Component annotation for chaincode pods
+
 ## 10.0.1
 
 ### Removed
 - Unused `users` values.
+
 ## 10.0.0
 
 ### Changed
