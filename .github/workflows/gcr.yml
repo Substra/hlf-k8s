@@ -3,7 +3,7 @@ name: Publish image on GCR
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - '*'
 jobs:
@@ -17,7 +17,7 @@ jobs:
 
     - name: Set env variables
       run: |
-        if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
           echo "LATEST=true" >> $GITHUB_ENV
           echo "LATEST is set to true"
         else
