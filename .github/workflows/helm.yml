@@ -70,7 +70,7 @@ jobs:
 
       - name: Publish chart
         run: |
-          mv substra-backend-$(grep -e "^version" charts/hlf-k8s/Chart.yaml | cut -c10-).tgz substra-charts/
+          mv hlf-k8s-$(grep -e "^version" charts/hlf-k8s/Chart.yaml | cut -c10-).tgz substra-charts/
           cd substra-charts
           helm repo index .
           git add .
