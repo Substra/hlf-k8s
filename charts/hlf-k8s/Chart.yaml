@@ -16,7 +16,7 @@ apiVersion: v2
 name: hlf-k8s
 description: Substra tools to configure the hyperledger fabric network
 type: application
-version: 10.1.2
+version: 10.2.0
 kubeVersion: ">= 1.19.0-0"
 home: https://github.com/Substra
 icon: https://avatars.githubusercontent.com/u/84009910?s=400

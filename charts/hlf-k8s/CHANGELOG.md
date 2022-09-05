@@ -1,5 +1,11 @@
 # Changelog
 
+## 10.2.0
+
+### Changed
+- Update default images to use public substra registry
+- Use `latest` tags of fabric-peer and fabric-tools
+
 ## 10.1.2
 
 ### Changed
