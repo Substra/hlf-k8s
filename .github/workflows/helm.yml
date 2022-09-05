@@ -30,12 +30,9 @@ jobs:
       - name: Lint Chart
         run: helm lint charts/hlf-k8s
       - name: Validate version increment
-        env:
-          HARBOR_AUTH_TOKEN: ${{ secrets.HARBOR_AUTH_TOKEN }}
-          HARBOR_AUTH_USER: "robot$connect-hlf-k8s+connect-hlf-k8s-pusher"
         run: |
-          helm repo add --username=$HARBOR_AUTH_USER --password=$HARBOR_AUTH_TOKEN owkin-priv https://core.harbor.tooling.owkin.com/chartrepo/connect-hlf-k8s
-          RES=$(helm search repo owkin-priv/hlf-k8s --version $(yq eval .version charts/hlf-k8s/Chart.yaml))
+          helm repo add substra https://substra.github.io/charts
+          RES=$(helm search repo substra/hlf-k8s --version $(yq eval .version charts/hlf-k8s/Chart.yaml))
           if [ "${RES}" == "No results found" ]; then
             echo "Version incremented"
           else
@@ -50,22 +47,34 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v3
+
       - uses: azure/setup-helm@v3.3
         with:
           version: "v3.5.0"
         id: install
-      - name: Install tools
-        run: |
-          sudo snap install yq
-          helm plugin install https://github.com/chartmuseum/helm-push
+
       - name: Package chart
-        env:
-          HARBOR_AUTH_TOKEN: ${{ secrets.HARBOR_AUTH_TOKEN }}
-          HARBOR_AUTH_USER: "robot$connect-hlf-k8s+connect-hlf-k8s-pusher"
         run: |
           helm repo add owkin https://owkin.github.io/charts/
           helm repo add couchdb https://apache.github.io/couchdb-helm
           helm dep build charts/hlf-k8s
           helm package charts/hlf-k8s
-          helm repo add --username=$HARBOR_AUTH_USER --password=$HARBOR_AUTH_TOKEN owkin-priv https://core.harbor.tooling.owkin.com/chartrepo/connect-hlf-k8s
-          helm cm-push hlf-k8s-$(yq eval .version charts/hlf-k8s/Chart.yaml).tgz owkin-priv
+
+      - name: Clone Substra charts
+        uses: actions/checkout@v3
+        with:
+          repository: Substra/charts
+          ref: 'main'
+          token: ${{ secrets.CHARTS_GITHUB_TOKEN }}
+          path: substra-charts
+
+      - name: Publish chart
+        run: |
+          mv substra-backend-$(grep -e "^version" charts/hlf-k8s/Chart.yaml | cut -c10-).tgz substra-charts/
+          cd substra-charts
+          helm repo index .
+          git add .
+          git config --global user.email "gh-actions@github.com"
+          git config --global user.name "GitHub Action"
+          git commit -s --message "GitHub Action: ${{ github.repository }}@${{ github.sha }}"
+          git push --quiet --set-upstream origin main
