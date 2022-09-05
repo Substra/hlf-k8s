@@ -1,13 +1,13 @@
-# HLF k8s [![Helm](https://github.com/SubstraFoundation/hlf-k8s/workflows/Helm/badge.svg)](https://github.com/SubstraFoundation/hlf-k8s/actions?query=workflow%3AHelm)
+# HLF k8s [![Helm](https://github.com/Substra/hlf-k8s/workflows/Helm/badge.svg)](https://github.com/Substra/hlf-k8s/actions?query=workflow%3AHelm)
 
 HLF-k8s is a network of [Hyperledger Fabric](https://hyperledger-fabric.readthedocs.io/en/latest/) orderers and peers forming a permissioned blockchain.
 
-It is part of the [Substra project](https://github.com/SubstraFoundation/substra).
+It is part of the [Substra project](https://github.com/Substra).
 
 ## Prerequisites
 
-- [kubernetes](https://kubernetes.io/) v1.16
-- [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) v1.18
+- [kubernetes](https://kubernetes.io/) v1.19
+- [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) v1.19
 - [helm](https://github.com/helm/helm) v3
 
 ## Local install
@@ -31,14 +31,14 @@ To deploy locally a specific version of hlf-k8s, the recommended way is the foll
 ```bash
 SUBSTRA_HLF_VERSION=0.0.16
 git checkout $SUBSTRA_HLF_VERSION
-skaffold deploy --images substrafoundation/fabric-tools:$SUBSTRA_HLF_VERSION --images substrafoundation/fabric-peer:$SUBSTRA_HLF_VERSION
+skaffold deploy --images substra/fabric-tools:$SUBSTRA_HLF_VERSION --images substra/fabric-peer:$SUBSTRA_HLF_VERSION
 ```
 
 ## Install a custom chaincode
 
-By default, the `skaffold run` command will start a network using the default [substra-chaincode](https://github.com/SubstraFoundation/substra-chaincode) image.
+By default, the `skaffold run` command will start a network using the default [orchestrator-chaincode](https://github.com/Substra/orchestrator) image.
 
-To use a custom chaincode locally, you need to build and replace the `chaincodes.image` fields to use your local image of substra-chaincode.
+To use a custom chaincode locally, you need to build and replace the `chaincodes.image` fields to use your local image of orchestrator-chaincode.
 
 You can check how to do it in the [helm chart documentation](./charts/hlf-k8s/README.md) in the `Test hlf-k8s with your own chaincode` section
 
