@@ -1,5 +1,10 @@
 # Changelog
 
+## 10.1.2
+
+### Changed
+- Update chart metadata
+
 ## 10.1.1
 
 ### Added

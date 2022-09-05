@@ -1,4 +1,4 @@
-# Copyright 2018 Owkin, inc.
+# Copyright 2018-2022 Owkin, inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
 
 apiVersion: v2
 name: hlf-k8s
-description: Substra tools to configure the network
+description: Substra tools to configure the hyperledger fabric network
 type: application
-version: 10.1.1
+version: 10.1.2
 kubeVersion: ">= 1.19.0-0"
-home: https://substra.org/
-icon: https://avatars.githubusercontent.com/u/84009910?s=200&v=4
+home: https://github.com/Substra
+icon: https://avatars.githubusercontent.com/u/84009910?s=400
 sources:
-  - https://github.com/SubstraFoundation/hlf-k8s
+  - https://github.com/Substra/hlf-k8s
 keywords:
   - substra
-maintainers:
-  - name: ClementGautier
-    email: clement@gautier.im
+  - hyperledger-fabric
 dependencies:
   - name: hlf-ca
     version: 2.1.0
