@@ -149,7 +149,7 @@ chaincodes:
     address: "chaincode-org-1-substra-chaincode-chaincode.org-1.svc.cluster.local"
     port: "7052"
     image:
-      repository: substrafoundation/substra-chaincode
+      repository: substra/orchestrator-chaincode
       tag: 0.3.0
       pullPolicy: IfNotPresent
 
@@ -165,18 +165,19 @@ appChannels:
 ### Test hlf-k8s with your own chaincode
 
 
-Example with substra-chaincode
+Example with substra/orchestrator
 
 ```bash
-git clone git@github.com:SubstraFoundation/substra-chaincode.git
+git clone git@github.com:Substra/orchestrator.git
 ```
 
-Make your edits to substra-chaincode.
+Make your edits to substra/orchestrator.
 
-Then build substra-chaincode image:
+Then build the image:
 
 ```bash
-docker build -t substrafoundation/substra-chaincode:my-tag ./
+docker build -f docker/orchestrator-chaincode/Dockerfile -t substra/orchestrator-chaincode:dev .
+docker build -f docker/orchestrator-chaincode-init/Dockerfile -t substra/orchestrator-chaincode-init:dev .
 ```
 
 *Note: If you use minikube, you need to run `eval $(minikube -p minikube docker-env)` first*
@@ -184,7 +185,7 @@ docker build -t substrafoundation/substra-chaincode:my-tag ./
 
 Finally, modify deployment values to use your chaincode image:
 
-For instance with `substrafoundation/substra-chaincode:my-tag`
+For instance with `substra/orchestrator-chaincode:my-tag`
 ```yaml
 chaincodes:
 - address: network-org-1-peer-1-hlf-k8s-chaincode-mycc.org-1.svc.cluster.local
@@ -192,7 +193,7 @@ chaincodes:
   port: 7052
   version: "1.0"
   image:
-    repository: substrafoundation/substra-chaincode
+    repository: substra/orchestrator-chaincode
     tag: my-tag
 ```
 
