@@ -14,8 +14,8 @@
 
 fabric-tools:
   image:
-    repository: gcr.io/connect-314908/fabric-tools
-    tag: master
+    repository: ghcr.io/substra/fabric-tools
+    tag: latest
     pullPolicy: IfNotPresent
     pullImageSecret: docker-config
 
@@ -204,8 +204,8 @@ hlf-peer:
   port: 7051
   image:
     # Use our own fabric-peer images with external chaincode binaries
-    repository: gcr.io/connect-314908/fabric-peer
-    tag: master
+    repository: ghcr.io/substra/fabric-peer
+    tag: latest
     pullImageSecret: docker-config
   persistence:
     enabled: true
