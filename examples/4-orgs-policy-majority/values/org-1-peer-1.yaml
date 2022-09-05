@@ -34,13 +34,13 @@ chaincodes:
     port: 7052
     version: "1.0"
     image:
-      repository: gcr.io/connect-314908/orchestrator-chaincode
+      repository: ghcr.io/substra/orchestrator-chaincode
       tag: latest
       pullPolicy: IfNotPresent
       pullImageSecret: docker-config
     init:
       image:
-        repository: gcr.io/connect-314908/orchestrator-chaincode-init
+        repository: ghcr.io/substra/orchestrator-chaincode-init
         tag: latest
 
 appChannels:
