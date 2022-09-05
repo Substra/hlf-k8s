@@ -1,11 +1,14 @@
 ---
-name: Publish image on GCR
+name: Publish docker images
 on:
   push:
     branches:
       - main
     tags:
       - '*'
+env:
+  REGISTRY: ghcr.io
+
 jobs:
   build:
     strategy:
@@ -25,18 +28,18 @@ jobs:
           echo "LATEST is set to false"
         fi
 
-    - name: Login to GCR
+    - name: Login to registry
       uses: docker/login-action@v2
       with:
-        registry: gcr.io
-        username: _json_key
-        password: ${{ secrets.GCP_SA_KEY }}
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Docker metadata
       id: docker-metadata
       uses: docker/metadata-action@v4
       with:
-        images: 'gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{matrix.docker-image}}'
+        images: '${{ env.REGISTRY }}/substra/${{matrix.docker-image}}'
         flavor: |
           latest=${{ env.LATEST }}
 
