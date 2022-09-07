@@ -16,12 +16,12 @@ apiVersion: skaffold/v2beta12
 kind: Config
 build:
   artifacts:
-    - image: substrafoundation/fabric-tools
+    - image: substra/fabric-tools
       context: ../../
       docker:
         dockerfile: docker/fabric-tools/Dockerfile
 
-    - image: substrafoundation/fabric-peer
+    - image: substra/fabric-peer
       context: ../../
       docker:
         dockerfile: docker/fabric-peer/Dockerfile
@@ -38,7 +38,7 @@ deploy:
         imageStrategy:
           helm: {}
         artifactOverrides:
-          fabric-tools.image: substrafoundation/fabric-tools
+          fabric-tools.image: substra/fabric-tools
 
       - name: network-org-1-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -48,8 +48,8 @@ deploy:
         imageStrategy:
           helm: {}
         artifactOverrides:
-          fabric-tools.image: substrafoundation/fabric-tools
-          hlf-peer.image: substrafoundation/fabric-peer
+          fabric-tools.image: substra/fabric-tools
+          hlf-peer.image: substra/fabric-peer
 
 
       - name: network-org-2-peer-1
@@ -60,8 +60,8 @@ deploy:
         imageStrategy:
           helm: {}
         artifactOverrides:
-          fabric-tools.image: substrafoundation/fabric-tools
-          hlf-peer.image: substrafoundation/fabric-peer
+          fabric-tools.image: substra/fabric-tools
+          hlf-peer.image: substra/fabric-peer
 
   # We create the serviceAccounts with the kubectl deployer to ensure the serviceAccounts will stay present for the Helm deletion hooks
   # By design Skaffold create and delete ressources in a fixed order (Helm > kubectl > kustomize)

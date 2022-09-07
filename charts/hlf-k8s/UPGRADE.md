@@ -22,7 +22,7 @@ chaincodes:
     port: 7052
     version: "1.0"
     image:
-      repository: substrafoundation/substra-chaincode
+      repository: substra/substra-chaincode
       tag: 0.1.1
       pullPolicy: IfNotPresent
 
@@ -49,7 +49,7 @@ chaincodes:
     port: 7052
     version: "1.0"
     image:
-      repository: substrafoundation/substra-chaincode
+      repository: substra/substra-chaincode
       tag: 0.1.1
       pullPolicy: IfNotPresent
 
