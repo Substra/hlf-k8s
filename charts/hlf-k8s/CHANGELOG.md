@@ -1,5 +1,10 @@
 # Changelog
 
+## 10.2.1
+
+### Changed
+- Updated documentation
+
 ## 10.2.0
 
 ### Changed
