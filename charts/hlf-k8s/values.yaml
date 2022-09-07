@@ -49,13 +49,13 @@ chaincodes: []
 #   port: "7052"
 #   logLevel: INFO
 #   image:
-#     repository: substrafoundation/substra-chaincode
+#     repository: substra/substra-chaincode
 #     tag: 0.3.0
 #     pullPolicy: IfNotPresent
 #     pullImageSecret: docker-config
 #   init:
 #     image:
-#       repository: substrafoundation/substra-chaincode-init
+#       repository: substra/substra-chaincode-init
 #       tag: 0.3.0
 
 

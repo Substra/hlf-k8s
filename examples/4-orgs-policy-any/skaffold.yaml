@@ -22,12 +22,12 @@ apiVersion: skaffold/v2beta12
 kind: Config
 build:
   artifacts:
-    - image: substrafoundation/fabric-tools
+    - image: substra/fabric-tools
       context: ../../
       docker:
         dockerfile: docker/fabric-tools/Dockerfile
 
-    - image: substrafoundation/fabric-peer
+    - image: substra/fabric-peer
       context: ../../
       docker:
         dockerfile: docker/fabric-peer/Dockerfile
@@ -44,7 +44,7 @@ deploy:
         imageStrategy:
           helm: {}
         artifactOverrides:
-          fabric-tools.image: substrafoundation/fabric-tools
+          fabric-tools.image: substra/fabric-tools
 
       - name: network-org-1-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -54,8 +54,8 @@ deploy:
         imageStrategy:
           helm: {}
         artifactOverrides:
-          fabric-tools.image: substrafoundation/fabric-tools
-          hlf-peer.image: substrafoundation/fabric-peer
+          fabric-tools.image: substra/fabric-tools
+          hlf-peer.image: substra/fabric-peer
 
       - name: network-org-2-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -65,8 +65,8 @@ deploy:
         imageStrategy:
           helm: {}
         artifactOverrides:
-          fabric-tools.image: substrafoundation/fabric-tools
-          hlf-peer.image: substrafoundation/fabric-peer
+          fabric-tools.image: substra/fabric-tools
+          hlf-peer.image: substra/fabric-peer
 
       - name: network-org-3-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -76,8 +76,8 @@ deploy:
         imageStrategy:
           helm: {}
         artifactOverrides:
-          fabric-tools.image: substrafoundation/fabric-tools
-          hlf-peer.image: substrafoundation/fabric-peer
+          fabric-tools.image: substra/fabric-tools
+          hlf-peer.image: substra/fabric-peer
 
       - name: network-org-4-peer-1
         chartPath: ../../charts/hlf-k8s
@@ -87,8 +87,8 @@ deploy:
         imageStrategy:
           helm: {}
         artifactOverrides:
-          fabric-tools.image: substrafoundation/fabric-tools
-          hlf-peer.image: substrafoundation/fabric-peer
+          fabric-tools.image: substra/fabric-tools
+          hlf-peer.image: substra/fabric-peer
 
   kubectl:
     manifests:
