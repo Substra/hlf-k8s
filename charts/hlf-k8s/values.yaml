@@ -15,9 +15,9 @@
 fabric-tools:
   image:
     repository: ghcr.io/substra/fabric-tools
-    tag: latest
+    tag: 0.2.2
     pullPolicy: IfNotPresent
-    pullImageSecret: docker-config
+    pullImageSecret: ""
 
 nodeSelector: {}
 
@@ -52,7 +52,7 @@ chaincodes: []
 #     repository: substra/substra-chaincode
 #     tag: 0.3.0
 #     pullPolicy: IfNotPresent
-#     pullImageSecret: docker-config
+#     pullImageSecret: ""
 #   init:
 #     image:
 #       repository: substra/substra-chaincode-init
@@ -205,8 +205,8 @@ hlf-peer:
   image:
     # Use our own fabric-peer images with external chaincode binaries
     repository: ghcr.io/substra/fabric-peer
-    tag: latest
-    pullImageSecret: docker-config
+    tag: 0.2.2
+    pullImageSecret: ""
   persistence:
     enabled: true
     size: 10Gi
