@@ -91,7 +91,7 @@ The following table lists the configurable parameters of the hlf-k8s chart and d
 | `systemChannel.organizations` | The organizations to add to the system channel. See [Add an organization to the system channel](#add-an-organization-to-the-system-channel). | `[]` |
 | **Common / Other** |  |  |
 | `fabric-tools.image.repository` | `fabric-tools` image repository | `gcr.io/connect-314908/fabric-tools` |
-| `fabric-tools.image.tag` | `fabric-tools` image tag | `latest` |
+| `fabric-tools.image.tag` | `fabric-tools` image tag | `0.2.2` |
 | `fabric-tools.image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `fabric-tools.image.pullImageSecret` | Image pull secret name | nil |
 | `nodeSelector` | Node labels for pod assignment | `{}` |
