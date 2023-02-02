@@ -16,7 +16,7 @@ apiVersion: skaffold/v4beta2
 kind: Config
 requires:
   - path: ../serviceAccounts/skaffold.yaml
-    config:
+    configs:
       # For chaincode secrets deletion
       - org-1+2
       # We create the serviceAccounts with the kubectl deployer to ensure the serviceAccounts will stay present for the Helm deletion hooks
