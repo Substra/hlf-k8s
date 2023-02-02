@@ -1,8 +1,32 @@
 apiVersion: skaffold/v4beta2
 kind: Config
 metadata:
-  name: setup-service-accounts
+  name: org-1+2
 manifests:
   rawYaml:
   - ./serviceAccount-org-1.yaml
   - ./serviceAccount-org-2.yaml
+---
+apiVersion: skaffold/v4beta2
+kind: Config
+metadata:
+  name: orderer
+manifests:
+  rawYaml:
+  - ./serviceAccount-orderer.yaml
+---
+apiVersion: skaffold/v4beta2
+kind: Config
+metadata:
+  name: org-3
+manifests:
+  rawYaml:
+  - ./serviceAccount-org-3.yaml
+---
+apiVersion: skaffold/v4beta2
+kind: Config
+metadata:
+  name: org-4
+manifests:
+  rawYaml:
+  - ./serviceAccount-org-4.yaml

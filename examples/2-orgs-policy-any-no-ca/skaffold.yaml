@@ -12,63 +12,59 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-apiVersion: skaffold/v2beta12
+apiVersion: skaffold/v4beta2
 kind: Config
+requires:
+  - path: ../serviceAccounts/skaffold.yaml
+    configs:
+      # For chaincode secrets deletion
+      - org-1+2
+  - path: ../secrets/skaffold.yaml
 build:
   artifacts:
-    - image: substra/fabric-tools
-      context: ../../
-      docker:
-        dockerfile: docker/fabric-tools/Dockerfile
-
-    - image: substra/fabric-peer
-      context: ../../
-      docker:
-        dockerfile: docker/fabric-peer/Dockerfile
-
-deploy:
-  statusCheckDeadlineSeconds: 300
+  - image: substra/fabric-tools
+    context: ../../
+    docker:
+      dockerfile: docker/fabric-tools/Dockerfile
+  - image: substra/fabric-peer
+    context: ../../
+    docker:
+      dockerfile: docker/fabric-peer/Dockerfile
+manifests:
   helm:
     releases:
-      - name: network-orderer
-        chartPath: ../../charts/hlf-k8s
-        namespace: orderer
-        createNamespace: true
-        valuesFiles: [values/orderer.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-
-      - name: network-org-1-peer-1
-        chartPath: ../../charts/hlf-k8s
-        namespace: org-1
-        createNamespace: true
-        valuesFiles: [values/org-1-peer-1.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-          hlf-peer.image: substra/fabric-peer
-
-      - name: network-org-2-peer-1
-        chartPath: ../../charts/hlf-k8s
-        namespace: org-2
-        createNamespace: true
-        valuesFiles: [values/org-2-peer-1.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-          hlf-peer.image: substra/fabric-peer
-
-  kubectl:
-    manifests:
-      - ../secrets/secrets-orderer-genesis.yaml
-      - ../secrets/secrets-orderer.yaml
-      - ../secrets/secrets-org-1.yaml
-      - ../secrets/secrets-org-2.yaml
-      # For chaincode secrets deletion
-      - ../serviceAccounts/serviceAccount-org-1.yaml
-      - ../serviceAccounts/serviceAccount-org-2.yaml
-
+    - name: network-orderer
+      chartPath: ../../charts/hlf-k8s
+      valuesFiles:
+      - values/orderer.yaml
+      namespace: orderer
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+      createNamespace: true
+    - name: network-org-1-peer-1
+      chartPath: ../../charts/hlf-k8s
+      valuesFiles:
+      - values/org-1-peer-1.yaml
+      namespace: org-1
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+        hlf-peer.image.repository: '{{.IMAGE_REPO_substra_fabric_peer}}'
+        hlf-peer.image.tag: '{{.IMAGE_TAG_substra_fabric_peer}}@{{.IMAGE_DIGEST_substra_fabric_peer}}'
+      createNamespace: true
+    - name: network-org-2-peer-1
+      chartPath: ../../charts/hlf-k8s
+      valuesFiles:
+      - values/org-2-peer-1.yaml
+      namespace: org-2
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+        hlf-peer.image.repository: '{{.IMAGE_REPO_substra_fabric_peer}}'
+        hlf-peer.image.tag: '{{.IMAGE_TAG_substra_fabric_peer}}@{{.IMAGE_DIGEST_substra_fabric_peer}}'
+      createNamespace: true
+deploy:
+  helm: {}
+  kubectl: {}
+  statusCheckDeadlineSeconds: 300

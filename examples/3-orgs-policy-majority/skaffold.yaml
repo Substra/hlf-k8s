@@ -18,70 +18,70 @@
 #   application channel policy ("MAJORITY")
 #
 ---
-apiVersion: skaffold/v2beta12
+requires:
+  - path: ../serviceAccounts/skaffold.yaml
+    configs:
+      - org-1+2
+      - org-3
+      - orderer
+apiVersion: skaffold/v4beta2
 kind: Config
 build:
   artifacts:
-    - image: substra/fabric-tools
-      context: ../../
-      docker:
-        dockerfile: docker/fabric-tools/Dockerfile
+  - image: substra/fabric-tools
+    context: ../../
+    docker:
+      dockerfile: docker/fabric-tools/Dockerfile
+  - image: substra/fabric-peer
+    context: ../../
+    docker:
+      dockerfile: docker/fabric-peer/Dockerfile
 
-    - image: substra/fabric-peer
-      context: ../../
-      docker:
-        dockerfile: docker/fabric-peer/Dockerfile
-
-deploy:
-  statusCheckDeadlineSeconds: 300
   helm:
     releases:
-      - name: network-orderer
-        chartPath: ../../charts/hlf-k8s
-        namespace: orderer
-        createNamespace: true
-        valuesFiles: [values/orderer.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-
-      - name: network-org-1-peer-1
-        chartPath: ../../charts/hlf-k8s
-        namespace: org-1
-        createNamespace: true
-        valuesFiles: [values/org-1-peer-1.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-          hlf-peer.image: substra/fabric-peer
-
-      - name: network-org-2-peer-1
-        chartPath: ../../charts/hlf-k8s
-        namespace: org-2
-        createNamespace: true
-        valuesFiles: [values/org-2-peer-1.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-          hlf-peer.image: substra/fabric-peer
-
-      - name: network-org-3-peer-1
-        chartPath: ../../charts/hlf-k8s
-        namespace: org-3
-        createNamespace: true
-        valuesFiles: [values/org-3-peer-1.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-          hlf-peer.image: substra/fabric-peer
-
-  kubectl:
-    manifests:
-      - ../serviceAccounts/serviceAccount-orderer.yaml
-      - ../serviceAccounts/serviceAccount-org-1.yaml
-      - ../serviceAccounts/serviceAccount-org-2.yaml
-      - ../serviceAccounts/serviceAccount-org-3.yaml
+    - name: network-orderer
+      chartPath: ../../charts/hlf-k8s
+      valuesFiles:
+      - values/orderer.yaml
+      namespace: orderer
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+      createNamespace: true
+    - name: network-org-1-peer-1
+      chartPath: ../../charts/hlf-k8s
+      valuesFiles:
+      - values/org-1-peer-1.yaml
+      namespace: org-1
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+        hlf-peer.image.repository: '{{.IMAGE_REPO_substra_fabric_peer}}'
+        hlf-peer.image.tag: '{{.IMAGE_TAG_substra_fabric_peer}}@{{.IMAGE_DIGEST_substra_fabric_peer}}'
+      createNamespace: true
+    - name: network-org-2-peer-1
+      chartPath: ../../charts/hlf-k8s
+      valuesFiles:
+      - values/org-2-peer-1.yaml
+      namespace: org-2
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+        hlf-peer.image.repository: '{{.IMAGE_REPO_substra_fabric_peer}}'
+        hlf-peer.image.tag: '{{.IMAGE_TAG_substra_fabric_peer}}@{{.IMAGE_DIGEST_substra_fabric_peer}}'
+      createNamespace: true
+    - name: network-org-3-peer-1
+      chartPath: ../../charts/hlf-k8s
+      valuesFiles:
+      - values/org-3-peer-1.yaml
+      namespace: org-3
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+        hlf-peer.image.repository: '{{.IMAGE_REPO_substra_fabric_peer}}'
+        hlf-peer.image.tag: '{{.IMAGE_TAG_substra_fabric_peer}}@{{.IMAGE_DIGEST_substra_fabric_peer}}'
+      createNamespace: true
+deploy:
+  helm: {}
+  kubectl: {}
+  statusCheckDeadlineSeconds: 300

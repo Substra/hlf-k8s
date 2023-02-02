@@ -14,6 +14,8 @@ build:
 requires:
   - path: examples/secrets/skaffold.yaml
   - path: examples/serviceAccounts/skaffold.yaml
+    configs: 
+      - org-1+2
 
 manifests:
   helm:
