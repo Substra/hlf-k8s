@@ -1,0 +1,8 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+metadata:
+  name: setup-service-accounts
+manifests:
+  rawYaml:
+  - ./serviceAccount-org-1.yaml
+  - ./serviceAccount-org-2.yaml

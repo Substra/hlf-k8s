@@ -10,14 +10,12 @@ build:
     context: .
     docker:
       dockerfile: docker/fabric-peer/Dockerfile
+  
+requires:
+  - path: examples/secrets/skaffold.yaml
+  - path: examples/serviceAccounts/skaffold.yaml
+
 manifests:
-  rawYaml:
-  - examples/secrets/secrets-orderer-genesis.yaml
-  - examples/secrets/secrets-orderer.yaml
-  - examples/secrets/secrets-org-1.yaml
-  - examples/secrets/secrets-org-2.yaml
-  - examples/serviceAccounts/serviceAccount-org-1.yaml
-  - examples/serviceAccounts/serviceAccount-org-2.yaml
   helm:
     releases:
     - name: network-orderer
@@ -55,8 +53,8 @@ manifests:
       skipBuildDependencies: true
 deploy:
   helm: {}
-  kubectl: {}
   statusCheckDeadlineSeconds: 300
+
 profiles:
 - name: nodeps
   patches:
