@@ -2,10 +2,6 @@ organization:
   id: MyOrg2MSP
   name: MyOrg2
 
-fabric-tools:
-  image:
-    pullImageSecret: docker-config
-
 hlf-ca:
   enabled: false
   caName: rcaOrg2
@@ -18,8 +14,6 @@ hlf-ord:
 
 hlf-peer:
   host: network-org-2-peer-1-hlf-peer.org-2.svc.cluster.local
-  image:
-    pullImageSecret: docker-config
   peer:
     couchdbSecret: network-org-2-peer-1-hlf-k8s-couchdb-credentials
     couchdbService: network-org-2-peer-1-svc-couchdb.org-2.svc.cluster.local
@@ -39,7 +33,6 @@ chaincodes:
       repository: ghcr.io/substra/orchestrator-chaincode
       tag: latest
       pullPolicy: IfNotPresent
-      pullImageSecret: docker-config
     init:
       image:
         repository: ghcr.io/substra/orchestrator-chaincode-init
@@ -52,7 +45,6 @@ chaincodes:
       repository: ghcr.io/substra/orchestrator-chaincode
       tag: latest
       pullPolicy: IfNotPresent
-      pullImageSecret: docker-config
     init:
       image:
         repository: ghcr.io/substra/orchestrator-chaincode-init
