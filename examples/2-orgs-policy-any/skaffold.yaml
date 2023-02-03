@@ -33,7 +33,9 @@ build:
     context: ../../
     docker:
       dockerfile: docker/fabric-peer/Dockerfile
-manifests:
+
+# FIXME: Replace `deploy` by `manifests` when these functions are refactored https://github.com/owkin/substra-ci/blob/main/ci/deploy.py#L89 and https://github.com/owkin/substra-ci/blob/main/ci/deploy.py#L141
+deploy:
   helm:
     releases:
     - name: network-orderer
@@ -67,7 +69,4 @@ manifests:
         hlf-peer.image.repository: '{{.IMAGE_REPO_substra_fabric_peer}}'
         hlf-peer.image.tag: '{{.IMAGE_TAG_substra_fabric_peer}}@{{.IMAGE_DIGEST_substra_fabric_peer}}'
       createNamespace: true
-deploy:
-  helm: {}
-  kubectl: {}
   statusCheckDeadlineSeconds: 300

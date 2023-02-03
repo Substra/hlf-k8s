@@ -18,14 +18,14 @@
 #   application channel policy ("MAJORITY")
 #
 ---
+apiVersion: skaffold/v4beta2
+kind: Config
 requires:
   - path: ../serviceAccounts/skaffold.yaml
     configs:
       - org-1+2
       - org-3
       - orderer
-apiVersion: skaffold/v4beta2
-kind: Config
 build:
   artifacts:
   - image: substra/fabric-tools

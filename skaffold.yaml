@@ -17,7 +17,8 @@ requires:
     configs: 
       - org-1+2
 
-manifests:
+# FIXME: Replace `deploy` by `manifests` when these functions are refactored https://github.com/owkin/substra-ci/blob/main/ci/deploy.py#L89 and https://github.com/owkin/substra-ci/blob/main/ci/deploy.py#L141
+deploy:
   helm:
     releases:
     - name: network-orderer
@@ -53,20 +54,18 @@ manifests:
         hlf-peer.image.tag: '{{.IMAGE_TAG_substra_fabric_peer}}@{{.IMAGE_DIGEST_substra_fabric_peer}}'
       createNamespace: true
       skipBuildDependencies: true
-deploy:
-  helm: {}
   statusCheckDeadlineSeconds: 300
 
 profiles:
 - name: nodeps
   patches:
   - op: add
-    path: /manifests/helm/releases/0/skipBuildDependencies
+    path: /deploy/helm/releases/0/skipBuildDependencies
     value: true
 - name: single-org
   patches:
   - op: remove
-    path: /manifests/helm/releases/2
+    path: /deploy/helm/releases/2
     # Removes the org-2 manifests, at indexes 3 and 5.
     # we remove index 5 first because starting with index 3 turns index 5 into index 4 and that's
     # confusing.
