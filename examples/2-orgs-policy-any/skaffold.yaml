@@ -12,62 +12,61 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-apiVersion: skaffold/v2beta12
+apiVersion: skaffold/v4beta2
 kind: Config
+requires:
+  - path: ../serviceAccounts/skaffold.yaml
+    configs:
+      # For chaincode secrets deletion
+      - org-1+2
+      # We create the serviceAccounts with the kubectl deployer to ensure the serviceAccounts will stay present for the Helm deletion hooks
+      # By design Skaffold create and delete ressources in a fixed order (Helm > kubectl > kustomize)
+      # Ref: https://github.com/GoogleContainerTools/skaffold/blob/dedd545/pkg/skaffold/runner/new.go#L191-L214 (func getDeployer)
+      - orderer
 build:
   artifacts:
-    - image: substra/fabric-tools
-      context: ../../
-      docker:
-        dockerfile: docker/fabric-tools/Dockerfile
+  - image: substra/fabric-tools
+    context: ../../
+    docker:
+      dockerfile: docker/fabric-tools/Dockerfile
+  - image: substra/fabric-peer
+    context: ../../
+    docker:
+      dockerfile: docker/fabric-peer/Dockerfile
 
-    - image: substra/fabric-peer
-      context: ../../
-      docker:
-        dockerfile: docker/fabric-peer/Dockerfile
-
+# FIXME: Replace `deploy` by `manifests` when these functions are refactored https://github.com/owkin/substra-ci/blob/main/ci/deploy.py#L89 and https://github.com/owkin/substra-ci/blob/main/ci/deploy.py#L141
 deploy:
-  statusCheckDeadlineSeconds: 300
   helm:
     releases:
-      - name: network-orderer
-        chartPath: ../../charts/hlf-k8s
-        namespace: orderer
-        createNamespace: true
-        valuesFiles: [values/orderer.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-
-      - name: network-org-1-peer-1
-        chartPath: ../../charts/hlf-k8s
-        namespace: org-1
-        createNamespace: true
-        valuesFiles: [values/org-1-peer-1.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-          hlf-peer.image: substra/fabric-peer
-
-
-      - name: network-org-2-peer-1
-        chartPath: ../../charts/hlf-k8s
-        namespace: org-2
-        createNamespace: true
-        valuesFiles: [values/org-2-peer-1.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-          hlf-peer.image: substra/fabric-peer
-
-  # We create the serviceAccounts with the kubectl deployer to ensure the serviceAccounts will stay present for the Helm deletion hooks
-  # By design Skaffold create and delete ressources in a fixed order (Helm > kubectl > kustomize)
-  # Ref: https://github.com/GoogleContainerTools/skaffold/blob/dedd545/pkg/skaffold/runner/new.go#L191-L214 (func getDeployer)
-  kubectl:
-    manifests:
-      - ../serviceAccounts/serviceAccount-orderer.yaml
-      - ../serviceAccounts/serviceAccount-org-1.yaml
-      - ../serviceAccounts/serviceAccount-org-2.yaml
+    - name: network-orderer
+      chartPath: ../../charts/hlf-k8s
+      valuesFiles:
+      - values/orderer.yaml
+      namespace: orderer
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+      createNamespace: true
+    - name: network-org-1-peer-1
+      chartPath: ../../charts/hlf-k8s
+      valuesFiles:
+      - values/org-1-peer-1.yaml
+      namespace: org-1
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+        hlf-peer.image.repository: '{{.IMAGE_REPO_substra_fabric_peer}}'
+        hlf-peer.image.tag: '{{.IMAGE_TAG_substra_fabric_peer}}@{{.IMAGE_DIGEST_substra_fabric_peer}}'
+      createNamespace: true
+    - name: network-org-2-peer-1
+      chartPath: ../../charts/hlf-k8s
+      valuesFiles:
+      - values/org-2-peer-1.yaml
+      namespace: org-2
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+        hlf-peer.image.repository: '{{.IMAGE_REPO_substra_fabric_peer}}'
+        hlf-peer.image.tag: '{{.IMAGE_TAG_substra_fabric_peer}}@{{.IMAGE_DIGEST_substra_fabric_peer}}'
+      createNamespace: true
+  statusCheckDeadlineSeconds: 300

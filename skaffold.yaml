@@ -1,95 +1,75 @@
-# Copyright 2018-2022 Owkin, inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
----
-apiVersion: skaffold/v2beta12
+apiVersion: skaffold/v4beta2
 kind: Config
 build:
   artifacts:
-    - image: substra/fabric-tools
-      context: .
-      docker:
-        dockerfile: docker/fabric-tools/Dockerfile
+  - image: substra/fabric-tools
+    context: .
+    docker:
+      dockerfile: docker/fabric-tools/Dockerfile
+  - image: substra/fabric-peer
+    context: .
+    docker:
+      dockerfile: docker/fabric-peer/Dockerfile
+  
+requires:
+  - path: examples/secrets/skaffold.yaml
+  - path: examples/serviceAccounts/skaffold.yaml
+    configs: 
+      - org-1+2
 
-    - image: substra/fabric-peer
-      context: .
-      docker:
-        dockerfile: docker/fabric-peer/Dockerfile
-
+# FIXME: Replace `deploy` by `manifests` when these functions are refactored https://github.com/owkin/substra-ci/blob/main/ci/deploy.py#L89 and https://github.com/owkin/substra-ci/blob/main/ci/deploy.py#L141
 deploy:
-  statusCheckDeadlineSeconds: 300
   helm:
     releases:
-      - name: network-orderer
-        chartPath: charts/hlf-k8s
-        namespace: orderer
-        createNamespace: true
-        valuesFiles: [examples/2-orgs-policy-any-no-ca/values/orderer.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-
-      - name: network-org-1-peer-1
-        skipBuildDependencies: true # deps already built by orderer release
-        chartPath: charts/hlf-k8s
-        namespace: org-1
-        createNamespace: true
-        valuesFiles: [examples/2-orgs-policy-any-no-ca/values/org-1-peer-1.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-          hlf-peer.image: substra/fabric-peer
-
-      - name: network-org-2-peer-1
-        skipBuildDependencies: true # deps already built by orderer release
-        chartPath: charts/hlf-k8s
-        namespace: org-2
-        createNamespace: true
-        valuesFiles: [examples/2-orgs-policy-any-no-ca/values/org-2-peer-1.yaml]
-        imageStrategy:
-          helm: {}
-        artifactOverrides:
-          fabric-tools.image: substra/fabric-tools
-          hlf-peer.image: substra/fabric-peer
-
-
-  kubectl:
-    manifests:
-      - examples/secrets/secrets-orderer-genesis.yaml
-      - examples/secrets/secrets-orderer.yaml
-      - examples/secrets/secrets-org-1.yaml
-      - examples/secrets/secrets-org-2.yaml
-      # For chaincode secrets deletion
-      - examples/serviceAccounts/serviceAccount-org-1.yaml
-      - examples/serviceAccounts/serviceAccount-org-2.yaml
+    - name: network-orderer
+      chartPath: charts/hlf-k8s
+      valuesFiles:
+      - examples/2-orgs-policy-any-no-ca/values/orderer.yaml
+      namespace: orderer
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+      createNamespace: true
+    - name: network-org-1-peer-1
+      chartPath: charts/hlf-k8s
+      valuesFiles:
+      - examples/2-orgs-policy-any-no-ca/values/org-1-peer-1.yaml
+      namespace: org-1
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+        hlf-peer.image.repository: '{{.IMAGE_REPO_substra_fabric_peer}}'
+        hlf-peer.image.tag: '{{.IMAGE_TAG_substra_fabric_peer}}@{{.IMAGE_DIGEST_substra_fabric_peer}}'
+      createNamespace: true
+      skipBuildDependencies: true
+    - name: network-org-2-peer-1
+      chartPath: charts/hlf-k8s
+      valuesFiles:
+      - examples/2-orgs-policy-any-no-ca/values/org-2-peer-1.yaml
+      namespace: org-2
+      setValueTemplates:
+        fabric-tools.image.repository: '{{.IMAGE_REPO_substra_fabric_tools}}'
+        fabric-tools.image.tag: '{{.IMAGE_TAG_substra_fabric_tools}}@{{.IMAGE_DIGEST_substra_fabric_tools}}'
+        hlf-peer.image.repository: '{{.IMAGE_REPO_substra_fabric_peer}}'
+        hlf-peer.image.tag: '{{.IMAGE_TAG_substra_fabric_peer}}@{{.IMAGE_DIGEST_substra_fabric_peer}}'
+      createNamespace: true
+      skipBuildDependencies: true
+  statusCheckDeadlineSeconds: 300
 
 profiles:
 - name: nodeps
   patches:
-    - op: add
-      path: /deploy/helm/releases/0/skipBuildDependencies
-      value: true
+  - op: add
+    path: /deploy/helm/releases/0/skipBuildDependencies
+    value: true
 - name: single-org
   patches:
-    - op: remove
-      path: /deploy/helm/releases/2
-
+  - op: remove
+    path: /deploy/helm/releases/2
     # Removes the org-2 manifests, at indexes 3 and 5.
     # we remove index 5 first because starting with index 3 turns index 5 into index 4 and that's
     # confusing.
-    - op: remove
-      path: /deploy/kubectl/manifests/5
-    - op: remove
-      path: /deploy/kubectl/manifests/3
+  - op: remove
+    path: /manifests/rawYaml/manifests/5
+  - op: remove
+    path: /manifests/rawYaml/manifests/3
