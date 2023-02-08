@@ -15,7 +15,7 @@
 fabric-tools:
   image:
     repository: ghcr.io/substra/fabric-tools
-    tag: 0.2.2
+    tag: 0.2.3
     pullPolicy: IfNotPresent
     pullImageSecret: ""
 
@@ -205,7 +205,7 @@ hlf-peer:
   image:
     # Use our own fabric-peer images with external chaincode binaries
     repository: ghcr.io/substra/fabric-peer
-    tag: 0.2.2
+    tag: 0.2.3
     pullImageSecret: ""
   persistence:
     enabled: true
