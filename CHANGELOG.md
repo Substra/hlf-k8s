@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Update libcurl in fabric-tools image ([#151](https://github.com/Substra/hlf-k8s/pull/151))
+
 ## [0.2.3] - 2023-02-06
+
 ### Added
 
 - Contributing, contributors & code of conduct files (#145)
