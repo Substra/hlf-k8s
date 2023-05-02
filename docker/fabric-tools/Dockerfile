@@ -1,8 +1,10 @@
 FROM hyperledger/fabric-tools:2.4
 
+# avoid the shell swallowing errors
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+
 # Install curl and netcat
-RUN apk update && \
-  apk add curl netcat-openbsd vim libc6-compat && \
+RUN apk --no-cache add curl netcat-openbsd vim libc6-compat && \
   apk upgrade libcurl
 
 # Install fabric-ca-client
