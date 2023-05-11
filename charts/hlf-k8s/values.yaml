@@ -15,7 +15,7 @@
 fabric-tools:
   image:
     repository: ghcr.io/substra/fabric-tools
-    tag: 0.2.3
+    tag: 0.2.4
     pullPolicy: IfNotPresent
     pullImageSecret: ""
 
@@ -58,69 +58,68 @@ chaincodes: []
 #       repository: substra/substra-chaincode-init
 #       tag: 0.3.0
 
-
 appChannels:
-- channelName: mychannel
+  - channelName: mychannel
 
-  ## The organizations to add to the application channel (see README)
-  organizations: []
-  # - { org: Org1, mspid: Org1MSP, configUrl: peer-1-org-config-operator.org-1.svc.cluster.local/config/configOrgWithAnchors.json }
-  # - { org: Org2, mspid: Org2MSP, configUrl: peer-2-org-config-operator.org-2.svc.cluster.local/config/configOrgWithAnchors.json }
+    ## The organizations to add to the application channel (see README)
+    organizations: []
+    # - { org: Org1, mspid: Org1MSP, configUrl: peer-1-org-config-operator.org-1.svc.cluster.local/config/configOrgWithAnchors.json }
+    # - { org: Org2, mspid: Org2MSP, configUrl: peer-2-org-config-operator.org-2.svc.cluster.local/config/configOrgWithAnchors.json }
 
-  ## The organizations to fetch signed proposals from (see README)
-  proposalOrganizations: []
-  # - { org: Org1, mspid: Org1MSP, proposalServerUrl: peer-1-org-appchannel-operator-mychannel.org-1.svc.cluster.local/proposal/ }
-  # - { org: Org2, mspid: Org2MSP, proposalServerUrl: peer-2-org-appchannel-operator-mychannel.org-2.svc.cluster.local/proposal/ }
+    ## The organizations to fetch signed proposals from (see README)
+    proposalOrganizations: []
+    # - { org: Org1, mspid: Org1MSP, proposalServerUrl: peer-1-org-appchannel-operator-mychannel.org-1.svc.cluster.local/proposal/ }
+    # - { org: Org2, mspid: Org2MSP, proposalServerUrl: peer-2-org-appchannel-operator-mychannel.org-2.svc.cluster.local/proposal/ }
 
-  channelPolicies: |-
-    Readers:
-        Type: ImplicitMeta
-        Rule: "ANY Readers"
-    Writers:
-        Type: ImplicitMeta
-        Rule: "ANY Writers"
-    Admins:
-        Type: ImplicitMeta
-        Rule: "ANY Admins"
+    channelPolicies: |-
+      Readers:
+          Type: ImplicitMeta
+          Rule: "ANY Readers"
+      Writers:
+          Type: ImplicitMeta
+          Rule: "ANY Writers"
+      Admins:
+          Type: ImplicitMeta
+          Rule: "ANY Admins"
 
-  appPolicies: |-
-    LifecycleEndorsement:
-        Type: ImplicitMeta
-        Rule: "ANY Endorsement"
-    Endorsement:
-        Type: ImplicitMeta
-        Rule: "MAJORITY Endorsement"
-    Readers:
-        Type: ImplicitMeta
-        Rule: "ANY Readers"
-    Writers:
-        Type: ImplicitMeta
-        Rule: "ANY Writers"
-    Admins:
-        Type: ImplicitMeta
-        Rule: "MAJORITY Admins"
+    appPolicies: |-
+      LifecycleEndorsement:
+          Type: ImplicitMeta
+          Rule: "ANY Endorsement"
+      Endorsement:
+          Type: ImplicitMeta
+          Rule: "MAJORITY Endorsement"
+      Readers:
+          Type: ImplicitMeta
+          Rule: "ANY Readers"
+      Writers:
+          Type: ImplicitMeta
+          Rule: "ANY Writers"
+      Admins:
+          Type: ImplicitMeta
+          Rule: "MAJORITY Admins"
 
-  chaincodes: []
-  # - name: mycc
-  #   policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
-  #   version: "1.0"
-  #   sequence: "1"
+    chaincodes: []
+    # - name: mycc
+    #   policy: "OR('MyOrg1MSP.member','MyOrg2MSP.member')"
+    #   version: "1.0"
+    #   sequence: "1"
 
-  ingress:
-    enabled: false
-    # ingressClassName:
-    # pathType: ImplementationSpecific
-    # annotations:
-    #   cert-manager.io/cluster-issuer: letsencrypt-prod
-    #   cert-manager.io/http01-edit-in-place: "true"
-    #   nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
-    #   nginx.ingress.kubernetes.io/proxy-body-size: 100m
-    # tls:
-    #   - secretName: config-server-tls-cert
-    #     hosts:
-    #       - peer-1-peer-appchannel-operator.org-1
-    # hosts:
-    #   - { host: peer-1-peer-appchannel-operator.org-1, paths: ["/mychannel/proposals"] }
+    ingress:
+      enabled: false
+      # ingressClassName:
+      # pathType: ImplementationSpecific
+      # annotations:
+      #   cert-manager.io/cluster-issuer: letsencrypt-prod
+      #   cert-manager.io/http01-edit-in-place: "true"
+      #   nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+      #   nginx.ingress.kubernetes.io/proxy-body-size: 100m
+      # tls:
+      #   - secretName: config-server-tls-cert
+      #     hosts:
+      #       - peer-1-peer-appchannel-operator.org-1
+      # hosts:
+      #   - { host: peer-1-peer-appchannel-operator.org-1, paths: ["/mychannel/proposals"] }
 
 configOperator:
   ingress:
@@ -139,7 +138,6 @@ configOperator:
     #       - peer-1-peer-config-operator.org-1
     # hosts:
     #   - { host: peer-1-peer-config-operator.org-1, paths: ["/"] }
-
 
 organization:
   id: MyOrganizationMSP
@@ -183,8 +181,7 @@ hlf-ca:
 hlf-peer:
   peer:
     docker:
-      enabled:
-        false
+      enabled: false
     databaseType: CouchDB
     couchdbSecret: hlf-couchdb-credentials
     couchdbService: cdb-peer
@@ -205,7 +202,7 @@ hlf-peer:
   image:
     # Use our own fabric-peer images with external chaincode binaries
     repository: ghcr.io/substra/fabric-peer
-    tag: 0.2.3
+    tag: 0.2.4
     pullImageSecret: ""
   persistence:
     enabled: true
@@ -240,8 +237,6 @@ hlf-peer:
     ## This should include the Orderer TLS 'cacert.pem'
     ordTlsRootCert: ord-tls-rootcert
 
-
-
 couchdb:
   clusterSize: 1
   service:
@@ -258,7 +253,6 @@ couchdb:
     couchdb:
       # Since version 3.0.0 setting the CouchDB server instance UUID is mandatory
       uuid: d3cefce1-8736-41ef-8468-27bf6cd035ec # should be replaced in production
-
 
 hlf-ord:
   enabled: false
@@ -349,14 +343,12 @@ secrets:
   # This should include the Orderer TLS 'cacert.pem'
   ordTlsRootCert: ord-tls-rootcert
 
-
 privateCa:
   enabled: false
   configMap:
     name: private-ca
-#    data: nil
+    #    data: nil
     fileName: private-ca.crt
-
 
 enrollments:
   creds: []
