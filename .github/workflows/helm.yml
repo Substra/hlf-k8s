@@ -17,7 +17,7 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: azure/setup-helm@v3.5
         with:
           version: "v3.5.0"
@@ -46,7 +46,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: test
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: azure/setup-helm@v3.5
         with:
@@ -61,7 +61,7 @@ jobs:
           helm package charts/hlf-k8s
 
       - name: Clone Substra charts
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: Substra/charts
           ref: 'main'
