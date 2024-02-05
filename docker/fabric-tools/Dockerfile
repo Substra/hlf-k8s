@@ -1,4 +1,4 @@
-FROM hyperledger/fabric-tools:2.4
+FROM hyperledger/fabric-tools:2.5
 
 # avoid the shell swallowing errors
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
