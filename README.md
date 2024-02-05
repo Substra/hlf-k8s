@@ -1,3 +1,9 @@
+**Repository archived on 2024-02-05.**
+
+**This repository is not maintained anymore. The last Substra version using this repository is Susbtra 0.34.0. Please refer to the [documentation](https://docs.substra.org/en/stable/additional/release.html) to see compatible versions.**
+
+___
+
 # HLF k8s [![Helm](https://github.com/Substra/hlf-k8s/actions/workflows/helm.yml/badge.svg)](https://github.com/Substra/hlf-k8s/actions/workflows/helm.yml)
 
 HLF-k8s is a network of [Hyperledger Fabric](https://hyperledger-fabric.readthedocs.io/en/latest/) orderers and peers forming a permissioned blockchain.
